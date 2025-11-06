@@ -36,8 +36,6 @@ A production-style reverse-proxy gateway that enforces least-privilege policies 
 - Go 1.21 or later ([Install Go](https://go.dev/doc/install))
 - Docker and Docker Compose (optional, for containerized deployment)
 
-**Note**: If Go is not installed, you can still use Docker Compose to run the entire stack.
-
 ### Local Development
 
 1. **Install dependencies**:
@@ -64,22 +62,12 @@ A production-style reverse-proxy gateway that enforces least-privilege policies 
 
 ### Docker Deployment
 
-The project includes Docker Compose configuration for a full stack deployment:
-
 1. **Build and run**:
    ```bash
    docker-compose up --build
    ```
 
-   This starts:
-   - Gateway service (port 8080)
-   - Payments service (port 8081)
-   - Files service (port 8082)
-   - Optional OTLP collector (port 4318)
-
 2. **Run the demo** (same commands as above)
-
-**Note**: For local development, all services run in a single process. For production, services should be deployed separately for better scalability and isolation.
 
 ## API Reference
 
@@ -237,74 +225,25 @@ Policies are automatically reloaded when files in the `./policies/` directory ch
 
 Invalid policy files are logged but don't crash the service, allowing other valid policies to continue working.
 
-## Development
-
-### Building
+## Building
 
 ```bash
 go build -o aegis ./cmd/aegis
 ```
 
-### Testing
+## Development
 
-The project includes comprehensive unit and integration tests. You can run tests in two ways:
+### Running Locally
 
-#### Option 1: Docker (Recommended - No Go Installation Required)
-
-**Run all tests using Docker:**
 ```bash
-# Linux/Mac
-chmod +x run_tests_docker.sh
-./run_tests_docker.sh
-
-# Windows PowerShell
-.\run_tests_docker.ps1
-```
-
-This will:
-- ✅ Run all unit tests in Docker containers
-- ✅ Run integration tests with full stack
-- ✅ Generate coverage reports
-- ✅ No Go installation needed!
-
-#### Option 2: Local Go Installation
-
-**Run all tests locally:**
-```bash
-# Linux/Mac
-chmod +x run_tests.sh
-./run_tests.sh
-
-# Windows PowerShell
-.\run_tests.ps1
-```
-
-**Run unit tests only:**
-```bash
-go test ./...
-go test -v ./...              # Verbose output
-go test -cover ./...          # With coverage
-```
-
-**Run integration tests:**
-```bash
-# Start gateway first (in one terminal)
 go run cmd/aegis/main.go
-
-# Run integration tests (in another terminal)
-chmod +x test_integration.sh
-./test_integration.sh
-
-# Or on Windows
-.\test_integration.ps1
 ```
 
-**Run demo script:**
+### Using Docker
+
 ```bash
-./scripts/demo.sh
+docker-compose up --build
 ```
-
-For detailed testing documentation, see [TESTING.md](TESTING.md).
 
 ## Extending
 
@@ -322,4 +261,3 @@ For detailed testing documentation, see [TESTING.md](TESTING.md).
 ## License
 
 This project is created for the Aegis Gateway coding test.
-
