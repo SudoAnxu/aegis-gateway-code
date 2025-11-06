@@ -1,0 +1,10 @@
+version: 1
+agents:
+  - id: finance-agent
+    allow:
+      - tool: payments
+        actions: [create, refund]
+        conditions:
+          max_amount: 5000
+          currencies: [USD, EUR]
+

@@ -1,0 +1,154 @@
+Aegis Gateway — Coding Test 
+Goal 
+A small, production-style service that enforces least-privilege policies on agent → tool calls and emits audit-grade telemetry. Must include:
+Reverse-proxy gateway that sits between “agents” and “tools”
+Policy-as-code (YAML) with hot-reload and condition checks
+Two mock tools (payments and files) with simple, realistic APIs
+Structured telemetry (OpenTelemetry spans + JSON audit logs)
+Reproducible demo showing both allowed and blocked flows
+Keep it clean, secure, and scalable (code/layout/infra) 
+
+Scope (exact test deliverables)
+1) Reverse-Proxy Gateway (core)
+Endpoint: POST /tools/:tool/:action
+Required headers:
+X-Agent-ID (the caller’s identity)
+X-Parent-Agent (optional; for future chain-of-calls)
+Behavior:
+Parse request (JSON body)
+Evaluate policy for (agent, tool, action, params)
+Allow → forward to the tool adapter, return response
+Block → return 403 with JSON body:
+{"error":"PolicyViolation","reason":"Amount exceeds max_amount=5000"}
+
+
+2) Policy-as-Code (YAML) + Hot Reload
+Policies live in ./policies/ and auto-reload on change
+Minimal schema (extend if you like):
+version: 1
+agents:
+  - id: finance-agent
+    allow:
+      - tool: payments
+        actions: [create, refund]
+        conditions:
+          max_amount: 5000
+          currencies: [USD, EUR]
+  - id: hr-agent
+    allow:
+      - tool: files
+        actions: [read]
+        conditions:
+          folder_prefix: "/hr-docs/"
+
+
+Invalid policy files must fail to load with clear error logs (don’t crash the process if a different valid file exists).
+3) Two Mock Tools (adapters)
+payments (HTTP or in-process)
+POST /create body: {amount, currency, vendor_id, memo?}
+POST /refund body: {payment_id, reason?}
+Return a simple JSON receipt or refund object
+files
+POST /read body: {path}
+POST /write body: {path, content}
+In-memory store is fine; persist to tmp if you want
+4) Telemetry & Audit Logs
+OpenTelemetry spans on every decision & forwarded call with attributes:
+agent.id, tool.name, tool.action, decision.allow (bool)
+policy.version, params.hash (SHA-256 of request body; do not log raw PII)
+latency.ms, trace.id
+Structured JSON logs to stdout + ./logs/aegis.log with the same attributes and a human-readable reason on deny
+5) Reproducible Demo (scripts)
+Provide scripts or curl commands that show:
+Blocked high-value payment
+curl -s -H "X-Agent-ID: finance-agent" \
+  -X POST localhost:8080/tools/payments/create \
+  -d '{"amount":50000,"currency":"USD","vendor_id":"V99"}'
+→ 403 with PolicyViolation
+Allowed payment within limits
+Allowed HR file read inside /hr-docs/
+Blocked HR file read outside /hr-docs/ (e.g., /legal/contract.docx)
+
+Non-functional expectations (what we’re judging)
+Scalability by design: clean layering, stateless gateway, clear extension points for real adapters
+Security hygiene: schema validation, param hashing, no PII in logs, safe error messages
+Observability: OTel spans are complete and easy to wire to a collector (provide docker-compose if you can)
+DX: one command to run everything; clear README; sample policies; deterministic demo
+
+What to submit
+Git repo (or zip) with:
+Source code
+README.md (setup, run, demo steps, architectural notes)
+docker-compose.yml for local bring-up (gateway, mock tools, optional otel/grafana)
+policies/ (at least two example files)
+scripts/ or curl snippets for the four demo cases
+Optional: a short design note (1–2 pages) explaining choices, trade-offs, and near-term extensions
+
+Reference API contracts (copy/paste ready)
+Gateway
+POST /tools/:tool/:action
+Headers:
+  X-Agent-ID: <string>
+  X-Parent-Agent: <string, optional>
+Body: JSON (tool-specific)
+Responses:
+  200 OK (tool response passthrough)
+  403 {"error":"PolicyViolation","reason":"<human readable>"}
+
+Payments (mock)
+POST /create
+Body: {amount:number, currency:string, vendor_id:string, memo?:string}
+200: {payment_id:string, amount:number, currency:string, status:"created"}
+
+POST /refund
+Body: {payment_id:string, reason?:string}
+200: {refund_id:string, payment_id:string, status:"refunded"}
+
+Files (mock)
+POST /read
+Body: {path:string}
+200: {path:string, content:string}
+
+POST /write
+Body: {path:string, content:string}
+200: {path:string, status:"written"}
+
+
+Suggested repo layout
+/aegis-gateway
+  /cmd/aegis
+  /internal/gateway
+  /internal/policy
+  /internal/adapters/payments
+  /internal/adapters/files
+  /pkg/telemetry
+  /policies/*.yaml
+  /scripts/*.sh
+  /deploy/docker-compose.yml
+  README.md
+
+
+Acceptance checklist (pass/fail)
+ Gateway enforces policy correctly (both allow and block cases work)
+ Policies hot-reload without restart (show how to trigger & verify)
+ Telemetry: OTel spans emitted; JSON logs include decision + reason
+ Demo scripts produce the four expected outcomes
+ Code is production-style (clean, modular), not a single file spike
+
+Grading rubric (100 pts)
+Correctness & Policy Enforcement (35 pts) — accurate decisions, clear deny reasons, hot-reload works
+Security & Robustness (20 pts) — input validation, sanitized logging, graceful errors
+Observability (15 pts) — OTel attributes complete; logs structured and useful
+Code Quality & Architecture (15 pts) — separation of concerns, extensibility for real tools
+DX & Docs (15 pts) — one-command run, readable README, sample policies & scripts
+
+Stretch goals (optional, bonus)
+Call-chain awareness via X-Parent-Agent (+ deny rules using ancestry)
+Simple admin UI (React) to view agents, policies (read-only), last 50 decisions
+Approval gates for risky actions (e.g., soft-deny that requires an /approve call)
+
+Notes:
+Implementation language is your choice (Go preferred).
+Keep secrets/keys out of the repo.
+Treat this as a real product slice: readable, testable, and safe by default.
+

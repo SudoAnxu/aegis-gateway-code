@@ -1,0 +1,9 @@
+version: 1
+agents:
+  - id: hr-agent
+    allow:
+      - tool: files
+        actions: [read]
+        conditions:
+          folder_prefix: "/hr-docs/"
+

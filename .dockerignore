@@ -1,0 +1,45 @@
+# Binaries
+*.exe
+*.dll
+*.so
+*.dylib
+aegis
+payments
+files
+
+# Test files
+*.test
+*.out
+coverage.out
+coverage.html
+
+# Logs
+logs/
+*.log
+
+# Git
+.git
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test results
+test-results/
+
+# Docker
+Dockerfile*
+docker-compose*.yml
+
+# Documentation
+*.md
+!README.md
+
+

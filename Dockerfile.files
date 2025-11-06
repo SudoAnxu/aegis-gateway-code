@@ -1,0 +1,25 @@
+FROM golang:1.21-alpine AS builder
+
+WORKDIR /build
+
+# Copy all files first
+COPY . .
+
+# Download dependencies and generate go.sum
+RUN go mod download && go mod tidy
+
+# Build files service
+RUN CGO_ENABLED=0 GOOS=linux go build -o files ./cmd/files
+
+FROM alpine:latest
+
+RUN apk --no-cache add ca-certificates netcat-openbsd
+
+WORKDIR /app
+
+COPY --from=builder /build/files .
+
+EXPOSE 8082
+
+CMD ["./files", "-port=8082"]
+
