@@ -41,6 +41,9 @@
     },
     "files": {
       "base_url": "http://localhost:8082"
+    },
+    "unknown-tool": {
+      "base_url": "http://localhost:8083"
     }
   },
   "request": {
