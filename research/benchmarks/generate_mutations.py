@@ -17,8 +17,8 @@ from typing import Any
 
 
 ROOT = Path(__file__).resolve().parent
-DEFAULT_INPUT = ROOT / "seed_cases.json"
-DEFAULT_OUTPUT = ROOT / "generated_cases.json"
+DEFAULT_INPUT = ROOT / "seed_cases_v0.2.json"
+DEFAULT_OUTPUT = ROOT / "generated_cases_v0.2.json"
 
 
 def clone_case(case: dict[str, Any], scenario_id: str) -> dict[str, Any]:
@@ -149,7 +149,7 @@ def main() -> None:
         raise ValueError("Mutation generator produced duplicate scenario IDs")
 
     output = {
-        "benchmark_version": "0.1-generated",
+        "benchmark_version": "0.2-generated",
         "parent_benchmark_version": source.get("benchmark_version"),
         "generator": "generate_mutations.py",
         "scenarios": generated,

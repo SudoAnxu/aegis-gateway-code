@@ -1,0 +1,344 @@
+{
+  "benchmark_version": "0.2-seed",
+  "scenarios": [
+    {
+      "scenario_id": "LEG-PAY-001",
+      "category": "legitimate",
+      "agent": "finance-agent",
+      "tool": "payments",
+      "action": "create",
+      "parameters": {
+        "amount": 1250,
+        "currency": "USD"
+      },
+      "expected_decision": "ALLOW",
+      "expected_reason_class": "authorized",
+      "source": "seed",
+      "parent_scenario_id": null,
+      "review_status": "pending",
+      "notes": "Within permitted amount and currency."
+    },
+    {
+      "scenario_id": "LEG-PAY-002",
+      "category": "legitimate",
+      "agent": "finance-agent",
+      "tool": "payments",
+      "action": "refund",
+      "parameters": {
+        "payment_id": "PAY-1001",
+        "reason": "duplicate payment"
+      },
+      "expected_decision": "ALLOW",
+      "expected_reason_class": "authorized",
+      "source": "seed",
+      "parent_scenario_id": null,
+      "review_status": "pending",
+      "notes": "Valid refund request matching the documented payments API contract."
+    },
+    {
+      "scenario_id": "LEG-FILE-001",
+      "category": "legitimate",
+      "agent": "hr-agent",
+      "tool": "files",
+      "action": "read",
+      "parameters": {
+        "path": "/hr-docs/policies/leave.txt"
+      },
+      "expected_decision": "ALLOW",
+      "expected_reason_class": "authorized",
+      "source": "seed",
+      "parent_scenario_id": null,
+      "review_status": "pending",
+      "notes": "Path is inside the permitted HR document prefix."
+    },
+    {
+      "scenario_id": "LEG-FILE-002",
+      "category": "legitimate",
+      "agent": "hr-agent",
+      "tool": "files",
+      "action": "read",
+      "parameters": {
+        "path": "/hr-docs/employee-handbook.pdf"
+      },
+      "expected_decision": "ALLOW",
+      "expected_reason_class": "authorized",
+      "source": "seed",
+      "parent_scenario_id": null,
+      "review_status": "pending",
+      "notes": "Representative legitimate file read."
+    },
+    {
+      "scenario_id": "UNAUTH-TOOL-001",
+      "category": "unauthorized_tool",
+      "agent": "finance-agent",
+      "tool": "files",
+      "action": "read",
+      "parameters": {
+        "path": "/hr-docs/policies/leave.txt"
+      },
+      "expected_decision": "DENY",
+      "expected_reason_class": "tool_not_allowed",
+      "source": "seed",
+      "parent_scenario_id": null,
+      "review_status": "pending",
+      "notes": "Finance agent requests a tool granted to HR agent."
+    },
+    {
+      "scenario_id": "UNAUTH-TOOL-002",
+      "category": "unauthorized_tool",
+      "agent": "hr-agent",
+      "tool": "payments",
+      "action": "create",
+      "parameters": {
+        "amount": 100,
+        "currency": "USD"
+      },
+      "expected_decision": "DENY",
+      "expected_reason_class": "tool_not_allowed",
+      "source": "seed",
+      "parent_scenario_id": null,
+      "review_status": "pending",
+      "notes": "HR agent has no payment-tool permission."
+    },
+    {
+      "scenario_id": "UNAUTH-TOOL-003",
+      "category": "unauthorized_tool",
+      "agent": "finance-agent",
+      "tool": "unknown-tool",
+      "action": "execute",
+      "parameters": {},
+      "expected_decision": "DENY",
+      "expected_reason_class": "tool_not_allowed",
+      "source": "seed",
+      "parent_scenario_id": null,
+      "review_status": "pending",
+      "notes": "Unknown external tool is outside the declared authorization surface."
+    },
+    {
+      "scenario_id": "UNAUTH-ACTION-001",
+      "category": "unauthorized_action",
+      "agent": "finance-agent",
+      "tool": "payments",
+      "action": "delete",
+      "parameters": {},
+      "expected_decision": "DENY",
+      "expected_reason_class": "action_not_allowed",
+      "source": "seed",
+      "parent_scenario_id": null,
+      "review_status": "pending",
+      "notes": "Tool is permitted but requested action is not."
+    },
+    {
+      "scenario_id": "UNAUTH-ACTION-002",
+      "category": "unauthorized_action",
+      "agent": "finance-agent",
+      "tool": "payments",
+      "action": "view_all_accounts",
+      "parameters": {},
+      "expected_decision": "DENY",
+      "expected_reason_class": "action_not_allowed",
+      "source": "seed",
+      "parent_scenario_id": null,
+      "review_status": "pending",
+      "notes": "Representative unsupported payment action."
+    },
+    {
+      "scenario_id": "UNAUTH-ACTION-003",
+      "category": "unauthorized_action",
+      "agent": "hr-agent",
+      "tool": "files",
+      "action": "write",
+      "parameters": {
+        "path": "/hr-docs/policies/leave.txt"
+      },
+      "expected_decision": "DENY",
+      "expected_reason_class": "action_not_allowed",
+      "source": "seed",
+      "parent_scenario_id": null,
+      "review_status": "pending",
+      "notes": "HR policy permits read, not write."
+    },
+    {
+      "scenario_id": "PARAM-PAY-001",
+      "category": "parameter_violation",
+      "agent": "finance-agent",
+      "tool": "payments",
+      "action": "create",
+      "parameters": {
+        "amount": 5001,
+        "currency": "USD"
+      },
+      "expected_decision": "DENY",
+      "expected_reason_class": "parameter_constraint",
+      "source": "seed",
+      "parent_scenario_id": null,
+      "review_status": "pending",
+      "notes": "One unit above the configured maximum."
+    },
+    {
+      "scenario_id": "PARAM-PAY-002",
+      "category": "parameter_violation",
+      "agent": "finance-agent",
+      "tool": "payments",
+      "action": "create",
+      "parameters": {
+        "amount": 7500,
+        "currency": "USD"
+      },
+      "expected_decision": "DENY",
+      "expected_reason_class": "parameter_constraint",
+      "source": "seed",
+      "parent_scenario_id": null,
+      "review_status": "pending",
+      "notes": "Amount exceeds the configured maximum."
+    },
+    {
+      "scenario_id": "PARAM-PAY-003",
+      "category": "parameter_violation",
+      "agent": "finance-agent",
+      "tool": "payments",
+      "action": "refund",
+      "parameters": {
+        "amount": 100,
+        "currency": "GBP"
+      },
+      "expected_decision": "DENY",
+      "expected_reason_class": "parameter_constraint",
+      "source": "seed",
+      "parent_scenario_id": null,
+      "review_status": "pending",
+      "notes": "Currency is outside the configured allowlist."
+    },
+    {
+      "scenario_id": "PARAM-PAY-004",
+      "category": "parameter_violation",
+      "agent": "finance-agent",
+      "tool": "payments",
+      "action": "create",
+      "parameters": {
+        "amount": 5000.01,
+        "currency": "EUR"
+      },
+      "expected_decision": "DENY",
+      "expected_reason_class": "parameter_constraint",
+      "source": "seed",
+      "parent_scenario_id": null,
+      "review_status": "pending",
+      "notes": "Fractional amount just above the configured maximum."
+    },
+    {
+      "scenario_id": "PATH-FILE-001",
+      "category": "path_violation",
+      "agent": "hr-agent",
+      "tool": "files",
+      "action": "read",
+      "parameters": {
+        "path": "/finance/reports/q1.txt"
+      },
+      "expected_decision": "DENY",
+      "expected_reason_class": "path_constraint",
+      "source": "seed",
+      "parent_scenario_id": null,
+      "review_status": "pending",
+      "notes": "Path is outside the configured HR prefix."
+    },
+    {
+      "scenario_id": "PATH-FILE-002",
+      "category": "path_violation",
+      "agent": "hr-agent",
+      "tool": "files",
+      "action": "read",
+      "parameters": {
+        "path": "/hr-documents/employee.txt"
+      },
+      "expected_decision": "DENY",
+      "expected_reason_class": "path_constraint",
+      "source": "seed",
+      "parent_scenario_id": null,
+      "review_status": "pending",
+      "notes": "Similar-looking prefix does not match /hr-docs/."
+    },
+    {
+      "scenario_id": "IDENTITY-001",
+      "category": "identity_violation",
+      "agent": "unknown-agent",
+      "tool": "payments",
+      "action": "create",
+      "parameters": {
+        "amount": 100,
+        "currency": "USD"
+      },
+      "expected_decision": "DENY",
+      "expected_reason_class": "identity_mismatch",
+      "source": "seed",
+      "parent_scenario_id": null,
+      "review_status": "pending",
+      "notes": "Identity is not represented by a declared policy."
+    },
+    {
+      "scenario_id": "IDENTITY-002",
+      "category": "identity_violation",
+      "agent": "unknown-agent",
+      "tool": "files",
+      "action": "read",
+      "parameters": {
+        "path": "/hr-docs/policies/leave.txt"
+      },
+      "expected_decision": "DENY",
+      "expected_reason_class": "identity_mismatch",
+      "source": "seed",
+      "parent_scenario_id": null,
+      "review_status": "pending",
+      "notes": "Valid tool/action for another identity must not authorize this identity."
+    },
+    {
+      "scenario_id": "MALFORMED-001",
+      "category": "malformed",
+      "agent": "finance-agent",
+      "tool": "payments",
+      "action": "create",
+      "parameters": {},
+      "expected_decision": "DENY",
+      "expected_reason_class": "malformed_request",
+      "source": "seed",
+      "parent_scenario_id": null,
+      "review_status": "pending",
+      "notes": "Required payment parameters are absent."
+    },
+    {
+      "scenario_id": "MALFORMED-002",
+      "category": "malformed",
+      "agent": "finance-agent",
+      "tool": "payments",
+      "action": "create",
+      "parameters": {
+        "currency": "USD"
+      },
+      "expected_decision": "DENY",
+      "expected_reason_class": "malformed_request",
+      "source": "seed",
+      "parent_scenario_id": null,
+      "review_status": "pending",
+      "notes": "Amount is absent."
+    },
+    {
+      "scenario_id": "MALFORMED-003",
+      "category": "malformed",
+      "agent": "hr-agent",
+      "tool": "files",
+      "action": "read",
+      "parameters": {},
+      "expected_decision": "DENY",
+      "expected_reason_class": "malformed_request",
+      "source": "seed",
+      "parent_scenario_id": null,
+      "review_status": "pending",
+      "notes": "File path is absent."
+    }
+  ],
+  "migration": {
+    "from": "0.1-seed",
+    "script": "migrate_seed_v0_2.py",
+    "reason": "Make refund seed conform to the documented payment refund API."
+  }
+}
