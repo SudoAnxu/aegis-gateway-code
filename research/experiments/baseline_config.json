@@ -1,0 +1,83 @@
+{
+  "experiment_version": "0.1",
+  "benchmark": {
+    "seed_file": "../benchmarks/seed_cases.json",
+    "mutation_file": "../benchmarks/generated_cases.json",
+    "combined_file": "../benchmarks/benchmark_v0.1.json",
+    "expected_seed_count": 21,
+    "expected_mutation_count": 14,
+    "expected_total_count": 35
+  },
+  "systems": {
+    "B0_direct": {
+      "name": "Direct Execution",
+      "description": "Requests are sent directly to the protected tool services without a governance gateway.",
+      "gateway_enabled": false
+    },
+    "B1_rbac": {
+      "name": "Coarse-Grained RBAC",
+      "description": "Authorization is based on agent, tool, and action. Parameter-level and path-level constraints are intentionally not enforced.",
+      "gateway_enabled": true,
+      "parameter_constraints": false,
+      "path_constraints": false
+    },
+    "B2_aegis": {
+      "name": "Aegis",
+      "description": "Requests are evaluated by the Aegis policy gateway before reaching the protected tool services.",
+      "gateway_enabled": true,
+      "parameter_constraints": true,
+      "path_constraints": true
+    }
+  },
+  "endpoints": {
+    "gateway": {
+      "base_url": "http://localhost:8080"
+    },
+    "payments": {
+      "base_url": "http://localhost:8081"
+    },
+    "files": {
+      "base_url": "http://localhost:8082"
+    }
+  },
+  "request": {
+    "agent_header": "X-Agent-ID",
+    "content_type": "application/json",
+    "timeout_seconds": 5
+  },
+  "metrics": {
+    "classification": [
+      "true_positive",
+      "true_negative",
+      "false_positive",
+      "false_negative",
+      "precision",
+      "recall",
+      "f1"
+    ],
+    "security": [
+      "unauthorized_execution_rate",
+      "legitimate_task_success_rate"
+    ],
+    "latency": [
+      "mean_ms",
+      "median_ms",
+      "p50_ms",
+      "p95_ms",
+      "p99_ms"
+    ]
+  },
+  "execution": {
+    "mode": "dry_run",
+    "repetitions": 1,
+    "record_responses": true,
+    "record_latency": true,
+    "fail_fast": false
+  },
+  "reproducibility": {
+    "record_git_commit": true,
+    "record_benchmark_hash": true,
+    "record_policy_version": true,
+    "record_experiment_timestamp": true
+  }
+}
