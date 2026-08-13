@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Aegis Agent-Tool Governance Benchmark",
+  "type": "object",
+  "required": ["benchmark_version", "scenarios"],
+  "properties": {
+    "benchmark_version": {
+      "type": "string",
+      "description": "Human-readable benchmark version; the runner should also record a content hash."
+    },
+    "scenarios": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/scenario" }
+    }
+  },
+  "$defs": {
+    "scenario": {
+      "type": "object",
+      "required": [
+        "scenario_id",
+        "category",
+        "agent",
+        "tool",
+        "action",
+        "parameters",
+        "expected_decision",
+        "source"
+      ],
+      "properties": {
+        "scenario_id": { "type": "string" },
+        "category": {
+          "type": "string",
+          "enum": [
+            "legitimate",
+            "unauthorized_tool",
+            "unauthorized_action",
+            "parameter_violation",
+            "path_violation",
+            "identity_violation",
+            "malformed"
+          ]
+        },
+        "agent": { "type": "string" },
+        "tool": { "type": "string" },
+        "action": { "type": "string" },
+        "parameters": { "type": "object" },
+        "expected_decision": {
+          "type": "string",
+          "enum": ["ALLOW", "DENY"]
+        },
+        "expected_reason_class": {
+          "type": ["string", "null"],
+          "enum": [
+            "authorized",
+            "tool_not_allowed",
+            "action_not_allowed",
+            "parameter_constraint",
+            "path_constraint",
+            "identity_mismatch",
+            "malformed_request",
+            null
+          ]
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "seed",
+            "mutation",
+            "held_out",
+            "independent_review"
+          ]
+        },
+        "parent_scenario_id": {
+          "type": ["string", "null"]
+        },
+        "review_status": {
+          "type": ["string", "null"],
+          "enum": ["pending", "reviewed", null]
+        },
+        "notes": {
+          "type": ["string", "null"]
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
