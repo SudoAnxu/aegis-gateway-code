@@ -1,12 +1,12 @@
 {
-  "experiment_version": "0.1",
+  "experiment_version": "0.2",
   "benchmark": {
-    "seed_file": "../benchmarks/seed_cases.json",
-    "mutation_file": "../benchmarks/generated_cases.json",
-    "combined_file": "../benchmarks/benchmark_v0.1.json",
+    "seed_file": "../benchmarks/seed_cases_v0.2.json",
+    "mutation_file": "../benchmarks/generated_cases_v0.2.json",
+    "combined_file": "../benchmarks/benchmark_v0.2.json",
     "expected_seed_count": 21,
-    "expected_mutation_count": 14,
-    "expected_total_count": 35
+    "expected_mutation_count": 12,
+    "expected_total_count": 33
   },
   "systems": {
     "B0_direct": {
