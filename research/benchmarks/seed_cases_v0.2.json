@@ -197,7 +197,7 @@
       "category": "parameter_violation",
       "agent": "finance-agent",
       "tool": "payments",
-      "action": "refund",
+      "action": "create",
       "parameters": {
         "amount": 100,
         "currency": "GBP"
@@ -207,7 +207,7 @@
       "source": "seed",
       "parent_scenario_id": null,
       "review_status": "pending",
-      "notes": "Currency is outside the configured allowlist."
+      "notes": "Currency is outside the configured allowlist for payment creation."
     },
     {
       "scenario_id": "PARAM-PAY-004",
