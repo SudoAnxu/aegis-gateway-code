@@ -11,7 +11,7 @@
   "systems": {
     "B0_direct": {
       "name": "Direct Execution",
-      "description": "Requests are sent directly to the protected tool services without a governance gateway.",
+      "description": "Requests are sent directly to the controlled tool fixtures without a governance gateway.",
       "gateway_enabled": false
     },
     "B1_rbac": {
@@ -23,7 +23,7 @@
     },
     "B2_aegis": {
       "name": "Aegis",
-      "description": "Requests are evaluated by the Aegis policy gateway before reaching the protected tool services.",
+      "description": "Requests are evaluated by the Aegis policy gateway before reaching the controlled tool fixtures.",
       "gateway_enabled": true,
       "parameter_constraints": true,
       "path_constraints": true
@@ -32,6 +32,9 @@
   "endpoints": {
     "gateway": {
       "base_url": "http://localhost:8080"
+    },
+    "rbac": {
+      "base_url": "http://localhost:8090"
     },
     "payments": {
       "base_url": "http://localhost:8081"
