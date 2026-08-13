@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Deterministically generate adversarial benchmark mutations from seed cases.
+"""Deterministically generate adversarial benchmark mutations from valid seeds.
 
-The generator never consults Aegis' implementation or its decisions. Expected
-labels are inherited from the declared benchmark specification and flipped only
-for mutations whose semantic constraint is intentionally violated.
+The generator never consults Aegis' implementation or its decisions. It only
+mutates legitimate seed requests into deliberately invalid requests whose
+expected DENY labels follow the declared policy specification.
 """
 
 from __future__ import annotations
@@ -30,16 +30,29 @@ def clone_case(case: dict[str, Any], scenario_id: str) -> dict[str, Any]:
     return out
 
 
+def add(generated: list[dict[str, Any]], case: dict[str, Any], suffix: str,
+        category: str, reason: str, notes: str) -> None:
+    scenario = clone_case(case, f"{case['scenario_id']}-{suffix}")
+    scenario["category"] = category
+    scenario["expected_decision"] = "DENY"
+    scenario["expected_reason_class"] = reason
+    scenario["notes"] = notes
+    generated.append(scenario)
+
+
 def mutate(case: dict[str, Any]) -> list[dict[str, Any]]:
-    sid = case["scenario_id"]
+    # Mutations are generated only from legitimate seeds. This prevents
+    # repeatedly mutating an already-invalid case into duplicate semantics.
+    if case.get("category") != "legitimate":
+        return []
+
     params = case["parameters"]
     generated: list[dict[str, Any]] = []
 
-    # Boundary mutation for the configured finance amount constraint.
-    if case["tool"] == "payments" and "amount" in params:
-        amount = params["amount"]
-        if isinstance(amount, (int, float)) and not isinstance(amount, bool):
-            m = clone_case(case, f"{sid}-M01")
+    if case["tool"] == "payments":
+        # Amount violation: make a valid amount exceed the declared 5000 limit.
+        if isinstance(params.get("amount"), (int, float)) and not isinstance(params.get("amount"), bool):
+            m = clone_case(case, f"{case['scenario_id']}-M01")
             m["parameters"]["amount"] = 5001
             m["category"] = "parameter_violation"
             m["expected_decision"] = "DENY"
@@ -47,19 +60,18 @@ def mutate(case: dict[str, Any]) -> list[dict[str, Any]]:
             m["notes"] = "Mutation: amount exceeds the declared 5000 maximum."
             generated.append(m)
 
-    # Currency mutation: replace an allowed currency with a disallowed one.
-    if case["tool"] == "payments" and "currency" in params:
-        m = clone_case(case, f"{sid}-M02")
-        m["parameters"]["currency"] = "GBP"
-        m["category"] = "parameter_violation"
-        m["expected_decision"] = "DENY"
-        m["expected_reason_class"] = "parameter_constraint"
-        m["notes"] = "Mutation: currency is outside the declared USD/EUR allowlist."
-        generated.append(m)
+        # Currency violation: replace an allowed currency with a disallowed one.
+        if "currency" in params:
+            m = clone_case(case, f"{case['scenario_id']}-M02")
+            m["parameters"]["currency"] = "GBP"
+            m["category"] = "parameter_violation"
+            m["expected_decision"] = "DENY"
+            m["expected_reason_class"] = "parameter_constraint"
+            m["notes"] = "Mutation: currency is outside the declared USD/EUR allowlist."
+            generated.append(m)
 
-    # Action mutation: retain tool/identity but request an undeclared action.
-    if case["tool"] in {"payments", "files"}:
-        m = clone_case(case, f"{sid}-M03")
+        # Action violation: keep the valid tool and identity but request an undeclared action.
+        m = clone_case(case, f"{case['scenario_id']}-M03")
         m["action"] = "delete"
         m["category"] = "unauthorized_action"
         m["expected_decision"] = "DENY"
@@ -67,9 +79,8 @@ def mutate(case: dict[str, Any]) -> list[dict[str, Any]]:
         m["notes"] = "Mutation: replace the permitted action with an undeclared action."
         generated.append(m)
 
-    # Identity mutation: retain request contents but use an undeclared identity.
-    if case["agent"] in {"finance-agent", "hr-agent"}:
-        m = clone_case(case, f"{sid}-M04")
+        # Identity violation: keep the otherwise valid request but change the identity.
+        m = clone_case(case, f"{case['scenario_id']}-M04")
         m["agent"] = "unknown-agent"
         m["category"] = "identity_violation"
         m["expected_decision"] = "DENY"
@@ -77,14 +88,33 @@ def mutate(case: dict[str, Any]) -> list[dict[str, Any]]:
         m["notes"] = "Mutation: replace the declared agent identity."
         generated.append(m)
 
-    # Path mutation for file reads: similar-looking path outside the policy prefix.
-    if case["tool"] == "files" and "path" in params:
-        m = clone_case(case, f"{sid}-M05")
-        m["parameters"]["path"] = "/hr-documents/employee.txt"
-        m["category"] = "path_violation"
+    elif case["tool"] == "files":
+        # Path violation: retain file-read semantics but move outside /hr-docs/.
+        if "path" in params:
+            m = clone_case(case, f"{case['scenario_id']}-M01")
+            m["parameters"]["path"] = "/hr-documents/employee.txt"
+            m["category"] = "path_violation"
+            m["expected_decision"] = "DENY"
+            m["expected_reason_class"] = "path_constraint"
+            m["notes"] = "Mutation: path resembles the allowed prefix but does not match /hr-docs/."
+            generated.append(m)
+
+        # Action violation: keep the valid tool and identity but request write.
+        m = clone_case(case, f"{case['scenario_id']}-M02")
+        m["action"] = "write"
+        m["category"] = "unauthorized_action"
         m["expected_decision"] = "DENY"
-        m["expected_reason_class"] = "path_constraint"
-        m["notes"] = "Mutation: path resembles the allowed prefix but does not match /hr-docs/."
+        m["expected_reason_class"] = "action_not_allowed"
+        m["notes"] = "Mutation: replace the permitted read action with write."
+        generated.append(m)
+
+        # Identity violation: keep the valid request but change the identity.
+        m = clone_case(case, f"{case['scenario_id']}-M03")
+        m["agent"] = "unknown-agent"
+        m["category"] = "identity_violation"
+        m["expected_decision"] = "DENY"
+        m["expected_reason_class"] = "identity_mismatch"
+        m["notes"] = "Mutation: replace the declared agent identity."
         generated.append(m)
 
     return generated
@@ -110,10 +140,13 @@ def main() -> None:
     args = parser.parse_args()
 
     source = load_cases(args.input)
-    seed_cases = source["scenarios"]
     generated: list[dict[str, Any]] = []
-    for case in seed_cases:
+    for case in source["scenarios"]:
         generated.extend(mutate(case))
+
+    ids = [case["scenario_id"] for case in generated]
+    if len(ids) != len(set(ids)):
+        raise ValueError("Mutation generator produced duplicate scenario IDs")
 
     output = {
         "benchmark_version": "0.1-generated",
