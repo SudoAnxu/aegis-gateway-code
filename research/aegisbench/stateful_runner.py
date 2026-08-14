@@ -7,6 +7,7 @@ import hashlib
 import json
 import subprocess
 import time
+from copy import deepcopy
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -118,6 +119,28 @@ def validate_cases(benchmark: dict[str, Any]) -> list[dict[str, Any]]:
     return selected
 
 
+def isolated_case(case: dict[str, Any], repetition: int) -> dict[str, Any]:
+    """Namespace the benchmark transaction for the live gateway.
+
+    The expanded benchmark deliberately reuses seed transaction IDs across
+    mutations. The live gateway is stateful and has no reset operation, so
+    replaying those literal IDs would leak state from one benchmark case into
+    the next. A deterministic per-case namespace preserves every equality and
+    inequality relationship in the frozen history while guaranteeing isolation.
+    """
+    live = deepcopy(case)
+    params = live["parameters"]
+    benchmark_txn = params["transaction_id"]
+    live_txn = f"aegisbench-r{repetition}-{case['id']}"
+    params["transaction_id"] = live_txn
+    for event in live.get("history", []):
+        if isinstance(event, dict) and event.get("id") == benchmark_txn:
+            event["id"] = live_txn
+    live["_benchmark_transaction_id"] = benchmark_txn
+    live["_live_transaction_id"] = live_txn
+    return live
+
+
 def history_for_case(case: dict[str, Any]) -> list[dict[str, Any]]:
     params = case.get("parameters") or {}
     transaction_id = params.get("transaction_id")
@@ -142,13 +165,6 @@ def history_for_case(case: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def expected_history_decisions(case: dict[str, Any]) -> list[str]:
-    """Derive the oracle's expected live effects from the frozen history.
-
-    A history event with a different object id is metadata for the benchmark's
-    modeled state and must not be replayed as a mutation of the target object.
-    For live setup, only events matching the target transaction can change the
-    gateway's state.
-    """
     target = case["parameters"].get("transaction_id")
     expected: list[str] = []
     created = False
@@ -157,11 +173,10 @@ def expected_history_decisions(case: dict[str, Any]) -> list[str]:
         if not isinstance(event, dict):
             expected.append("DENY")
             continue
-        event_id = event.get("id")
-        kind = event.get("event")
-        if event_id != target:
+        if event.get("id") != target:
             expected.append("SKIP")
             continue
+        kind = event.get("event")
         if kind == "payment_created":
             if created:
                 expected.append("DENY")
@@ -187,13 +202,7 @@ def run_sequence(case: dict[str, Any], system: str, config: dict[str, Any], time
 
     for index, (step_spec, expected_step) in enumerate(zip(history_steps, expected_steps), start=1):
         step = {"index": index, **{k: v for k, v in step_spec.items() if k != "params"}, "expected": expected_step}
-        if not step_spec["supported"]:
-            step["actual"] = "SKIP"
-            step["status_code"] = None
-            step["transport_error"] = None
-            steps.append(step)
-            continue
-        if expected_step == "SKIP":
+        if not step_spec["supported"] or expected_step == "SKIP":
             step["actual"] = "SKIP"
             step["status_code"] = None
             step["transport_error"] = None
@@ -237,7 +246,8 @@ def main() -> int:
 
     for repetition in range(1, args.repetitions + 1):
         for case in cases:
-            result = run_sequence(case, args.system, config, timeout)
+            live_case = isolated_case(case, repetition)
+            result = run_sequence(live_case, args.system, config, timeout)
             target = result["target"]
             expected = case["expected"]
             records.append({
@@ -254,6 +264,7 @@ def main() -> int:
                 "tool": case["tool"],
                 "action": case["action"],
                 "transaction_id": case.get("parameters", {}).get("transaction_id"),
+                "live_transaction_id": live_case["parameters"]["transaction_id"],
                 "history": case.get("history", []),
                 "history_steps": result["history_steps"],
                 "history_replay_ok": result["history_replay_ok"],
@@ -280,7 +291,7 @@ def main() -> int:
         "transport_error_rate": sum(bool(r["transport_error"]) for r in records) / len(records) if records else 0,
     }
     result = {
-        "experiment_version": "stateful-0.5",
+        "experiment_version": "stateful-0.6",
         "status": "PASS" if summary["unclassified"] == 0 and summary["transport_error_rate"] == 0 and summary["history_replay_failures"] == 0 else "INVALID",
         "system": args.system,
         "benchmark": {"version": benchmark["version"], "sha256": benchmark["content_sha256"], "stateful_cases": len(cases)},
