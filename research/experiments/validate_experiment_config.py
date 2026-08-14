@@ -10,7 +10,14 @@ from typing import Any
 
 ROOT = Path(__file__).resolve().parents[2]
 REQUIRED_SYSTEMS = {"B0_direct", "B1_rbac", "B2_aegis"}
-REQUIRED_ENDPOINTS = {"gateway", "rbac", "payments", "files", "unknown-tool"}
+REQUIRED_ENDPOINTS = {
+    "gateway",
+    "rbac",
+    "payments",
+    "files",
+    "unknown-tool",
+    "direct_fallback",
+}
 
 
 def load(path: Path) -> dict[str, Any]:
@@ -66,12 +73,19 @@ def main() -> int:
     systems = config.get("systems", {})
     if set(systems) != REQUIRED_SYSTEMS:
         raise ValueError(f"systems must be exactly {sorted(REQUIRED_SYSTEMS)}")
+
     endpoints = config.get("endpoints", {})
     if set(endpoints) != REQUIRED_ENDPOINTS:
         raise ValueError(f"endpoints must be exactly {sorted(REQUIRED_ENDPOINTS)}")
     for name, endpoint in endpoints.items():
         if not isinstance(endpoint, dict) or not endpoint.get("base_url"):
             raise ValueError(f"endpoint {name} must define a non-empty base_url")
+
+    fallback = endpoints["direct_fallback"]
+    if fallback.get("purpose") != "permissive fixture for tools without a dedicated service":
+        raise ValueError("direct_fallback purpose does not match the frozen experiment contract")
+    if fallback["base_url"] != endpoints["unknown-tool"]["base_url"]:
+        raise ValueError("direct_fallback must use the unknown-tool fixture endpoint")
 
     if config.get("execution", {}).get("allow_stateful") is not False:
         raise ValueError("stateful evaluation must remain disabled for the single-request runner")
