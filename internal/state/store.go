@@ -24,6 +24,23 @@ func NewStore() *Store {
 	return &Store{transactions: make(map[string]Status)}
 }
 
+// CheckCreate verifies that a transaction does not already exist without
+// changing state. The state is committed only after the downstream create
+// operation succeeds.
+func (s *Store) CheckCreate(id string) error {
+	if id == "" {
+		return fmt.Errorf("state_missing_transaction")
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if _, exists := s.transactions[id]; exists {
+		return fmt.Errorf("state_invalid_transition")
+	}
+	return nil
+}
+
 // RecordCreate registers a newly-created transaction. Duplicate creation is
 // rejected instead of silently resetting state.
 func (s *Store) RecordCreate(id string) error {
