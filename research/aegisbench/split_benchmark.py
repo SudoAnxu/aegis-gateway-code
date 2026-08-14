@@ -19,12 +19,11 @@ from aegisbench.oracle import decide  # noqa: E402
 SEED = ROOT / "research" / "aegisbench" / "seed_cases_v1.json"
 OUT_DIR = ROOT / "research" / "aegisbench" / "splits"
 
-# Explicitly define the desired held-out distribution. This table is checked
-# against the source benchmark before any files are written.
+# Exactly 50 held-out seeds. Targets are checked before any files are written.
 TARGET_HELDOUT = {
     "legitimate": 7,
     "identity_violation": 7,
-    "action_authorization": 7,
+    "action_authorization": 6,
     "parameter_constraints": 8,
     "path_constraints": 7,
     "malformed": 5,
@@ -61,7 +60,7 @@ def validate_split_targets(source_scenarios: list[dict]) -> None:
 
     counts = Counter(s["category"] for s in source_scenarios)
     expected_categories = {
-        **{k: v for k, v in TARGET_HELDOUT.items()},
+        **TARGET_HELDOUT,
         "stateful_sequence": sum(STATEFUL_HELDOUT.values()),
     }
 
@@ -72,10 +71,11 @@ def validate_split_targets(source_scenarios: list[dict]) -> None:
                 f"Held-out target for {category}={heldout_count} exceeds available seeds={available}"
             )
 
-    if requested_heldout_count() != EXPECTED_HELDOUT:
+    requested = requested_heldout_count()
+    if requested != EXPECTED_HELDOUT:
         raise ValueError(
             "Split configuration error: held-out targets sum to "
-            f"{requested_heldout_count()}, expected {EXPECTED_HELDOUT}"
+            f"{requested}, expected {EXPECTED_HELDOUT}"
         )
 
     stateful_counts = Counter(
@@ -133,11 +133,7 @@ def main() -> int:
     scenarios = source["scenarios"]
     development, heldout = stratified_split(scenarios)
 
-    assert len(development) + len(heldout) == len(scenarios), (
-        len(development),
-        len(heldout),
-        len(scenarios),
-    )
+    assert len(development) + len(heldout) == len(scenarios)
     assert len(scenarios) == EXPECTED_TOTAL
     assert len(development) == EXPECTED_DEVELOPMENT, len(development)
     assert len(heldout) == EXPECTED_HELDOUT, len(heldout)
