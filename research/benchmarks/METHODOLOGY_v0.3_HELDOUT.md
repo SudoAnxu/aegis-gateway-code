@@ -8,7 +8,7 @@ This distinction matters: repeated execution of a fixed benchmark measures repro
 
 ## Construction
 
-`generate_heldout_v0_3.py` constructs a deterministic 45-scenario suite from new request combinations. The generator performs an exact request-fingerprint overlap check against `benchmark_v0.3.json` and fails if any held-out request is already present in the core benchmark.
+`generate_heldout_v0_3.py` constructs a deterministic 46-scenario suite from an over-provisioned candidate pool. Candidates are filtered by exact request fingerprint against `benchmark_v0.3.json`, and exact duplicates are removed before the target counts are selected. The generator fails if any category cannot reach its target after those exclusions, and performs a final zero-overlap assertion before writing the artifact.
 
 The held-out suite contains:
 
@@ -23,7 +23,7 @@ The held-out suite contains:
 | Malformed | 3 |
 | **Total** | **46** |
 
-> Note: the generator currently defines 46 cases. The table above is intentionally explicit so the committed methodology can be checked against generated output rather than relying on an assumed target count.
+The candidate pool is intentionally larger than 46 so that overlap with the core benchmark does not require weakening the held-out design or silently accepting duplicate requests.
 
 ## Important limitation
 
