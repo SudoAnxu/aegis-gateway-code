@@ -37,12 +37,56 @@ def _rule(agent: str, tool: str, action: str) -> Rule | None:
 
 
 def _within_prefix(path: str, prefix: str) -> bool:
-    # Benchmark semantics: canonicalize first, then require directory equality
-    # or a path separator after the prefix. This rejects prefix collisions and
-    # traversal outside the authorized root.
     clean = posixpath.normpath(path)
     root = posixpath.normpath(prefix)
     return clean == root or clean.startswith(root.rstrip("/") + "/")
+
+
+def _check_state(scenario: dict[str, Any]) -> tuple[str, str] | None:
+    """Evaluate explicit transaction history for sequence-sensitive cases.
+
+    Stateful refund semantics are intentionally simple and auditable: a refund
+    requires a prior payment_created event for the same transaction, and a
+    transaction that has already been refunded cannot be refunded again.
+    """
+    if scenario.get("category") != "stateful_sequence":
+        return None
+
+    history = scenario.get("history")
+    if not isinstance(history, list):
+        return "DENY", "state_malformed"
+
+    transaction_id = scenario.get("transaction_id") or scenario.get("parameters", {}).get("transaction_id")
+    if not isinstance(transaction_id, str) or not transaction_id:
+        return "DENY", "state_missing_transaction"
+
+    created = False
+    refunded = False
+    for event in history:
+        if not isinstance(event, dict):
+            return "DENY", "state_malformed"
+        if event.get("id") != transaction_id:
+            continue
+        kind = event.get("event")
+        if kind == "payment_created":
+            if created:
+                return "DENY", "state_invalid_transition"
+            created = True
+        elif kind == "payment_refunded":
+            if not created or refunded:
+                return "DENY", "state_invalid_transition"
+            refunded = True
+        else:
+            return "DENY", "state_unknown_event"
+
+    if scenario["action"] == "refund":
+        if not created:
+            return "DENY", "state_precondition"
+        if refunded:
+            return "DENY", "state_replay"
+        return "ALLOW", "state_transition"
+
+    return "DENY", "state_unsupported_action"
 
 
 def decide(scenario: dict[str, Any]) -> tuple[str, str]:
@@ -57,6 +101,10 @@ def decide(scenario: dict[str, Any]) -> tuple[str, str]:
     if rule is None:
         known_tool = any(r.tool == scenario["tool"] for r in RULES)
         return "DENY", "unauthorized_action" if known_tool else "unauthorized_tool"
+
+    state_result = _check_state(scenario)
+    if state_result is not None:
+        return state_result
 
     params = scenario["parameters"]
     if rule.min_amount is not None or rule.max_amount is not None:
