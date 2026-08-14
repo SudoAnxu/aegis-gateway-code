@@ -47,6 +47,10 @@
     },
     "unknown-tool": {
       "base_url": "http://localhost:8083"
+    },
+    "direct_fallback": {
+      "base_url": "http://localhost:8083",
+      "purpose": "permissive fixture for tools without a dedicated service"
     }
   },
   "request": {
