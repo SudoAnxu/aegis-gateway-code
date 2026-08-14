@@ -127,6 +127,25 @@ func (g *Gateway) HandleRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Reserve the state transition before forwarding. This closes the
+	// check-then-forward race: a concurrent duplicate create/refund cannot both
+	// reach the downstream tool. Reservations are committed only after a 2xx
+	// response and rolled back on downstream failure.
+	stateReserved := false
+	if tool == "payments" {
+		if stateReason := g.reservePaymentState(action, params); stateReason != "" {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusForbidden)
+			response := map[string]string{
+				"error":  "PolicyViolation",
+				"reason": stateReason,
+			}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+		stateReserved = action == "create" || action == "refund"
+	}
+
 	forwardStart := time.Now()
 	statusCode, err := g.forwardRequest(ctx, toolURL, action, bodyBytes, w)
 	forwardLatency := time.Since(forwardStart).Milliseconds()
@@ -135,16 +154,21 @@ func (g *Gateway) HandleRequest(w http.ResponseWriter, r *http.Request) {
 	defer forwardSpan.End()
 
 	if err != nil {
+		if stateReserved {
+			g.abortPaymentState(action, params)
+		}
 		return
 	}
 
-	// Commit state only after the tool accepted the transition. A failed tool
-	// call must never poison the gateway's transaction state.
-	if statusCode >= 200 && statusCode < 300 && tool == "payments" {
-		if stateReason := g.recordPaymentState(action, params); stateReason != "" {
-			// The tool has already accepted the call, so state inconsistency is a
-			// server-side failure rather than a policy denial.
-			return
+	if stateReserved {
+		if statusCode >= 200 && statusCode < 300 {
+			if stateReason := g.commitPaymentState(action, params); stateReason != "" {
+				// The tool accepted the call, but the gateway could not finalize
+				// its local state. Treat this as a server-side inconsistency.
+				return
+			}
+		} else {
+			g.abortPaymentState(action, params)
 		}
 	}
 }
@@ -159,39 +183,63 @@ func transactionID(params map[string]interface{}) string {
 }
 
 func (g *Gateway) checkPaymentState(action string, params map[string]interface{}) string {
-	if action != "refund" {
-		return ""
-	}
-	if err := g.state.CheckRefund(transactionID(params)); err != nil {
-		return err.Error()
-	}
-	return ""
-}
-
-func (g *Gateway) recordPaymentState(action string, params map[string]interface{}) string {
 	id := transactionID(params)
 	switch action {
 	case "create":
-		if id == "" {
-			return ""
-		}
-		if err := g.state.RecordCreate(id); err != nil {
+		if err := g.state.CheckCreate(id); err != nil {
 			return err.Error()
 		}
 	case "refund":
-		if id == "" {
-			return "state_missing_transaction"
-		}
-		if err := g.state.RecordRefund(id); err != nil {
+		if err := g.state.CheckRefund(id); err != nil {
 			return err.Error()
 		}
 	}
 	return ""
 }
 
+func (g *Gateway) reservePaymentState(action string, params map[string]interface{}) string {
+	id := transactionID(params)
+	switch action {
+	case "create":
+		if err := g.state.ReserveCreate(id); err != nil {
+			return err.Error()
+		}
+	case "refund":
+		if err := g.state.ReserveRefund(id); err != nil {
+			return err.Error()
+		}
+	}
+	return ""
+}
+
+func (g *Gateway) commitPaymentState(action string, params map[string]interface{}) string {
+	id := transactionID(params)
+	switch action {
+	case "create":
+		if err := g.state.CommitCreate(id); err != nil {
+			return err.Error()
+		}
+	case "refund":
+		if err := g.state.CommitRefund(id); err != nil {
+			return err.Error()
+		}
+	}
+	return ""
+}
+
+func (g *Gateway) abortPaymentState(action string, params map[string]interface{}) {
+	id := transactionID(params)
+	switch action {
+	case "create":
+		g.state.AbortCreate(id)
+	case "refund":
+		g.state.AbortRefund(id)
+	}
+}
+
 // forwardRequest forwards the request to the appropriate tool and returns its
-// HTTP status so successful state transitions can be committed atomically after
-// the tool call completes.
+// HTTP status so successful state transitions can be committed after the tool
+// call completes.
 func (g *Gateway) forwardRequest(ctx context.Context, baseURL, action string, body []byte, w http.ResponseWriter) (int, error) {
 	url := fmt.Sprintf("%s/%s", baseURL, action)
 
