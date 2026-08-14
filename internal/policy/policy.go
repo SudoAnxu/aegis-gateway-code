@@ -11,26 +11,22 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// Policy represents the complete policy configuration
 type Policy struct {
 	Version string        `yaml:"version"`
 	Agents  []AgentPolicy `yaml:"agents"`
 }
 
-// AgentPolicy defines what an agent is allowed to do
 type AgentPolicy struct {
 	ID    string          `yaml:"id"`
 	Allow []ToolAllowance `yaml:"allow"`
 }
 
-// ToolAllowance defines allowed tools and actions for an agent
 type ToolAllowance struct {
 	Tool       string                 `yaml:"tool"`
 	Actions    []string               `yaml:"actions"`
 	Conditions map[string]interface{} `yaml:"conditions"`
 }
 
-// PolicyEngine manages policy evaluation and hot-reload
 type PolicyEngine struct {
 	mu       sync.RWMutex
 	policies map[string]*Policy
@@ -38,7 +34,6 @@ type PolicyEngine struct {
 	watcher  *fsnotify.Watcher
 }
 
-// NewPolicyEngine creates a new policy engine with hot-reload support
 func NewPolicyEngine(policiesDir string) (*PolicyEngine, error) {
 	pe := &PolicyEngine{
 		policies: make(map[string]*Policy),
@@ -51,23 +46,19 @@ func NewPolicyEngine(policiesDir string) (*PolicyEngine, error) {
 	}
 	pe.watcher = watcher
 
-	// Initial load
 	if err := pe.loadAllPolicies(); err != nil {
 		return nil, err
 	}
 
-	// Watch directory for changes
 	if err := watcher.Add(policiesDir); err != nil {
 		return nil, fmt.Errorf("failed to watch policies directory: %w", err)
 	}
 
-	// Start hot-reload goroutine
 	go pe.watchForChanges()
 
 	return pe, nil
 }
 
-// loadAllPolicies loads all YAML files from the policies directory
 func (pe *PolicyEngine) loadAllPolicies() error {
 	entries, err := os.ReadDir(pe.baseDir)
 	if err != nil {
@@ -78,13 +69,12 @@ func (pe *PolicyEngine) loadAllPolicies() error {
 	}
 
 	for _, entry := range entries {
-		if entry.IsDir() || filepath.Ext(entry.Name()) != ".yaml" && filepath.Ext(entry.Name()) != ".yml" {
+		if entry.IsDir() || (filepath.Ext(entry.Name()) != ".yaml" && filepath.Ext(entry.Name()) != ".yml") {
 			continue
 		}
 
 		filePath := filepath.Join(pe.baseDir, entry.Name())
 		if err := pe.loadPolicyFile(filePath); err != nil {
-			// Log error but continue loading other files
 			fmt.Printf("ERROR: Failed to load policy file %s: %v\n", filePath, err)
 		}
 	}
@@ -92,7 +82,6 @@ func (pe *PolicyEngine) loadAllPolicies() error {
 	return nil
 }
 
-// loadPolicyFile loads a single policy file
 func (pe *PolicyEngine) loadPolicyFile(filePath string) error {
 	data, err := os.ReadFile(filePath)
 	if err != nil {
@@ -104,7 +93,6 @@ func (pe *PolicyEngine) loadPolicyFile(filePath string) error {
 		return fmt.Errorf("failed to parse YAML: %w", err)
 	}
 
-	// Validate policy
 	if err := pe.validatePolicy(&policy); err != nil {
 		return fmt.Errorf("invalid policy: %w", err)
 	}
@@ -117,7 +105,8 @@ func (pe *PolicyEngine) loadPolicyFile(filePath string) error {
 	return nil
 }
 
-// validatePolicy checks policy structure, supported conditions, and condition types.
+// validatePolicy rejects malformed policy structure, unsupported condition keys,
+// and condition values with incompatible types.
 func (pe *PolicyEngine) validatePolicy(p *Policy) error {
 	if p.Version == "" {
 		return fmt.Errorf("policy version is required")
@@ -147,8 +136,12 @@ func (pe *PolicyEngine) validatePolicy(p *Policy) error {
 						return fmt.Errorf("condition currencies must be a list of strings")
 					}
 				case "folder_prefix":
-					if _, ok := value.(string); !ok {
+					prefix, ok := value.(string)
+					if !ok {
 						return fmt.Errorf("condition folder_prefix must be a string")
+					}
+					if !filepath.IsAbs(prefix) {
+						return fmt.Errorf("condition folder_prefix must be an absolute path")
 					}
 				default:
 					return fmt.Errorf("unsupported condition key %q for tool %s", key, allow.Tool)
@@ -160,7 +153,6 @@ func (pe *PolicyEngine) validatePolicy(p *Policy) error {
 	return nil
 }
 
-// watchForChanges handles file system events for hot-reload
 func (pe *PolicyEngine) watchForChanges() {
 	for {
 		select {
@@ -170,7 +162,6 @@ func (pe *PolicyEngine) watchForChanges() {
 			}
 
 			if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Create == fsnotify.Create {
-				// Small delay to avoid reading during file write
 				time.Sleep(100 * time.Millisecond)
 				if err := pe.loadPolicyFile(event.Name); err != nil {
 					fmt.Printf("ERROR: Failed to reload policy file %s: %v\n", event.Name, err)
@@ -195,12 +186,10 @@ func (pe *PolicyEngine) watchForChanges() {
 	}
 }
 
-// Evaluate checks if an agent is allowed to perform an action on a tool
 func (pe *PolicyEngine) Evaluate(agentID, tool, action string, params map[string]interface{}) (allowed bool, reason string) {
 	pe.mu.RLock()
 	defer pe.mu.RUnlock()
 
-	// Search through all policies
 	for _, policy := range pe.policies {
 		for _, agentPolicy := range policy.Agents {
 			if agentPolicy.ID != agentID {
@@ -212,7 +201,6 @@ func (pe *PolicyEngine) Evaluate(agentID, tool, action string, params map[string
 					continue
 				}
 
-				// Check if action is allowed
 				actionAllowed := false
 				for _, a := range allow.Actions {
 					if a == action {
@@ -225,7 +213,6 @@ func (pe *PolicyEngine) Evaluate(agentID, tool, action string, params map[string
 					continue
 				}
 
-				// Check conditions
 				if allow.Conditions != nil {
 					if err := pe.checkConditions(allow.Conditions, params); err != nil {
 						return false, err.Error()
@@ -240,9 +227,7 @@ func (pe *PolicyEngine) Evaluate(agentID, tool, action string, params map[string
 	return false, fmt.Sprintf("Agent %s is not allowed to perform action %s on tool %s", agentID, action, tool)
 }
 
-// checkConditions validates parameters against policy conditions
 func (pe *PolicyEngine) checkConditions(conditions map[string]interface{}, params map[string]interface{}) error {
-	// Amount constraints.
 	minAmount, hasMinAmount := conditions["min_amount"]
 	maxAmount, hasMaxAmount := conditions["max_amount"]
 
@@ -262,7 +247,6 @@ func (pe *PolicyEngine) checkConditions(conditions map[string]interface{}, param
 			if err != nil {
 				return err
 			}
-
 			if amountFloat < minFloat {
 				return fmt.Errorf("Amount below min_amount=%.0f", minFloat)
 			}
@@ -273,14 +257,12 @@ func (pe *PolicyEngine) checkConditions(conditions map[string]interface{}, param
 			if err != nil {
 				return err
 			}
-
 			if amountFloat > maxFloat {
 				return fmt.Errorf("Amount exceeds max_amount=%.0f", maxFloat)
 			}
 		}
 	}
 
-	// Currency constraints.
 	if currencies, ok := conditions["currencies"].([]interface{}); ok {
 		currency, exists := params["currency"]
 		if !exists {
@@ -305,7 +287,6 @@ func (pe *PolicyEngine) checkConditions(conditions map[string]interface{}, param
 		}
 	}
 
-	// Path constraints.
 	if prefix, ok := conditions["folder_prefix"].(string); ok {
 		path, exists := params["path"]
 		if !exists {
@@ -320,15 +301,11 @@ func (pe *PolicyEngine) checkConditions(conditions map[string]interface{}, param
 		cleanPath := filepath.Clean(pathStr)
 		cleanPrefix := filepath.Clean(prefix)
 
-		// The path must either equal the configured directory or be below it.
-		// Raw string-prefix matching would incorrectly allow /hr-documents or
-		// /hr-docs2 and would not normalize traversal segments safely.
-		if cleanPath != cleanPrefix && !filepath.IsAbs(cleanPrefix) {
+		if !filepath.IsAbs(cleanPrefix) {
 			return fmt.Errorf("folder_prefix must be an absolute path")
 		}
 
-		if cleanPath != cleanPrefix &&
-			!hasPathPrefix(cleanPath, cleanPrefix) {
+		if cleanPath != cleanPrefix && !hasPathPrefix(cleanPath, cleanPrefix) {
 			return fmt.Errorf("Path must remain within prefix %s/", cleanPrefix)
 		}
 	}
@@ -341,9 +318,7 @@ func hasPathPrefix(path, prefix string) bool {
 	if prefix == string(os.PathSeparator) {
 		return filepath.IsAbs(path)
 	}
-	return len(path) > len(prefix) &&
-		path[:len(prefix)] == prefix &&
-		path[len(prefix)] == os.PathSeparator
+	return len(path) > len(prefix) && path[:len(prefix)] == prefix && path[len(prefix)] == os.PathSeparator
 }
 
 func isStringSlice(value interface{}) bool {
@@ -379,7 +354,6 @@ func numericValue(value interface{}, name string) (float64, error) {
 	}
 }
 
-// Close stops the policy engine and cleans up resources
 func (pe *PolicyEngine) Close() error {
 	return pe.watcher.Close()
 }
