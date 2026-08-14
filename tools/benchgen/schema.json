@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "AegisBench Scenario",
+  "type": "object",
+  "required": ["id", "category", "agent", "tool", "action", "parameters", "history", "state", "expected", "reason"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1},
+    "category": {"type": "string", "enum": ["legitimate", "identity_violation", "action_authorization", "parameter_constraints", "path_constraints", "malformed", "unauthorized_tool", "stateful_sequence"]},
+    "agent": {"type": ["string", "null"]},
+    "tool": {"type": ["string", "null"]},
+    "action": {"type": ["string", "null"]},
+    "parameters": {"type": "object"},
+    "history": {"type": "array"},
+    "state": {"type": "object"},
+    "expected": {"type": "string", "enum": ["ALLOW", "DENY"]},
+    "reason": {"type": "string", "minLength": 1},
+    "parent_scenario_id": {"type": ["string", "null"]},
+    "mutation_operator": {"type": ["string", "null"]},
+    "generator_version": {"type": ["string", "null"]}
+  },
+  "additionalProperties": false
+}
