@@ -97,26 +97,11 @@ def execute(url: str, headers: dict[str, str], params: dict[str, Any], timeout: 
     request = Request(url, data=body, headers=headers, method="POST")
     try:
         with OPENER.open(request, timeout=timeout) as response:
-            return {
-                "status_code": response.status,
-                "body": response.read().decode("utf-8", errors="replace"),
-                "latency_ms": (time.perf_counter() - started) * 1000.0,
-                "transport_error": None,
-            }
+            return {"status_code": response.status, "body": response.read().decode("utf-8", errors="replace"), "latency_ms": (time.perf_counter() - started) * 1000.0, "transport_error": None}
     except HTTPError as exc:
-        return {
-            "status_code": exc.code,
-            "body": exc.read().decode("utf-8", errors="replace"),
-            "latency_ms": (time.perf_counter() - started) * 1000.0,
-            "transport_error": None,
-        }
+        return {"status_code": exc.code, "body": exc.read().decode("utf-8", errors="replace"), "latency_ms": (time.perf_counter() - started) * 1000.0, "transport_error": None}
     except (URLError, TimeoutError, OSError) as exc:
-        return {
-            "status_code": None,
-            "body": "",
-            "latency_ms": (time.perf_counter() - started) * 1000.0,
-            "transport_error": repr(exc),
-        }
+        return {"status_code": None, "body": "", "latency_ms": (time.perf_counter() - started) * 1000.0, "transport_error": repr(exc)}
 
 
 def validate_cases(benchmark: dict[str, Any]) -> list[dict[str, Any]]:
@@ -134,32 +119,35 @@ def validate_cases(benchmark: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def initial_history_requests(case: dict[str, Any]) -> list[dict[str, Any]]:
+    """Translate benchmark history into live setup calls for this transaction.
+
+    History describes the lifecycle of the target transaction. Event-local IDs
+    are metadata, not independent transactions; replay therefore always uses
+    the target scenario's transaction_id so the setup changes the state that
+    the target evaluation will observe.
+    """
     requests: list[dict[str, Any]] = []
     params = case.get("parameters") or {}
     transaction_id = params.get("transaction_id")
-    amount = params.get("amount")
-    currency = params.get("currency")
+    if not isinstance(transaction_id, str) or not transaction_id.strip():
+        raise ValueError(f"{case['id']}: stateful case missing transaction_id")
+
     for event in case.get("history", []):
         if not isinstance(event, dict):
             raise ValueError(f"{case['id']}: history event must be an object")
-        event_id = event.get("id") or transaction_id
         kind = event.get("event")
+        event_params = {"transaction_id": transaction_id}
+        for key in ("amount", "currency"):
+            value = event.get(key, params.get(key))
+            if value is not None:
+                event_params[key] = value
+
         if kind == "payment_created":
-            event_params = {"transaction_id": event_id}
-            if amount is not None:
-                event_params["amount"] = amount
-            if currency is not None:
-                event_params["currency"] = currency
-            requests.append({"kind": kind, "supported": True, "params": event_params, "id": event_id})
+            requests.append({"kind": kind, "supported": True, "params": event_params, "id": transaction_id})
         elif kind == "payment_refunded":
-            event_params = {"transaction_id": event_id}
-            if amount is not None:
-                event_params["amount"] = amount
-            if currency is not None:
-                event_params["currency"] = currency
-            requests.append({"kind": kind, "supported": True, "params": event_params, "id": event_id})
+            requests.append({"kind": kind, "supported": True, "params": event_params, "id": transaction_id})
         else:
-            requests.append({"kind": kind, "supported": False, "params": {}, "id": event_id})
+            requests.append({"kind": kind, "supported": False, "params": {}, "id": transaction_id})
     return requests
 
 
@@ -187,12 +175,7 @@ def main() -> int:
             history_steps = []
             history_ok = True
             for index, history_request in enumerate(initial_history_requests(case), start=1):
-                step = {
-                    "index": index,
-                    "event": history_request["kind"],
-                    "id": history_request["id"],
-                    "supported": history_request["supported"],
-                }
+                step = {"index": index, "event": history_request["kind"], "id": history_request["id"], "supported": history_request["supported"]}
                 if not history_request["supported"]:
                     history_ok = False
                     step["skipped"] = True
@@ -206,14 +189,7 @@ def main() -> int:
                 history_url, history_headers = endpoint_for_case(history_case, args.system, config)
                 result = execute(history_url, history_headers, history_request["params"], timeout)
                 actual = infer_decision(result["status_code"], result["body"])
-                step.update({
-                    "action": history_action,
-                    "status_code": result["status_code"],
-                    "actual": actual,
-                    "latency_ms": result["latency_ms"],
-                    "transport_error": result["transport_error"],
-                    "response_body": result["body"],
-                })
+                step.update({"action": history_action, "status_code": result["status_code"], "actual": actual, "latency_ms": result["latency_ms"], "transport_error": result["transport_error"], "response_body": result["body"]})
                 if result["transport_error"]:
                     history_ok = False
                 history_steps.append(step)
@@ -262,7 +238,7 @@ def main() -> int:
         "transport_error_rate": sum(bool(r["transport_error"]) for r in records) / len(records) if records else 0,
     }
     result = {
-        "experiment_version": "stateful-0.3",
+        "experiment_version": "stateful-0.4",
         "status": "PASS" if summary["unclassified"] == 0 and summary["transport_error_rate"] == 0 and summary["history_replay_failures"] == 0 else "INVALID",
         "system": args.system,
         "benchmark": {"version": benchmark["version"], "sha256": benchmark["content_sha256"], "stateful_cases": len(cases)},
