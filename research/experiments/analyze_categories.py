@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
-from collections import Counter, defaultdict
+from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
@@ -66,11 +66,24 @@ def aggregate_records(records: list[dict[str, Any]]) -> dict[str, Any]:
     return result
 
 
-def load_repetitions(root: Path, system: str, expected_repetitions: int) -> list[list[dict[str, Any]]]:
+def load_repetitions(results_root: Path, system: str, expected_repetitions: int) -> list[list[dict[str, Any]]]:
+    """Load the flat files emitted by run_repeated.py.
+
+    The runner writes, for example:
+      <results_root>/heldout_b0_v1/b0_direct_rep01.json
+
+    Older versions of this audit expected nested directories, which does not
+    match the current runner output.
+    """
+    system_dir = results_root / {
+        "B0_direct": "heldout_b0_v1",
+        "B1_rbac": "heldout_b1_v1",
+        "B2_aegis": "heldout_b2_v1",
+    }[system]
     prefix = system.lower()
     repetitions: list[list[dict[str, Any]]] = []
     for index in range(1, expected_repetitions + 1):
-        path = root / f"{prefix}_rep{index:02d}" / f"{prefix}_results.json"
+        path = system_dir / f"{prefix}_rep{index:02d}.json"
         if not path.exists():
             raise FileNotFoundError(f"Missing repetition result: {path}")
         data = load(path)
@@ -80,7 +93,12 @@ def load_repetitions(root: Path, system: str, expected_repetitions: int) -> list
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--results-root", type=Path, required=True)
+    parser.add_argument(
+        "--results-root",
+        type=Path,
+        required=True,
+        help="Parent directory containing heldout_b0_v1, heldout_b1_v1, and heldout_b2_v1",
+    )
     parser.add_argument("--benchmark", type=Path, required=True)
     parser.add_argument("--repetitions", type=int, default=30)
     parser.add_argument("--output", type=Path, default=None)
@@ -93,7 +111,6 @@ def main() -> int:
         raise ValueError("Benchmark contains duplicate scenario IDs")
 
     reports: dict[str, dict[str, Any]] = {}
-    canonical_by_system: dict[str, dict[str, str]] = {}
 
     for system in SYSTEMS:
         repetitions = load_repetitions(args.results_root, system, args.repetitions)
@@ -118,7 +135,6 @@ def main() -> int:
             if seen != scenario_ids:
                 raise ValueError(f"{system} rep {rep_index}: scenario coverage mismatch")
 
-        canonical_by_system[system] = canonical
         reports[system] = aggregate_records(repetitions[0])
 
     categories = sorted({category for report in reports.values() for category in report})
