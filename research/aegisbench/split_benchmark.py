@@ -19,20 +19,22 @@ from aegisbench.oracle import decide  # noqa: E402
 SEED = ROOT / "research" / "aegisbench" / "seed_cases_v1.json"
 OUT_DIR = ROOT / "research" / "aegisbench" / "splits"
 
+# Exactly 50 held-out seeds. The development set is the remaining 100.
 TARGET_HELDOUT = {
-    "legitimate": 4,
+    "legitimate": 7,
     "identity_violation": 7,
     "action_authorization": 7,
     "parameter_constraints": 8,
-    "path_constraints": 6,
-    "malformed": 6,
+    "path_constraints": 7,
+    "malformed": 5,
     "unauthorized_tool": 3,
 }
-STATEFUL_TARGETS = {
+
+STATEFUL_HELDOUT = {
     "state_transition": 2,
     "state_replay": 1,
     "state_precondition": 1,
-    "state_invalid_transition": 2,
+    "state_invalid_transition": 3,
 }
 
 
@@ -45,16 +47,22 @@ def canonical_hash(payload: dict) -> str:
 def stratified_split(scenarios: list[dict]) -> tuple[list[dict], list[dict]]:
     groups: dict[tuple[str, str | None], list[dict]] = defaultdict(list)
     for scenario in scenarios:
-        reason_group = scenario["reason"] if scenario["category"] == "stateful_sequence" else None
-        groups[(scenario["category"], reason_group)].append(scenario)
+        reason = scenario["reason"] if scenario["category"] == "stateful_sequence" else None
+        groups[(scenario["category"], reason)].append(scenario)
 
     heldout: list[dict] = []
     development: list[dict] = []
+
     for (category, reason), items in sorted(groups.items()):
-        target = STATEFUL_TARGETS[reason] if category == "stateful_sequence" else TARGET_HELDOUT[category]
+        if category == "stateful_sequence":
+            target = STATEFUL_HELDOUT[reason]
+        else:
+            target = TARGET_HELDOUT[category]
+
         ordered = sorted(items, key=lambda x: x["id"])
         heldout.extend(ordered[:target])
         development.extend(ordered[target:])
+
     return development, heldout
 
 
@@ -64,7 +72,7 @@ def write_release(path: Path, version: str, source: dict, scenarios: list[dict],
         "role": role,
         "source_seed_version": source["version"],
         "source_seed_sha256": source["content_sha256"],
-        "generator_version": "aegisbench-split-v2",
+        "generator_version": "aegisbench-split-v1",
         "oracle_version": source["oracle_version"],
         "scenario_count": len(scenarios),
         "scenarios": scenarios,
@@ -75,16 +83,18 @@ def write_release(path: Path, version: str, source: dict, scenarios: list[dict],
 
 def main() -> int:
     source = json.loads(SEED.read_text())
-    development, heldout = stratified_split(source["scenarios"])
+    scenarios = source["scenarios"]
+    development, heldout = stratified_split(scenarios)
 
-    assert len(development) + len(heldout) == len(source["scenarios"])
+    assert len(development) + len(heldout) == len(scenarios), (
+        len(development),
+        len(heldout),
+        len(scenarios),
+    )
+    assert len(scenarios) == 150
     assert len(development) == 100, len(development)
     assert len(heldout) == 50, len(heldout)
-
-    dev_ids = {x["id"] for x in development}
-    heldout_ids = {x["id"] for x in heldout}
-    assert not dev_ids & heldout_ids
-    assert dev_ids | heldout_ids == {x["id"] for x in source["scenarios"]}
+    assert not ({x["id"] for x in development} & {x["id"] for x in heldout})
 
     for scenario in development + heldout:
         expected, reason = decide(scenario)
