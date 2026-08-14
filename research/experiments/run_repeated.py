@@ -85,13 +85,17 @@ def t_critical_95(n: int) -> float:
     return T_CRITICAL_95.get(n - 1, 1.96)
 
 
-def ci95(values: list[float]) -> dict[str, float | None]:
+def ci95(
+    values: list[float],
+    lower_bound: float | None = None,
+    upper_bound: float | None = None,
+) -> dict[str, float | None]:
     """
     95% CI for a repetition-level mean using Student's t distribution.
 
     Repetitions, rather than individual scenarios, are treated as the
-    independent observations. For n > 31, 1.96 is used as the large-sample
-    approximation.
+    independent observations. Bounds are applied only when the metric has a
+    natural domain, e.g. [0, 1] for rates. Latency values remain unbounded.
     """
 
     if not values:
@@ -116,11 +120,20 @@ def ci95(values: list[float]) -> dict[str, float | None]:
     critical = t_critical_95(len(values))
     margin = critical * sd / math.sqrt(len(values))
 
+    lower = m - margin
+    upper = m + margin
+
+    if lower_bound is not None:
+        lower = max(lower_bound, lower)
+
+    if upper_bound is not None:
+        upper = min(upper_bound, upper)
+
     return {
         "mean": m,
         "sd": sd,
-        "lower": max(0.0, m - margin),
-        "upper": min(1.0, m + margin),
+        "lower": lower,
+        "upper": upper,
     }
 
 
@@ -346,7 +359,11 @@ def aggregate(
 
         scalar_statistics[metric] = {
             "n": len(values),
-            **ci95(values),
+            **ci95(
+                values,
+                lower_bound=0.0,
+                upper_bound=1.0,
+            ),
         }
 
     latency_statistics: dict[str, Any] = {}
