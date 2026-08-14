@@ -7,8 +7,7 @@ individual benchmark repetitions. This wrapper preserves each repetition
 separately and computes repetition-level statistics.
 
 Statistical unit:
-    one complete benchmark repetition (33 scenarios), not individual
-    scenario observations.
+    one complete benchmark repetition, not individual scenario observations.
 
 This avoids artificially treating correlated scenario observations as
 independent samples when calculating confidence intervals.
@@ -144,15 +143,8 @@ def run_one(
     config: Path | None,
     benchmark: Path | None,
 ) -> Path:
-    repetition_dir = (
-        output_dir
-        / f"{system.lower()}_rep{repetition:02d}"
-    )
-
-    output_path = (
-        output_dir
-        / f"{system.lower()}_rep{repetition:02d}.json"
-    )
+    repetition_dir = output_dir / f"{system.lower()}_rep{repetition:02d}"
+    output_path = output_dir / f"{system.lower()}_rep{repetition:02d}.json"
 
     command = [
         sys.executable,
@@ -166,40 +158,22 @@ def run_one(
     ]
 
     if config is not None:
-        command.extend([
-            "--config",
-            str(config),
-        ])
+        command.extend(["--config", str(config)])
 
     if benchmark is not None:
-        command.extend([
-            "--benchmark",
-            str(benchmark),
-        ])
+        command.extend(["--benchmark", str(benchmark)])
 
-    print(
-        f"[{system}] repetition {repetition}: "
-        f"running..."
-    )
+    print(f"[{system}] repetition {repetition}: running...")
 
-    subprocess.run(
-        command,
-        check=True,
-    )
+    subprocess.run(command, check=True)
 
-    executor_output = (
-        repetition_dir
-        / f"{system.lower()}_results.json"
-    )
-
+    executor_output = repetition_dir / f"{system.lower()}_results.json"
     if not executor_output.exists():
         raise RuntimeError(
-            f"Executor completed but did not create "
-            f"{executor_output}"
+            f"Executor completed but did not create {executor_output}"
         )
 
     executor_output.replace(output_path)
-
     return output_path
 
 
@@ -213,81 +187,54 @@ def validate_result(
 ) -> None:
     if data.get("system") != system:
         raise ValueError(
-            f"{system} repetition {repetition}: "
-            f"wrong system in result"
+            f"{system} repetition {repetition}: wrong system in result"
         )
 
     if data.get("repetitions") != 1:
         raise ValueError(
-            f"{system} repetition {repetition}: "
-            f"expected executor repetitions=1"
+            f"{system} repetition {repetition}: expected executor repetitions=1"
         )
 
     benchmark = data.get("benchmark", {})
-
     version = benchmark.get("version")
     sha256 = benchmark.get("sha256")
     scenario_count = benchmark.get("scenario_count")
 
-    if (
-        expected_benchmark_version is not None
-        and version != expected_benchmark_version
-    ):
+    if expected_benchmark_version is not None and version != expected_benchmark_version:
         raise ValueError(
-            f"{system} repetition {repetition}: "
-            f"benchmark version changed: "
-            f"{version!r} != "
-            f"{expected_benchmark_version!r}"
+            f"{system} repetition {repetition}: benchmark version changed: "
+            f"{version!r} != {expected_benchmark_version!r}"
         )
 
-    if (
-        expected_hash is not None
-        and sha256 != expected_hash
-    ):
+    if expected_hash is not None and sha256 != expected_hash:
         raise ValueError(
-            f"{system} repetition {repetition}: "
-            f"benchmark hash changed: "
+            f"{system} repetition {repetition}: benchmark hash changed: "
             f"{sha256!r} != {expected_hash!r}"
         )
 
-    if (
-        expected_scenario_count is not None
-        and scenario_count != expected_scenario_count
-    ):
+    if expected_scenario_count is not None and scenario_count != expected_scenario_count:
         raise ValueError(
-            f"{system} repetition {repetition}: "
-            f"scenario count changed: "
-            f"{scenario_count!r} != "
-            f"{expected_scenario_count!r}"
+            f"{system} repetition {repetition}: scenario count changed: "
+            f"{scenario_count!r} != {expected_scenario_count!r}"
         )
 
     records = data.get("records", [])
-
     if len(records) != expected_scenario_count:
         raise ValueError(
-            f"{system} repetition {repetition}: "
-            f"expected {expected_scenario_count} records, "
+            f"{system} repetition {repetition}: expected {expected_scenario_count} records, "
             f"got {len(records)}"
         )
 
-    repetitions = {
-        record.get("repetition")
-        for record in records
-    }
-
+    repetitions = {record.get("repetition") for record in records}
     if repetitions != {1}:
         raise ValueError(
-            f"{system} repetition {repetition}: "
-            f"unexpected record repetition values: "
+            f"{system} repetition {repetition}: unexpected record repetition values: "
             f"{repetitions}"
         )
 
     unclassified = sum(
-        1
-        for record in records
-        if record.get("classification") == "unclassified"
+        1 for record in records if record.get("classification") == "unclassified"
     )
-
     if unclassified:
         errors = {}
         for record in records:
@@ -296,51 +243,31 @@ def validate_result(
                 errors[error] = errors.get(error, 0) + 1
 
         raise RuntimeError(
-            f"{system} repetition {repetition}: "
-            f"{unclassified} unclassified records. "
+            f"{system} repetition {repetition}: {unclassified} unclassified records. "
             f"Transport errors: {errors}"
         )
 
 
-def extract_metric(
-    results: list[dict[str, Any]],
-    metric: str,
-) -> list[float]:
+def extract_metric(results: list[dict[str, Any]], metric: str) -> list[float]:
     values: list[float] = []
-
     for result in results:
         value = result.get("summary", {}).get(metric)
-
         if value is not None:
             values.append(float(value))
-
     return values
 
 
-def latency_metric(
-    results: list[dict[str, Any]],
-    metric: str,
-) -> list[float]:
+def latency_metric(results: list[dict[str, Any]], metric: str) -> list[float]:
     values: list[float] = []
-
     for result in results:
-        latency = result.get("summary", {}).get(
-            "latency_ms",
-            {},
-        )
-
+        latency = result.get("summary", {}).get("latency_ms", {})
         value = latency.get(metric)
-
         if value is not None:
             values.append(float(value))
-
     return values
 
 
-def aggregate(
-    system: str,
-    results: list[dict[str, Any]],
-) -> dict[str, Any]:
+def aggregate(system: str, results: list[dict[str, Any]]) -> dict[str, Any]:
     scalar_metrics = [
         "precision",
         "recall",
@@ -350,40 +277,17 @@ def aggregate(
     ]
 
     scalar_statistics: dict[str, Any] = {}
-
     for metric in scalar_metrics:
-        values = extract_metric(
-            results,
-            metric,
-        )
-
+        values = extract_metric(results, metric)
         scalar_statistics[metric] = {
             "n": len(values),
-            **ci95(
-                values,
-                lower_bound=0.0,
-                upper_bound=1.0,
-            ),
+            **ci95(values, lower_bound=0.0, upper_bound=1.0),
         }
 
     latency_statistics: dict[str, Any] = {}
-
-    for metric in (
-        "mean",
-        "median",
-        "p50",
-        "p95",
-        "p99",
-    ):
-        values = latency_metric(
-            results,
-            metric,
-        )
-
-        latency_statistics[metric] = {
-            "n": len(values),
-            **ci95(values),
-        }
+    for metric in ("mean", "median", "p50", "p95", "p99"):
+        values = latency_metric(results, metric)
+        latency_statistics[metric] = {"n": len(values), **ci95(values)}
 
     return {
         "system": system,
@@ -395,61 +299,24 @@ def aggregate(
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-
-    parser.add_argument(
-        "--system",
-        choices=SYSTEMS,
-        required=True,
-    )
-
-    parser.add_argument(
-        "--repetitions",
-        type=int,
-        required=True,
-    )
-
-    parser.add_argument(
-        "--output-dir",
-        type=Path,
-        default=DEFAULT_OUTPUT,
-    )
-
-    parser.add_argument(
-        "--config",
-        type=Path,
-        default=None,
-    )
-
-    parser.add_argument(
-        "--benchmark",
-        type=Path,
-        default=None,
-    )
-
+    parser.add_argument("--system", choices=SYSTEMS, required=True)
+    parser.add_argument("--repetitions", type=int, required=True)
+    parser.add_argument("--output-dir", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--config", type=Path, default=None)
+    parser.add_argument("--benchmark", type=Path, default=None)
     args = parser.parse_args()
 
     if args.repetitions < 2:
-        raise ValueError(
-            "--repetitions must be >= 2"
-        )
+        raise ValueError("--repetitions must be >= 2")
 
-    args.output_dir.mkdir(
-        parents=True,
-        exist_ok=True,
-    )
-
-    result_paths: list[Path] = []
+    args.output_dir.mkdir(parents=True, exist_ok=True)
 
     expected_version: str | None = None
     expected_hash: str | None = None
     expected_scenario_count: int | None = None
-
     results: list[dict[str, Any]] = []
 
-    for repetition in range(
-        1,
-        args.repetitions + 1,
-    ):
+    for repetition in range(1, args.repetitions + 1):
         result_path = run_one(
             args.system,
             repetition,
@@ -457,24 +324,13 @@ def main() -> int:
             args.config,
             args.benchmark,
         )
-
         data = load_json(result_path)
 
         if repetition == 1:
-            benchmark = data.get(
-                "benchmark",
-                {},
-            )
-
-            expected_version = benchmark.get(
-                "version"
-            )
-            expected_hash = benchmark.get(
-                "sha256"
-            )
-            expected_scenario_count = benchmark.get(
-                "scenario_count"
-            )
+            benchmark = data.get("benchmark", {})
+            expected_version = benchmark.get("version")
+            expected_hash = benchmark.get("sha256")
+            expected_scenario_count = benchmark.get("scenario_count")
 
         validate_result(
             data,
@@ -484,26 +340,14 @@ def main() -> int:
             expected_hash,
             expected_scenario_count,
         )
-
         data["wrapper_repetition"] = repetition
-
-        result_paths.append(result_path)
         results.append(data)
 
-    summary = aggregate(
-        args.system,
-        results,
-    )
-
-    aggregate_path = (
-        args.output_dir
-        / f"{args.system.lower()}_aggregate.json"
-    )
+    summary = aggregate(args.system, results)
+    aggregate_path = args.output_dir / f"{args.system.lower()}_aggregate.json"
 
     aggregate_result = {
-        "experiment_version": (
-            results[0].get("experiment_version")
-        ),
+        "experiment_version": results[0].get("experiment_version"),
         "system": args.system,
         "benchmark": {
             "version": expected_version,
@@ -511,54 +355,21 @@ def main() -> int:
             "scenario_count": expected_scenario_count,
         },
         "repetitions": args.repetitions,
-        "statistics_unit": (
-            "complete benchmark repetition"
-        ),
-        "confidence_interval": (
-            "95% Student-t CI for repetition-level mean"
-        ),
+        "statistics_unit": "complete benchmark repetition",
+        "confidence_interval": "95% Student-t CI for repetition-level mean",
         "replicate_files": [
-            str(path)
-            for path in result_paths
+            path.name
+            for path in sorted(args.output_dir.glob(f"{args.system.lower()}_rep*.json"))
         ],
         "summary": summary,
     }
 
     aggregate_path.write_text(
-        json.dumps(
-            aggregate_result,
-            indent=2,
-            ensure_ascii=False,
-        )
-        + "\n",
+        json.dumps(aggregate_result, indent=2) + "\n",
         encoding="utf-8",
     )
 
-    print()
-    print(
-        f"Aggregate written to: "
-        f"{aggregate_path}"
-    )
-    print(
-        f"System: {args.system}"
-    )
-    print(
-        f"Repetitions: {args.repetitions}"
-    )
-    print(
-        f"Benchmark: {expected_version}"
-    )
-    print(
-        f"SHA-256: {expected_hash}"
-    )
-    print()
-    print(
-        json.dumps(
-            summary,
-            indent=2,
-        )
-    )
-
+    print(f"[{args.system}] aggregate written to: {aggregate_path}")
     return 0
 
 
