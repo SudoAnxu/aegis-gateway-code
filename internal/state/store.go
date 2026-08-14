@@ -49,7 +49,10 @@ func (s *Store) CheckRefund(id string) error {
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	return s.checkRefundLocked(id)
+}
 
+func (s *Store) checkRefundLocked(id string) error {
 	status, exists := s.transactions[id]
 	if !exists {
 		return fmt.Errorf("state_precondition")
@@ -63,14 +66,18 @@ func (s *Store) CheckRefund(id string) error {
 	return nil
 }
 
-// RecordRefund atomically transitions a created transaction to refunded.
+// RecordRefund atomically verifies and transitions a created transaction to
+// refunded, preventing two concurrent refunds from both succeeding.
 func (s *Store) RecordRefund(id string) error {
-	if err := s.CheckRefund(id); err != nil {
-		return err
+	if id == "" {
+		return fmt.Errorf("state_missing_transaction")
 	}
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if err := s.checkRefundLocked(id); err != nil {
+		return err
+	}
 	s.transactions[id] = Refunded
 	return nil
 }
