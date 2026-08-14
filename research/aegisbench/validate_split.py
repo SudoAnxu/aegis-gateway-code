@@ -15,11 +15,31 @@ SEED = ROOT / "research" / "aegisbench" / "seed_cases_v1.json"
 DEV = ROOT / "research" / "aegisbench" / "splits" / "development_v1.json"
 HELDOUT = ROOT / "research" / "aegisbench" / "splits" / "heldout_v1.json"
 
+EXPECTED_HELDOUT_CATEGORIES = Counter({
+    "legitimate": 7,
+    "identity_violation": 7,
+    "action_authorization": 6,
+    "parameter_constraints": 8,
+    "path_constraints": 7,
+    "malformed": 5,
+    "unauthorized_tool": 3,
+    "stateful_sequence": 7,
+})
+
+EXPECTED_HELDOUT_STATEFUL_REASONS = Counter({
+    "state_transition": 2,
+    "state_replay": 1,
+    "state_precondition": 1,
+    "state_invalid_transition": 3,
+})
+
 
 def content_hash(path: Path) -> str:
     data = json.loads(path.read_text())
     unsigned = {k: v for k, v in data.items() if k != "content_sha256"}
-    raw = json.dumps(unsigned, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+    raw = json.dumps(
+        unsigned, sort_keys=True, separators=(",", ":"), allow_nan=False
+    ).encode()
     return hashlib.sha256(raw).hexdigest()
 
 
@@ -46,22 +66,12 @@ def main() -> int:
         expected, reason = decide(scenario)
         assert (scenario["expected"], scenario["reason"]) == (expected, reason)
 
-    assert Counter(x["category"] for x in heldout["scenarios"]) == Counter({
-        "legitimate": 7,
-        "identity_violation": 7,
-        "action_authorization": 7,
-        "parameter_constraints": 8,
-        "path_constraints": 7,
-        "malformed": 5,
-        "unauthorized_tool": 3,
-        "stateful_sequence": 7,
-    })
-    assert Counter(x["reason"] for x in heldout["scenarios"] if x["category"] == "stateful_sequence") == Counter({
-        "state_transition": 2,
-        "state_replay": 1,
-        "state_precondition": 1,
-        "state_invalid_transition": 3,
-    })
+    assert Counter(x["category"] for x in heldout["scenarios"]) == EXPECTED_HELDOUT_CATEGORIES
+    assert Counter(
+        x["reason"]
+        for x in heldout["scenarios"]
+        if x["category"] == "stateful_sequence"
+    ) == EXPECTED_HELDOUT_STATEFUL_REASONS
 
     print("AegisBench split validation PASS")
     print("development:", len(dev["scenarios"]))
