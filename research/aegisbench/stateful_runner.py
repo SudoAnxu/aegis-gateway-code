@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run AegisBench stateful sequences with explicit history replay and target evaluation."""
+"""Run AegisBench stateful sequences with isolated live state."""
 from __future__ import annotations
 
 import argparse
@@ -118,37 +118,102 @@ def validate_cases(benchmark: dict[str, Any]) -> list[dict[str, Any]]:
     return selected
 
 
-def initial_history_requests(case: dict[str, Any]) -> list[dict[str, Any]]:
-    """Translate benchmark history into live setup calls for this transaction.
-
-    History describes the lifecycle of the target transaction. Event-local IDs
-    are metadata, not independent transactions; replay therefore always uses
-    the target scenario's transaction_id so the setup changes the state that
-    the target evaluation will observe.
-    """
-    requests: list[dict[str, Any]] = []
+def history_for_case(case: dict[str, Any]) -> list[dict[str, Any]]:
     params = case.get("parameters") or {}
     transaction_id = params.get("transaction_id")
     if not isinstance(transaction_id, str) or not transaction_id.strip():
-        raise ValueError(f"{case['id']}: stateful case missing transaction_id")
-
+        raise ValueError(f"{case['id']}: missing transaction_id")
+    steps: list[dict[str, Any]] = []
     for event in case.get("history", []):
         if not isinstance(event, dict):
             raise ValueError(f"{case['id']}: history event must be an object")
         kind = event.get("event")
+        event_id = event.get("id")
+        if kind not in {"payment_created", "payment_refunded"}:
+            steps.append({"event": kind, "supported": False, "event_id": event_id, "target_transaction_id": transaction_id})
+            continue
         event_params = {"transaction_id": transaction_id}
         for key in ("amount", "currency"):
             value = event.get(key, params.get(key))
             if value is not None:
                 event_params[key] = value
+        steps.append({"event": kind, "supported": True, "event_id": event_id, "target_transaction_id": transaction_id, "params": event_params})
+    return steps
 
+
+def expected_history_decisions(case: dict[str, Any]) -> list[str]:
+    """Derive the oracle's expected live effects from the frozen history.
+
+    A history event with a different object id is metadata for the benchmark's
+    modeled state and must not be replayed as a mutation of the target object.
+    For live setup, only events matching the target transaction can change the
+    gateway's state.
+    """
+    target = case["parameters"].get("transaction_id")
+    expected: list[str] = []
+    created = False
+    refunded = False
+    for event in case.get("history", []):
+        if not isinstance(event, dict):
+            expected.append("DENY")
+            continue
+        event_id = event.get("id")
+        kind = event.get("event")
+        if event_id != target:
+            expected.append("SKIP")
+            continue
         if kind == "payment_created":
-            requests.append({"kind": kind, "supported": True, "params": event_params, "id": transaction_id})
+            if created:
+                expected.append("DENY")
+            else:
+                expected.append("ALLOW")
+                created = True
         elif kind == "payment_refunded":
-            requests.append({"kind": kind, "supported": True, "params": event_params, "id": transaction_id})
+            if created and not refunded:
+                expected.append("ALLOW")
+                refunded = True
+            else:
+                expected.append("DENY")
         else:
-            requests.append({"kind": kind, "supported": False, "params": {}, "id": transaction_id})
-    return requests
+            expected.append("DENY")
+    return expected
+
+
+def run_sequence(case: dict[str, Any], system: str, config: dict[str, Any], timeout: float) -> dict[str, Any]:
+    steps: list[dict[str, Any]] = []
+    replay_ok = True
+    history_steps = history_for_case(case)
+    expected_steps = expected_history_decisions(case)
+
+    for index, (step_spec, expected_step) in enumerate(zip(history_steps, expected_steps), start=1):
+        step = {"index": index, **{k: v for k, v in step_spec.items() if k != "params"}, "expected": expected_step}
+        if not step_spec["supported"]:
+            step["actual"] = "SKIP"
+            step["status_code"] = None
+            step["transport_error"] = None
+            steps.append(step)
+            continue
+        if expected_step == "SKIP":
+            step["actual"] = "SKIP"
+            step["status_code"] = None
+            step["transport_error"] = None
+            steps.append(step)
+            continue
+        history_case = dict(case)
+        history_case["action"] = "create" if step_spec["event"] == "payment_created" else "refund"
+        history_case["parameters"] = step_spec["params"]
+        url, headers = endpoint_for_case(history_case, system, config)
+        result = execute(url, headers, step_spec["params"], timeout)
+        actual = infer_decision(result["status_code"], result["body"])
+        step.update({"action": history_case["action"], "actual": actual, "status_code": result["status_code"], "latency_ms": result["latency_ms"], "transport_error": result["transport_error"], "response_body": result["body"]})
+        if result["transport_error"] or actual != expected_step:
+            replay_ok = False
+        steps.append(step)
+
+    target_url, target_headers = endpoint_for_case(case, system, config)
+    target_result = execute(target_url, target_headers, case["parameters"], timeout)
+    target_actual = infer_decision(target_result["status_code"], target_result["body"])
+    return {"history_steps": steps, "history_replay_ok": replay_ok, "target": {"actual": target_actual, **target_result}}
 
 
 def main() -> int:
@@ -172,32 +237,9 @@ def main() -> int:
 
     for repetition in range(1, args.repetitions + 1):
         for case in cases:
-            history_steps = []
-            history_ok = True
-            for index, history_request in enumerate(initial_history_requests(case), start=1):
-                step = {"index": index, "event": history_request["kind"], "id": history_request["id"], "supported": history_request["supported"]}
-                if not history_request["supported"]:
-                    history_ok = False
-                    step["skipped"] = True
-                    step["reason"] = "unsupported_history_event"
-                    history_steps.append(step)
-                    continue
-                history_action = "create" if history_request["kind"] == "payment_created" else "refund"
-                history_case = dict(case)
-                history_case["action"] = history_action
-                history_case["parameters"] = history_request["params"]
-                history_url, history_headers = endpoint_for_case(history_case, args.system, config)
-                result = execute(history_url, history_headers, history_request["params"], timeout)
-                actual = infer_decision(result["status_code"], result["body"])
-                step.update({"action": history_action, "status_code": result["status_code"], "actual": actual, "latency_ms": result["latency_ms"], "transport_error": result["transport_error"], "response_body": result["body"]})
-                if result["transport_error"]:
-                    history_ok = False
-                history_steps.append(step)
-
-            target_url, target_headers = endpoint_for_case(case, args.system, config)
-            target_result = execute(target_url, target_headers, case["parameters"], timeout)
-            target_actual = infer_decision(target_result["status_code"], target_result["body"])
-            target_expected = case["expected"]
+            result = run_sequence(case, args.system, config, timeout)
+            target = result["target"]
+            expected = case["expected"]
             records.append({
                 "timestamp_utc": timestamp,
                 "git_commit": commit,
@@ -213,16 +255,16 @@ def main() -> int:
                 "action": case["action"],
                 "transaction_id": case.get("parameters", {}).get("transaction_id"),
                 "history": case.get("history", []),
-                "history_steps": history_steps,
-                "history_replay_ok": history_ok,
-                "expected": target_expected,
+                "history_steps": result["history_steps"],
+                "history_replay_ok": result["history_replay_ok"],
+                "expected": expected,
                 "expected_reason": case.get("reason"),
-                "actual": target_actual,
-                "classification": classify(target_expected, target_actual),
-                "status_code": target_result["status_code"],
-                "latency_ms": target_result["latency_ms"],
-                "transport_error": target_result["transport_error"],
-                "response_body": target_result["body"],
+                "actual": target["actual"],
+                "classification": classify(expected, target["actual"]),
+                "status_code": target["status_code"],
+                "latency_ms": target["latency_ms"],
+                "transport_error": target["transport_error"],
+                "response_body": target["body"],
             })
 
     classified = [r for r in records if r["classification"] != "unclassified"]
@@ -238,7 +280,7 @@ def main() -> int:
         "transport_error_rate": sum(bool(r["transport_error"]) for r in records) / len(records) if records else 0,
     }
     result = {
-        "experiment_version": "stateful-0.4",
+        "experiment_version": "stateful-0.5",
         "status": "PASS" if summary["unclassified"] == 0 and summary["transport_error_rate"] == 0 and summary["history_replay_failures"] == 0 else "INVALID",
         "system": args.system,
         "benchmark": {"version": benchmark["version"], "sha256": benchmark["content_sha256"], "stateful_cases": len(cases)},
