@@ -1,18 +1,21 @@
 {
-  "experiment_version": "0.2",
+  "experiment_version": "1.0",
   "benchmark": {
-    "seed_file": "../benchmarks/seed_cases_v0.2.json",
-    "mutation_file": "../benchmarks/generated_cases_v0.2.json",
-    "combined_file": "../benchmarks/benchmark_v0.2.json",
-    "expected_seed_count": 21,
-    "expected_mutation_count": 12,
-    "expected_total_count": 33
+    "release": "AegisBench-v1",
+    "development_static_file": "../aegisbench/splits/development_static_v1.json",
+    "heldout_static_file": "../aegisbench/splits/heldout_static_v1.json",
+    "development_case_count": 876,
+    "heldout_case_count": 522,
+    "heldout_source_version": "1.0-static",
+    "heldout_source_sha256": "17865ea0648f234efa0d777f71b6ceb68f7f5ab1ae178b66a98fc7309beab0e86"
   },
   "systems": {
     "B0_direct": {
       "name": "Direct Execution",
       "description": "Requests are sent directly to the controlled tool fixtures without a governance gateway.",
-      "gateway_enabled": false
+      "gateway_enabled": false,
+      "parameter_constraints": false,
+      "path_constraints": false
     },
     "B1_rbac": {
       "name": "Coarse-Grained RBAC",
@@ -57,6 +60,7 @@
       "true_negative",
       "false_positive",
       "false_negative",
+      "unclassified",
       "precision",
       "recall",
       "f1"
@@ -74,11 +78,12 @@
     ]
   },
   "execution": {
-    "mode": "dry_run",
-    "repetitions": 1,
+    "mode": "live_http",
+    "default_repetitions": 30,
     "record_responses": true,
     "record_latency": true,
-    "fail_fast": false
+    "fail_fast": true,
+    "allow_stateful": false
   },
   "reproducibility": {
     "record_git_commit": true,
