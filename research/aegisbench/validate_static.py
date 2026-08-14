@@ -48,11 +48,13 @@ def main() -> int:
             f"declared={benchmark.get('content_sha256')}, calculated={actual_hash}"
         )
 
-    ids = [s.get("scenario_id") for s in scenarios]
+    # Expanded cases use the canonical `id` and `expected` fields. Keep the
+    # validator aligned with the producer rather than inventing a second schema.
+    ids = [s.get("id") for s in scenarios]
     if any(not isinstance(x, str) or not x for x in ids):
-        raise ValueError("every scenario must have a non-empty scenario_id")
+        raise ValueError("every scenario must have a non-empty id")
     if len(ids) != len(set(ids)):
-        raise ValueError("duplicate scenario_id detected")
+        raise ValueError("duplicate id detected")
 
     stateful = [
         s for s in scenarios if s.get("category") == "stateful_sequence"
@@ -61,21 +63,18 @@ def main() -> int:
         raise ValueError(f"static benchmark contains {len(stateful)} stateful cases")
 
     for scenario in scenarios:
+        scenario_id = scenario["id"]
         if scenario.get("source") != "generated":
-            raise ValueError(
-                f"{scenario.get('scenario_id')}: expected generated source"
-            )
+            raise ValueError(f"{scenario_id}: expected generated source")
 
-        expected = scenario.get("expected_decision")
+        expected = scenario.get("expected")
         if expected not in {"ALLOW", "DENY"}:
-            raise ValueError(
-                f"{scenario.get('scenario_id')}: invalid expected_decision"
-            )
+            raise ValueError(f"{scenario_id}: invalid expected decision")
 
         oracle_expected, _ = decide(scenario)
         if expected != oracle_expected:
             raise ValueError(
-                f"{scenario.get('scenario_id')}: oracle mismatch "
+                f"{scenario_id}: oracle mismatch "
                 f"expected={expected} oracle={oracle_expected}"
             )
 
