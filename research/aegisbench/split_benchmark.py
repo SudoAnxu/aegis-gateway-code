@@ -20,14 +20,19 @@ SEED = ROOT / "research" / "aegisbench" / "seed_cases_v1.json"
 OUT_DIR = ROOT / "research" / "aegisbench" / "splits"
 
 TARGET_HELDOUT = {
-    "legitimate": 7,
+    "legitimate": 4,
     "identity_violation": 7,
     "action_authorization": 7,
     "parameter_constraints": 8,
-    "path_constraints": 7,
-    "malformed": 5,
+    "path_constraints": 6,
+    "malformed": 6,
     "unauthorized_tool": 3,
-    "stateful_sequence": 7,
+}
+STATEFUL_TARGETS = {
+    "state_transition": 2,
+    "state_replay": 1,
+    "state_precondition": 1,
+    "state_invalid_transition": 2,
 }
 
 
@@ -45,26 +50,11 @@ def stratified_split(scenarios: list[dict]) -> tuple[list[dict], list[dict]]:
 
     heldout: list[dict] = []
     development: list[dict] = []
-
-    stateful_targets = {
-        "state_transition": 2,
-        "state_replay": 1,
-        "state_precondition": 1,
-        "state_invalid_transition": 3,
-    }
-
     for (category, reason), items in sorted(groups.items()):
-        target = (
-            stateful_targets[reason]
-            if category == "stateful_sequence"
-            else TARGET_HELDOUT[category]
-        )
-        # Deterministic ordering by seed ID. No RNG is used, making the split
-        # reproducible and easy to audit.
+        target = STATEFUL_TARGETS[reason] if category == "stateful_sequence" else TARGET_HELDOUT[category]
         ordered = sorted(items, key=lambda x: x["id"])
         heldout.extend(ordered[:target])
         development.extend(ordered[target:])
-
     return development, heldout
 
 
@@ -74,7 +64,7 @@ def write_release(path: Path, version: str, source: dict, scenarios: list[dict],
         "role": role,
         "source_seed_version": source["version"],
         "source_seed_sha256": source["content_sha256"],
-        "generator_version": "aegisbench-split-v1",
+        "generator_version": "aegisbench-split-v2",
         "oracle_version": source["oracle_version"],
         "scenario_count": len(scenarios),
         "scenarios": scenarios,
@@ -85,15 +75,17 @@ def write_release(path: Path, version: str, source: dict, scenarios: list[dict],
 
 def main() -> int:
     source = json.loads(SEED.read_text())
-    scenarios = source["scenarios"]
-    development, heldout = stratified_split(scenarios)
+    development, heldout = stratified_split(source["scenarios"])
 
-    assert len(development) + len(heldout) == len(scenarios)
-    assert not ({x["id"] for x in development} & {x["id"] for x in heldout})
-    assert len(development) == 100
-    assert len(heldout) == 50
+    assert len(development) + len(heldout) == len(source["scenarios"])
+    assert len(development) == 100, len(development)
+    assert len(heldout) == 50, len(heldout)
 
-    # Re-derive every label through the independent oracle before writing the split.
+    dev_ids = {x["id"] for x in development}
+    heldout_ids = {x["id"] for x in heldout}
+    assert not dev_ids & heldout_ids
+    assert dev_ids | heldout_ids == {x["id"] for x in source["scenarios"]}
+
     for scenario in development + heldout:
         expected, reason = decide(scenario)
         assert (scenario["expected"], scenario["reason"]) == (expected, reason)
