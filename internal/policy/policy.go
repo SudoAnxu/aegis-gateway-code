@@ -13,8 +13,8 @@ import (
 
 // Policy represents the complete policy configuration
 type Policy struct {
-	Version string          `yaml:"version"`
-	Agents  []AgentPolicy   `yaml:"agents"`
+	Version string        `yaml:"version"`
+	Agents  []AgentPolicy `yaml:"agents"`
 }
 
 // AgentPolicy defines what an agent is allowed to do
@@ -117,7 +117,7 @@ func (pe *PolicyEngine) loadPolicyFile(filePath string) error {
 	return nil
 }
 
-// validatePolicy checks basic policy structure
+// validatePolicy checks policy structure, supported conditions, and condition types.
 func (pe *PolicyEngine) validatePolicy(p *Policy) error {
 	if p.Version == "" {
 		return fmt.Errorf("policy version is required")
@@ -127,12 +127,32 @@ func (pe *PolicyEngine) validatePolicy(p *Policy) error {
 		if agent.ID == "" {
 			return fmt.Errorf("agent ID is required")
 		}
+
 		for _, allow := range agent.Allow {
 			if allow.Tool == "" {
 				return fmt.Errorf("tool name is required")
 			}
 			if len(allow.Actions) == 0 {
 				return fmt.Errorf("at least one action is required for tool %s", allow.Tool)
+			}
+
+			for key, value := range allow.Conditions {
+				switch key {
+				case "min_amount", "max_amount":
+					if _, err := numericValue(value, key); err != nil {
+						return fmt.Errorf("condition %s: %w", key, err)
+					}
+				case "currencies":
+					if !isStringSlice(value) {
+						return fmt.Errorf("condition currencies must be a list of strings")
+					}
+				case "folder_prefix":
+					if _, ok := value.(string); !ok {
+						return fmt.Errorf("condition folder_prefix must be a string")
+					}
+				default:
+					return fmt.Errorf("unsupported condition key %q for tool %s", key, allow.Tool)
+				}
 			}
 		}
 	}
@@ -222,31 +242,36 @@ func (pe *PolicyEngine) Evaluate(agentID, tool, action string, params map[string
 
 // checkConditions validates parameters against policy conditions
 func (pe *PolicyEngine) checkConditions(conditions map[string]interface{}, params map[string]interface{}) error {
-	// Check max_amount condition
-	if maxAmount, ok := conditions["max_amount"]; ok {
-		if amount, exists := params["amount"]; exists {
-			var amountFloat float64
-			switch v := amount.(type) {
-			case float64:
-				amountFloat = v
-			case int:
-				amountFloat = float64(v)
-			case int64:
-				amountFloat = float64(v)
-			default:
-				return fmt.Errorf("amount must be a number")
+	// Amount constraints.
+	minAmount, hasMinAmount := conditions["min_amount"]
+	maxAmount, hasMaxAmount := conditions["max_amount"]
+
+	if hasMinAmount || hasMaxAmount {
+		amount, exists := params["amount"]
+		if !exists {
+			return fmt.Errorf("amount is required")
+		}
+
+		amountFloat, err := numericValue(amount, "amount")
+		if err != nil {
+			return err
+		}
+
+		if hasMinAmount {
+			minFloat, err := numericValue(minAmount, "min_amount")
+			if err != nil {
+				return err
 			}
 
-			var maxFloat float64
-			switch v := maxAmount.(type) {
-			case float64:
-				maxFloat = v
-			case int:
-				maxFloat = float64(v)
-			case int64:
-				maxFloat = float64(v)
-			default:
-				return fmt.Errorf("max_amount must be a number")
+			if amountFloat < minFloat {
+				return fmt.Errorf("Amount below min_amount=%.0f", minFloat)
+			}
+		}
+
+		if hasMaxAmount {
+			maxFloat, err := numericValue(maxAmount, "max_amount")
+			if err != nil {
+				return err
 			}
 
 			if amountFloat > maxFloat {
@@ -255,47 +280,106 @@ func (pe *PolicyEngine) checkConditions(conditions map[string]interface{}, param
 		}
 	}
 
-	// Check currencies condition
+	// Currency constraints.
 	if currencies, ok := conditions["currencies"].([]interface{}); ok {
-		if currency, exists := params["currency"]; exists {
-			currencyStr, ok := currency.(string)
-			if !ok {
-				return fmt.Errorf("currency must be a string")
-			}
+		currency, exists := params["currency"]
+		if !exists {
+			return fmt.Errorf("currency is required")
+		}
 
-			allowed := false
-			for _, c := range currencies {
-				if cStr, ok := c.(string); ok && cStr == currencyStr {
-					allowed = true
-					break
-				}
-			}
+		currencyStr, ok := currency.(string)
+		if !ok {
+			return fmt.Errorf("currency must be a string")
+		}
 
-			if !allowed {
-				return fmt.Errorf("Currency %s not in allowed currencies", currencyStr)
+		allowed := false
+		for _, c := range currencies {
+			if cStr, ok := c.(string); ok && cStr == currencyStr {
+				allowed = true
+				break
 			}
+		}
+
+		if !allowed {
+			return fmt.Errorf("Currency %s not in allowed currencies", currencyStr)
 		}
 	}
 
-	// Check folder_prefix condition
+	// Path constraints.
 	if prefix, ok := conditions["folder_prefix"].(string); ok {
-		if path, exists := params["path"]; exists {
-			pathStr, ok := path.(string)
-			if !ok {
-				return fmt.Errorf("path must be a string")
-			}
+		path, exists := params["path"]
+		if !exists {
+			return fmt.Errorf("path is required")
+		}
 
-			if len(pathStr) < len(prefix) || pathStr[:len(prefix)] != prefix {
-				return fmt.Errorf("Path must start with prefix %s", prefix)
-			}
+		pathStr, ok := path.(string)
+		if !ok {
+			return fmt.Errorf("path must be a string")
+		}
+
+		cleanPath := filepath.Clean(pathStr)
+		cleanPrefix := filepath.Clean(prefix)
+
+		// The path must either equal the configured directory or be below it.
+		// Raw string-prefix matching would incorrectly allow /hr-documents or
+		// /hr-docs2 and would not normalize traversal segments safely.
+		if cleanPath != cleanPrefix && !filepath.IsAbs(cleanPrefix) {
+			return fmt.Errorf("folder_prefix must be an absolute path")
+		}
+
+		if cleanPath != cleanPrefix &&
+			!hasPathPrefix(cleanPath, cleanPrefix) {
+			return fmt.Errorf("Path must remain within prefix %s/", cleanPrefix)
 		}
 	}
 
 	return nil
 }
 
+func hasPathPrefix(path, prefix string) bool {
+	prefix = filepath.Clean(prefix)
+	if prefix == string(os.PathSeparator) {
+		return filepath.IsAbs(path)
+	}
+	return len(path) > len(prefix) &&
+		path[:len(prefix)] == prefix &&
+		path[len(prefix)] == os.PathSeparator
+}
+
+func isStringSlice(value interface{}) bool {
+	switch values := value.(type) {
+	case []interface{}:
+		for _, value := range values {
+			if _, ok := value.(string); !ok {
+				return false
+			}
+		}
+		return true
+	case []string:
+		return true
+	default:
+		return false
+	}
+}
+
+func numericValue(value interface{}, name string) (float64, error) {
+	switch v := value.(type) {
+	case float64:
+		return v, nil
+	case float32:
+		return float64(v), nil
+	case int:
+		return float64(v), nil
+	case int32:
+		return float64(v), nil
+	case int64:
+		return float64(v), nil
+	default:
+		return 0, fmt.Errorf("%s must be a number", name)
+	}
+}
+
 // Close stops the policy engine and cleans up resources
 func (pe *PolicyEngine) Close() error {
 	return pe.watcher.Close()
 }
-
