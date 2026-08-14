@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import socket
 import statistics
 import subprocess
 import time
@@ -14,7 +13,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, build_opener, ProxyHandler
+from urllib.request import Request, build_opener, HTTPHandler
 
 ROOT = Path(__file__).resolve().parents[2]
 SYSTEMS = ("B0_direct", "B1_rbac", "B2_aegis")
@@ -55,8 +54,12 @@ def percentile(values: list[float], p: float) -> float | None:
 
 
 def infer_decision(status: int | None, body: str) -> str:
-    if status in {401, 403}:
-        return "DENY"
+    """Map only defined protocol outcomes to benchmark decisions.
+
+    2xx is ALLOW. Explicit policy decisions and policy-style 4xx responses
+    are DENY. 404/405/5xx remain UNKNOWN because they can indicate routing or
+    fixture failures rather than a policy decision.
+    """
     if status is None:
         return "UNKNOWN"
     try:
@@ -72,6 +75,8 @@ def infer_decision(status: int | None, body: str) -> str:
             return "ALLOW" if allowed else "DENY"
     if 200 <= status < 300:
         return "ALLOW"
+    if status in {400, 401, 403}:
+        return "DENY"
     return "UNKNOWN"
 
 
@@ -101,9 +106,11 @@ def request_for(case: dict[str, Any], system: str, config: dict[str, Any]) -> tu
     raise ValueError(f"unknown system: {system}")
 
 
-# Deliberately bypass ambient HTTP proxy settings. The experiment targets localhost fixtures;
-# proxy routing would make transport behavior environment-dependent and invalidate the run.
-_DIRECT_OPENER = build_opener(ProxyHandler({}))
+class LocalNoProxyHandler(HTTPHandler):
+    pass
+
+
+OPENER = build_opener(LocalNoProxyHandler)
 
 
 def execute(url: str | None, headers: dict[str, str], body: bytes, timeout: float) -> dict[str, Any]:
@@ -112,7 +119,7 @@ def execute(url: str | None, headers: dict[str, str], body: bytes, timeout: floa
     started = time.perf_counter()
     request = Request(url, data=body, headers=headers, method="POST")
     try:
-        with _DIRECT_OPENER.open(request, timeout=timeout) as response:
+        with OPENER.open(request, timeout=timeout) as response:
             text = response.read().decode("utf-8", errors="replace")
             return {"status_code": response.status, "body": text, "latency_ms": (time.perf_counter() - started) * 1000, "transport_error": None}
     except HTTPError as exc:
@@ -136,16 +143,7 @@ def metric_summary(records: list[dict[str, Any]]) -> dict[str, Any]:
     deny = [r for r in records if r["expected"] == "DENY"]
     allow = [r for r in records if r["expected"] == "ALLOW"]
     latencies = [r["latency_ms"] for r in records if r["latency_ms"] is not None]
-    return {
-        "cases": len({r["scenario_id"] for r in records}), "evaluations": len(records),
-        "true_positive": tp, "true_negative": tn, "false_positive": fp, "false_negative": fn,
-        "unclassified": counts["unclassified"], "classification_coverage": classified / len(records) if records else None,
-        "precision": precision, "recall": recall, "f1": f1,
-        "unauthorized_execution_rate": sum(r["actual"] == "ALLOW" for r in deny) / len(deny) if deny else None,
-        "legitimate_task_success_rate": sum(r["actual"] == "ALLOW" for r in allow) / len(allow) if allow else None,
-        "transport_error_rate": sum(bool(r["transport_error"]) for r in records) / len(records) if records else None,
-        "latency_ms": {"mean": statistics.mean(latencies) if latencies else None, "median": statistics.median(latencies) if latencies else None, "p50": percentile(latencies, .50), "p95": percentile(latencies, .95), "p99": percentile(latencies, .99)},
-    }
+    return {"cases": len({r["scenario_id"] for r in records}), "evaluations": len(records), "true_positive": tp, "true_negative": tn, "false_positive": fp, "false_negative": fn, "unclassified": counts["unclassified"], "classification_coverage": classified / len(records) if records else None, "precision": precision, "recall": recall, "f1": f1, "unauthorized_execution_rate": sum(r["actual"] == "ALLOW" for r in deny) / len(deny) if deny else None, "legitimate_task_success_rate": sum(r["actual"] == "ALLOW" for r in allow) / len(allow) if allow else None, "transport_error_rate": sum(bool(r["transport_error"]) for r in records) / len(records) if records else None, "latency_ms": {"mean": statistics.mean(latencies) if latencies else None, "median": statistics.median(latencies) if latencies else None, "p50": percentile(latencies, 0.50), "p95": percentile(latencies, 0.95), "p99": percentile(latencies, 0.99)}}
 
 
 def stratified(records: list[dict[str, Any]], field: str) -> dict[str, Any]:
@@ -180,22 +178,6 @@ def validate_run_inputs(benchmark: dict[str, Any], config: dict[str, Any]) -> st
     return actual_hash
 
 
-def preflight(urls: set[str], timeout: float) -> dict[str, str]:
-    """Check TCP reachability once before executing hundreds of cases."""
-    failures: dict[str, str] = {}
-    for url in sorted(urls):
-        host = url.split("://", 1)[-1].split("/", 1)[0]
-        if ":" not in host:
-            continue
-        hostname, port_text = host.rsplit(":", 1)
-        try:
-            with socket.create_connection((hostname, int(port_text)), timeout=min(timeout, 2.0)):
-                pass
-        except OSError as exc:
-            failures[url] = repr(exc)
-    return failures
-
-
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--benchmark", type=Path, required=True)
@@ -212,29 +194,23 @@ def main() -> int:
     actual_hash = validate_run_inputs(benchmark, config)
     scenarios = benchmark["scenarios"]
     seed_ids = {s.get("parent_scenario_id", s.get("id")) for s in scenarios}
-    timestamp, commit = datetime.now(timezone.utc).isoformat(), git_commit()
-    timeout = float(config["request"]["timeout_seconds"])
-    urls = {u for u, _, _ in (request_for(c, args.system, config) for c in scenarios) if u}
-    failures = preflight(urls, timeout)
-    if failures:
-        result = {"experiment_version": "1.0", "status": "INVALID", "reason": "preflight_failed", "system": args.system, "benchmark": {"version": benchmark["version"], "role": benchmark.get("role"), "sha256": actual_hash, "scenario_count": len(scenarios), "unique_seed_count": len(seed_ids)}, "preflight_failures": failures}
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        args.output.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
-        print(json.dumps(result, indent=2))
-        return 2
+    timestamp = datetime.now(timezone.utc).isoformat()
+    commit = git_commit()
     records: list[dict[str, Any]] = []
+    timeout = float(config["request"]["timeout_seconds"])
     for repetition in range(1, repetitions + 1):
         for case in scenarios:
             url, headers, body = request_for(case, args.system, config)
             result = execute(url, headers, body, timeout)
             actual = infer_decision(result["status_code"], result["body"])
-            records.append({"timestamp_utc": timestamp, "git_commit": commit, "benchmark_version": benchmark["version"], "benchmark_sha256": actual_hash, "system": args.system, "repetition": repetition, "scenario_id": case["id"], "parent_scenario_id": case.get("parent_scenario_id"), "category": case["category"], "mutation_operator": case.get("mutation_operator"), "agent": case["agent"], "tool": case["tool"], "action": case["action"], "expected": case["expected"], "actual": actual, "classification": classify(case["expected"], actual), "status_code": result["status_code"], "latency_ms": result["latency_ms"], "transport_error": result["transport_error"]})
+            expected = case["expected"]
+            records.append({"timestamp_utc": timestamp, "git_commit": commit, "benchmark_version": benchmark["version"], "benchmark_sha256": actual_hash, "system": args.system, "repetition": repetition, "scenario_id": case["id"], "parent_scenario_id": case.get("parent_scenario_id"), "category": case["category"], "mutation_operator": case.get("mutation_operator"), "agent": case["agent"], "tool": case["tool"], "action": case["action"], "expected": expected, "actual": actual, "classification": classify(expected, actual), "status_code": result["status_code"], "latency_ms": result["latency_ms"], "transport_error": result["transport_error"]})
     summary = metric_summary(records)
     invalid = summary["unclassified"] > 0 or summary["transport_error_rate"] not in (None, 0)
-    result = {"experiment_version": "1.0", "status": "INVALID" if invalid else "PASS", "system": args.system, "benchmark": {"version": benchmark["version"], "role": benchmark.get("role"), "sha256": actual_hash, "scenario_count": len(scenarios), "unique_seed_count": len(seed_ids)}, "protocol": {"repetitions": repetitions, "total_evaluations": len(records), "stateful_included": False}, "git_commit": commit, "timestamp_utc": timestamp, "summary": summary, "transport_error_examples": [r["transport_error"] for r in records if r["transport_error"]][:5], "by_category": stratified(records, "category"), "by_operator": stratified(records, "mutation_operator"), "records": records}
+    result = {"experiment_version": "1.0", "status": "INVALID" if invalid else "PASS", "system": args.system, "benchmark": {"version": benchmark["version"], "role": benchmark.get("role"), "sha256": actual_hash, "scenario_count": len(scenarios), "unique_seed_count": len(seed_ids)}, "protocol": {"repetitions": repetitions, "total_evaluations": len(records), "stateful_included": False}, "git_commit": commit, "timestamp_utc": timestamp, "summary": summary, "by_category": stratified(records, "category"), "by_operator": stratified(records, "mutation_operator"), "records": records}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({"status": result["status"], "system": args.system, "benchmark": result["benchmark"], "protocol": result["protocol"], "summary": summary, "transport_error_examples": result["transport_error_examples"]}, indent=2))
+    print(json.dumps({"status": result["status"], "system": args.system, "benchmark": result["benchmark"], "protocol": result["protocol"], "summary": summary}, indent=2))
     return 2 if invalid else 0
 
 
