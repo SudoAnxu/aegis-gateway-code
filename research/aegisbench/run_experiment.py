@@ -54,12 +54,7 @@ def percentile(values: list[float], p: float) -> float | None:
 
 
 def infer_decision(status: int | None, body: str) -> str:
-    """Map only defined protocol outcomes to benchmark decisions.
-
-    2xx is ALLOW. Explicit policy decisions and policy-style 4xx responses
-    are DENY. 404/405/5xx remain UNKNOWN because they can indicate routing or
-    fixture failures rather than a policy decision.
-    """
+    """Map only defined protocol outcomes to benchmark decisions."""
     if status is None:
         return "UNKNOWN"
     try:
@@ -92,12 +87,19 @@ def classify(expected: str, actual: str) -> str:
 def request_for(case: dict[str, Any], system: str, config: dict[str, Any]) -> tuple[str | None, dict[str, str], bytes]:
     tool, action = case["tool"], case["action"]
     body = json.dumps(case["parameters"], ensure_ascii=False).encode()
-    headers = {config["request"]["agent_header"]: case["agent"], "Content-Type": config["request"]["content_type"]}
+    headers = {
+        config["request"]["agent_header"]: case["agent"],
+        "Content-Type": config["request"]["content_type"],
+    }
     endpoints = config["endpoints"]
     if system == "B0_direct":
-        endpoint = endpoints.get(tool)
+        # Direct execution intentionally permits arbitrary tool names. Dedicated
+        # fixtures are used when available; the explicit fallback is a permissive
+        # fixture for tools that have no dedicated service. This prevents an
+        # infrastructure absence from being misclassified as a policy decision.
+        endpoint = endpoints.get(tool, endpoints.get("direct_fallback"))
         if endpoint is None:
-            return None, headers, body
+            raise ValueError(f"B0_direct has no endpoint or direct_fallback for tool {tool!r}")
         return f"{endpoint['base_url']}/{action}", headers, body
     if system == "B1_rbac":
         return f"{endpoints['rbac']['base_url']}/tools/{tool}/{action}", headers, body
@@ -143,7 +145,29 @@ def metric_summary(records: list[dict[str, Any]]) -> dict[str, Any]:
     deny = [r for r in records if r["expected"] == "DENY"]
     allow = [r for r in records if r["expected"] == "ALLOW"]
     latencies = [r["latency_ms"] for r in records if r["latency_ms"] is not None]
-    return {"cases": len({r["scenario_id"] for r in records}), "evaluations": len(records), "true_positive": tp, "true_negative": tn, "false_positive": fp, "false_negative": fn, "unclassified": counts["unclassified"], "classification_coverage": classified / len(records) if records else None, "precision": precision, "recall": recall, "f1": f1, "unauthorized_execution_rate": sum(r["actual"] == "ALLOW" for r in deny) / len(deny) if deny else None, "legitimate_task_success_rate": sum(r["actual"] == "ALLOW" for r in allow) / len(allow) if allow else None, "transport_error_rate": sum(bool(r["transport_error"]) for r in records) / len(records) if records else None, "latency_ms": {"mean": statistics.mean(latencies) if latencies else None, "median": statistics.median(latencies) if latencies else None, "p50": percentile(latencies, 0.50), "p95": percentile(latencies, 0.95), "p99": percentile(latencies, 0.99)}}
+    return {
+        "cases": len({r["scenario_id"] for r in records}),
+        "evaluations": len(records),
+        "true_positive": tp,
+        "true_negative": tn,
+        "false_positive": fp,
+        "false_negative": fn,
+        "unclassified": counts["unclassified"],
+        "classification_coverage": classified / len(records) if records else None,
+        "precision": precision,
+        "recall": recall,
+        "f1": f1,
+        "unauthorized_execution_rate": sum(r["actual"] == "ALLOW" for r in deny) / len(deny) if deny else None,
+        "legitimate_task_success_rate": sum(r["actual"] == "ALLOW" for r in allow) / len(allow) if allow else None,
+        "transport_error_rate": sum(bool(r["transport_error"]) for r in records) / len(records) if records else None,
+        "latency_ms": {
+            "mean": statistics.mean(latencies) if latencies else None,
+            "median": statistics.median(latencies) if latencies else None,
+            "p50": percentile(latencies, 0.50),
+            "p95": percentile(latencies, 0.95),
+            "p99": percentile(latencies, 0.99),
+        },
+    }
 
 
 def stratified(records: list[dict[str, Any]], field: str) -> dict[str, Any]:
@@ -175,6 +199,8 @@ def validate_run_inputs(benchmark: dict[str, Any], config: dict[str, Any]) -> st
         raise ValueError(f"static benchmark unexpectedly contains {len(stateful)} stateful cases")
     if benchmark.get("role") == "heldout" and configured_benchmark.get("heldout_source_sha256") != actual_hash:
         raise ValueError("heldout benchmark hash does not match experiment configuration")
+    if "direct_fallback" not in config.get("endpoints", {}):
+        raise ValueError("experiment config must define endpoints.direct_fallback for B0")
     return actual_hash
 
 
