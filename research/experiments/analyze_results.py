@@ -32,17 +32,14 @@ def main() -> int:
         type=Path,
         default=Path(__file__).resolve().parent / "results" / "repeated",
     )
-    parser.add_argument(
-        "--output",
-        type=Path,
-        default=None,
-    )
+    parser.add_argument("--output", type=Path, default=None)
     parser.add_argument("--expected-repetitions", type=int, default=30)
     args = parser.parse_args()
 
     aggregates: dict[str, dict[str, Any]] = {}
     benchmark_hashes: set[str] = set()
     versions: set[str] = set()
+    scenario_counts: set[int] = set()
 
     for system in SYSTEMS:
         path = args.results_dir / f"{system}_aggregate.json"
@@ -62,6 +59,7 @@ def main() -> int:
         benchmark = data["benchmark"]
         benchmark_hashes.add(benchmark["sha256"])
         versions.add(benchmark["version"])
+        scenario_counts.add(int(benchmark["scenario_count"]))
 
         for metric in (
             "precision",
@@ -80,6 +78,12 @@ def main() -> int:
         raise ValueError(f"Benchmark hashes differ: {benchmark_hashes}")
     if len(versions) != 1:
         raise ValueError(f"Benchmark versions differ: {versions}")
+    if len(scenario_counts) != 1:
+        raise ValueError(f"Scenario counts differ: {scenario_counts}")
+
+    scenario_count = next(iter(scenario_counts))
+    benchmark_version = next(iter(versions))
+    benchmark_hash = next(iter(benchmark_hashes))
 
     b0 = aggregates["b0_direct"]["summary"]
     b1 = aggregates["b1_rbac"]["summary"]
@@ -97,18 +101,19 @@ def main() -> int:
 
     b2_vs_b0_latency = (b2_latency / b0_latency - 1.0) * 100.0
     b2_vs_b1_latency = (b2_latency / b1_latency - 1.0) * 100.0
+    total_executions = scenario_count * args.expected_repetitions * len(SYSTEMS)
 
-    report = f"""# Benchmark v0.2 — Repeated Experiment Results
+    report = f"""# Benchmark {benchmark_version} — Repeated Experiment Results
 
 ## Experimental integrity
 
-- Benchmark version: `{next(iter(versions))}`
-- Benchmark SHA-256: `{next(iter(benchmark_hashes))}`
+- Benchmark version: `{benchmark_version}`
+- Benchmark SHA-256: `{benchmark_hash}`
 - Repetitions per system: **{args.expected_repetitions}**
-- Scenarios per repetition: **33**
-- Total system-level executions: **2,970**
-- All systems: 30/30 valid repetitions
-- All repetitions: 33/33 scenarios classified
+- Scenarios per repetition: **{scenario_count}**
+- Total system-level executions: **{total_executions:,}**
+- All systems: {args.expected_repetitions}/{args.expected_repetitions} valid repetitions
+- All repetitions: {scenario_count}/{scenario_count} scenarios classified
 - Unclassified repetitions: **0**
 
 ## Security and classification results
@@ -131,11 +136,11 @@ Aegis mean latency is **{b2_vs_b0_latency:+.2f}%** versus direct execution and *
 
 ## Interpretation
 
-On this fixed benchmark, Aegis achieved perfect classification and zero unauthorized execution across all 30 repetitions while preserving 100% legitimate-task success. Direct execution and coarse-grained RBAC left substantial unauthorized-execution exposure: 75.86% and 34.48%, respectively.
+Results are specific to this frozen benchmark and should not be interpreted as universal security guarantees. Security metrics are benchmark-level proportions; the 30 repetitions demonstrate reproducibility of the deterministic enforcement outcome and provide repeated observations for latency rather than 30 independent security corpora.
 
-The results support the claim that parameter-, path-, and identity-aware gateway enforcement materially improves governance coverage over the two baselines for this benchmark. They do **not** establish generalization beyond benchmark v0.2, and the deterministic security metrics have zero between-repetition variance because the evaluated policy decisions are deterministic.
+A perfect result, if observed, must be reported with its exact denominator and benchmark scope. The benchmark should be described as a deterministic policy-enforcement evaluation, not as a comprehensive assessment of prompt injection, model alignment, or arbitrary enterprise attack behavior.
 
-Latency should be reported as an observed benchmark characteristic rather than as evidence of universal performance. The repetition-level confidence intervals describe variation across the 30 measured runs; they do not account for other machines, workloads, network conditions, or deployment environments.
+Latency is an observed benchmark characteristic. The repetition-level confidence intervals describe variation across the measured runs and do not establish performance across other machines, workloads, network conditions, or deployment environments.
 """
 
     output = args.output or args.results_dir / "EXPERIMENT_REPORT.md"
