@@ -155,7 +155,14 @@ def history_for_case(case: dict[str, Any]) -> list[dict[str, Any]]:
         if kind not in {"payment_created", "payment_refunded"}:
             steps.append({"event": kind, "supported": False, "event_id": event_id, "target_transaction_id": transaction_id})
             continue
-        event_params = {"transaction_id": transaction_id}
+
+        # The benchmark models the state-machine identity as transaction_id,
+        # but the live payments tool's refund API uses payment_id. Keep the
+        # benchmark transaction identity for state isolation while translating
+        # the request into the real tool schema for refund replay.
+        event_params: dict[str, Any] = {"transaction_id": transaction_id}
+        if kind == "payment_refunded":
+            event_params["payment_id"] = transaction_id
         for key in ("amount", "currency"):
             value = event.get(key, params.get(key))
             if value is not None:
