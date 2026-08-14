@@ -11,18 +11,20 @@ import (
 	"time"
 
 	"aegis-gateway/internal/policy"
+	"aegis-gateway/internal/state"
 	"aegis-gateway/pkg/telemetry"
 )
 
-// Gateway handles requests and enforces policies
+// Gateway handles requests and enforces policies.
 type Gateway struct {
 	policyEngine *policy.PolicyEngine
 	telemetry    *telemetry.Telemetry
 	client       *http.Client
 	toolURLs     map[string]string
+	state        *state.Store
 }
 
-// NewGateway creates a new gateway instance
+// NewGateway creates a new gateway instance.
 func NewGateway(policyEngine *policy.PolicyEngine, telemetry *telemetry.Telemetry) *Gateway {
 	return &Gateway{
 		policyEngine: policyEngine,
@@ -34,10 +36,11 @@ func NewGateway(policyEngine *policy.PolicyEngine, telemetry *telemetry.Telemetr
 			"payments": "http://localhost:8081",
 			"files":    "http://localhost:8082",
 		},
+		state: state.NewStore(),
 	}
 }
 
-// HandleRequest processes incoming requests
+// HandleRequest processes incoming requests.
 func (g *Gateway) HandleRequest(w http.ResponseWriter, r *http.Request) {
 	startTime := time.Now()
 
@@ -82,6 +85,15 @@ func (g *Gateway) HandleRequest(w http.ResponseWriter, r *http.Request) {
 	// Evaluate policy
 	allowed, reason := g.policyEngine.Evaluate(agentID, tool, action, params)
 
+	// Stateful payment governance runs after ordinary policy authorization.
+	// This keeps the state machine orthogonal to RBAC/parameter constraints.
+	if allowed && tool == "payments" {
+		if stateReason := g.checkPaymentState(action, params); stateReason != "" {
+			allowed = false
+			reason = stateReason
+		}
+	}
+
 	latencyMS := time.Since(startTime).Milliseconds()
 
 	// Log decision
@@ -116,32 +128,83 @@ func (g *Gateway) HandleRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	forwardStart := time.Now()
-	err = g.forwardRequest(ctx, toolURL, action, bodyBytes, w)
+	statusCode, err := g.forwardRequest(ctx, toolURL, action, bodyBytes, w)
 	forwardLatency := time.Since(forwardStart).Milliseconds()
-	
+
 	forwardSpan := g.telemetry.LogForwardedCall(ctx, tool, action, forwardLatency)
 	defer forwardSpan.End()
 
 	if err != nil {
-		http.Error(w, fmt.Sprintf("Failed to forward request: %v", err), http.StatusInternalServerError)
 		return
+	}
+
+	// Commit state only after the tool accepted the transition. A failed tool
+	// call must never poison the gateway's transaction state.
+	if statusCode >= 200 && statusCode < 300 && tool == "payments" {
+		if stateReason := g.recordPaymentState(action, params); stateReason != "" {
+			// The tool has already accepted the call, so state inconsistency is a
+			// server-side failure rather than a policy denial.
+			return
+		}
 	}
 }
 
-// forwardRequest forwards the request to the appropriate tool
-func (g *Gateway) forwardRequest(ctx context.Context, baseURL, action string, body []byte, w http.ResponseWriter) error {
+func transactionID(params map[string]interface{}) string {
+	for _, key := range []string{"transaction_id", "payment_id"} {
+		if value, ok := params[key].(string); ok && strings.TrimSpace(value) != "" {
+			return value
+		}
+	}
+	return ""
+}
+
+func (g *Gateway) checkPaymentState(action string, params map[string]interface{}) string {
+	if action != "refund" {
+		return ""
+	}
+	if err := g.state.CheckRefund(transactionID(params)); err != nil {
+		return err.Error()
+	}
+	return ""
+}
+
+func (g *Gateway) recordPaymentState(action string, params map[string]interface{}) string {
+	id := transactionID(params)
+	switch action {
+	case "create":
+		if id == "" {
+			return ""
+		}
+		if err := g.state.RecordCreate(id); err != nil {
+			return err.Error()
+		}
+	case "refund":
+		if id == "" {
+			return "state_missing_transaction"
+		}
+		if err := g.state.RecordRefund(id); err != nil {
+			return err.Error()
+		}
+	}
+	return ""
+}
+
+// forwardRequest forwards the request to the appropriate tool and returns its
+// HTTP status so successful state transitions can be committed atomically after
+// the tool call completes.
+func (g *Gateway) forwardRequest(ctx context.Context, baseURL, action string, body []byte, w http.ResponseWriter) (int, error) {
 	url := fmt.Sprintf("%s/%s", baseURL, action)
-	
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(body))
 	if err != nil {
-		return err
+		return 0, err
 	}
 
 	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := g.client.Do(req)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer resp.Body.Close()
 
@@ -156,11 +219,11 @@ func (g *Gateway) forwardRequest(ctx context.Context, baseURL, action string, bo
 	w.WriteHeader(resp.StatusCode)
 
 	// Copy response body
-	_, err = io.Copy(w, resp.Body)
-	return err
+	_, copyErr := io.Copy(w, resp.Body)
+	return resp.StatusCode, copyErr
 }
 
-// StartServer starts the gateway HTTP server
+// StartServer starts the gateway HTTP server.
 func (g *Gateway) StartServer(port string) error {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/tools/", g.HandleRequest)
@@ -169,4 +232,3 @@ func (g *Gateway) StartServer(port string) error {
 	fmt.Printf("Aegis Gateway listening on %s\n", addr)
 	return http.ListenAndServe(addr, mux)
 }
-
