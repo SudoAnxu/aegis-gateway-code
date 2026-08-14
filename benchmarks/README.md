@@ -1,10 +1,22 @@
 # AegisBench
 
-AegisBench is a focused benchmark for validating the correctness of authorization at the agent-tool execution boundary.
+AegisBench is a focused benchmark for validating correctness of authorization at the agent-tool execution boundary.
+
+## Research design
+
+The benchmark separates **scenario generation**, **expected-decision derivation**, and **system evaluation**. Aegis is never used as the oracle for its own benchmark. This prevents circular evaluation and makes failures scientifically interpretable.
+
+The benchmark has three layers:
+
+1. **Curated seeds** — human-authored security intent.
+2. **Deterministic mutations** — systematic expansion around boundaries and adversarial representations.
+3. **Independent oracle** — computes the expected authorization decision from the frozen policy semantics, independently of the implementation under test.
+
+Generated cases retain `parent_scenario_id`, `mutation_operator`, and `generator_version` provenance.
 
 ## Seed benchmark target
 
-The first frozen seed release contains 150 hand-authored scenarios across:
+The first curated release contains 150 hand-authored scenarios:
 
 | Category | Count |
 | --- | ---: |
@@ -18,11 +30,7 @@ The first frozen seed release contains 150 hand-authored scenarios across:
 | Stateful/sequence | 20 |
 | **Total** | **150** |
 
-The seeds are the human-authored specification layer. Generated cases must retain provenance to their seed and mutation operator.
-
 ## Required case fields
-
-Each case should provide:
 
 ```json
 {
@@ -39,22 +47,35 @@ Each case should provide:
 }
 ```
 
-## Expansion operators
+## Mutation operators
 
 The generator must support deterministic expansion for:
 
 - boundary changes (`min-1`, `min`, `min+1`, `max-1`, `max`, `max+1`);
-- type mutations and missing/null values;
-- identity substitutions;
-- path traversal and canonicalization variants;
+- type mutations, missing values, and explicit nulls;
+- identity substitutions and malformed identities;
+- path traversal, encoded traversal, normalization, prefix-collision, and trailing-slash variants;
 - parameter/currency substitutions and irrelevant-field additions;
-- field-order changes that should preserve the decision;
-- repeated and out-of-order history/state sequences.
+- field-order changes that must preserve the decision;
+- repeated, reordered, and invalid history/state sequences.
 
-The expected label must be recomputed from policy semantics. It must never be copied blindly from the parent seed.
+The expected label must be **recomputed by the independent oracle** after every mutation. It must never be copied blindly from the parent seed.
 
-The initial milestone is 1,000–5,000 generated cases. The generator should scale to 10k–30k cases without architectural changes, but those larger counts are stretch targets rather than a gate.
+## Scale
 
-## Reproducibility
+The initial expanded milestone is 1,000–5,000 cases. The generator should scale to 10k–30k cases without architectural changes, but larger counts are stretch targets rather than validity requirements. Benchmark quality comes from coverage, provenance, independent labels, and mutation diversity—not raw case count.
 
-Generation must be deterministic given an explicit RNG seed. A released benchmark is identified by its version and SHA-256 hash. Regenerating a released benchmark creates a new benchmark version rather than silently replacing it.
+## Reproducibility and freezing
+
+Every released benchmark records:
+
+- benchmark version;
+- SHA-256 hash of the canonical benchmark artifact;
+- generator version and source commit;
+- RNG seed;
+- category counts;
+- oracle version.
+
+Once frozen, a benchmark is immutable for that experiment. Any modification creates a new benchmark version and requires a fresh B0/B1/B2 evaluation.
+
+The existing 46-scenario `0.3-heldout` benchmark is development validation only. It is not the final headline benchmark.
