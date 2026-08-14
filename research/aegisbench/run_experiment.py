@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
 """Run AegisBench v1 against B0/B1/B2 with reproducible accounting.
 
-This runner deliberately treats repeated evaluations as correlated repeats of
-fixed scenarios, not independent samples. It reports seed count, case count,
-repetition count, total evaluations, and stratified metrics separately.
+Repeated evaluations are correlated repeats of fixed scenarios, not independent
+samples. The runner records every response and refuses to silently turn
+transport/protocol failures into security decisions.
 
-Stateful-sequence cases are rejected by default because the current HTTP
-protocol is single-request and does not yet expose sequence state to the
-policy engine. Use --allow-stateful only after a sequence-aware protocol is
-implemented and validated.
+Stateful-sequence cases are rejected because the current HTTP protocol is
+single-request. They must be evaluated by a sequence-aware runner later.
 """
 from __future__ import annotations
 
@@ -26,7 +24,6 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 ROOT = Path(__file__).resolve().parents[2]
-
 SYSTEMS = ("B0_direct", "B1_rbac", "B2_aegis")
 DEFAULT_CONFIG = ROOT / "research" / "experiments" / "baseline_config.json"
 
@@ -41,8 +38,8 @@ def load(path: Path) -> dict[str, Any]:
 
 def canonical_hash(data: dict[str, Any]) -> str:
     unsigned = {k: v for k, v in data.items() if k != "content_sha256"}
-    raw = json.dumps(unsigned, sort_keys=True, separators=(",", ":"), allow_nan=False)
-    return hashlib.sha256(raw.encode()).hexdigest()
+    raw = json.dumps(unsigned, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+    return hashlib.sha256(raw).hexdigest()
 
 
 def git_commit() -> str:
@@ -67,18 +64,31 @@ def percentile(values: list[float], p: float) -> float | None:
 
 
 def infer_decision(status: int | None, body: str) -> str:
+    """Infer ALLOW/DENY only from explicit protocol signals or HTTP status.
+
+    Unknown/malformed responses stay UNKNOWN. A 5xx or transport failure can
+    never become DENY, because doing so would artificially improve security
+    metrics.
+    """
     if status in {401, 403}:
         return "DENY"
-    upper = body.upper()
-    deny_markers = (
-        '"DECISION":"DENY"', '"DECISION": "DENY"',
-        '"STATUS":"DENY"', '"STATUS": "DENY"',
-        '"ALLOWED":FALSE', '"ALLOWED": FALSE',
-        "ACCESS DENIED", "POLICY DENIED", "UNAUTHORIZED", "FORBIDDEN",
-    )
-    if any(x in upper for x in deny_markers):
-        return "DENY"
-    if status is not None and 200 <= status < 300:
+    if status is None:
+        return "UNKNOWN"
+
+    try:
+        payload = json.loads(body) if body else None
+    except json.JSONDecodeError:
+        payload = None
+
+    if isinstance(payload, dict):
+        decision = payload.get("decision", payload.get("status"))
+        if isinstance(decision, str) and decision.upper() in {"ALLOW", "DENY"}:
+            return decision.upper()
+        allowed = payload.get("allowed")
+        if isinstance(allowed, bool):
+            return "ALLOW" if allowed else "DENY"
+
+    if 200 <= status < 300:
         return "ALLOW"
     return "UNKNOWN"
 
@@ -138,7 +148,7 @@ def execute(url: str | None, headers: dict[str, str], body: bytes, timeout: floa
             "latency_ms": (time.perf_counter() - started) * 1000,
             "transport_error": None,
         }
-    except (URLError, Exception) as exc:
+    except (URLError, TimeoutError, OSError) as exc:
         return {
             "status_code": None,
             "body": "",
@@ -151,9 +161,14 @@ def metric_summary(records: list[dict[str, Any]]) -> dict[str, Any]:
     counts = Counter(r["classification"] for r in records)
     tp, tn = counts["true_positive"], counts["true_negative"]
     fp, fn = counts["false_positive"], counts["false_negative"]
+    classified = tp + tn + fp + fn
     precision = tp / (tp + fp) if tp + fp else None
     recall = tp / (tp + fn) if tp + fn else None
-    f1 = 2 * precision * recall / (precision + recall) if precision is not None and recall is not None and precision + recall else None
+    f1 = (
+        2 * precision * recall / (precision + recall)
+        if precision is not None and recall is not None and precision + recall
+        else None
+    )
     deny = [r for r in records if r["expected"] == "DENY"]
     allow = [r for r in records if r["expected"] == "ALLOW"]
     latencies = [r["latency_ms"] for r in records if r["latency_ms"] is not None]
@@ -165,17 +180,19 @@ def metric_summary(records: list[dict[str, Any]]) -> dict[str, Any]:
         "false_positive": fp,
         "false_negative": fn,
         "unclassified": counts["unclassified"],
+        "classification_coverage": classified / len(records) if records else None,
         "precision": precision,
         "recall": recall,
         "f1": f1,
         "unauthorized_execution_rate": sum(r["actual"] == "ALLOW" for r in deny) / len(deny) if deny else None,
         "legitimate_task_success_rate": sum(r["actual"] == "ALLOW" for r in allow) / len(allow) if allow else None,
+        "transport_error_rate": sum(bool(r["transport_error"]) for r in records) / len(records) if records else None,
         "latency_ms": {
             "mean": statistics.mean(latencies) if latencies else None,
             "median": statistics.median(latencies) if latencies else None,
-            "p50": percentile(latencies, .50),
-            "p95": percentile(latencies, .95),
-            "p99": percentile(latencies, .99),
+            "p50": percentile(latencies, 0.50),
+            "p95": percentile(latencies, 0.95),
+            "p99": percentile(latencies, 0.99),
         },
     }
 
@@ -187,20 +204,14 @@ def stratified(records: list[dict[str, Any]], field: str) -> dict[str, Any]:
     return {key: metric_summary(value) for key, value in sorted(groups.items())}
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--benchmark", type=Path, required=True)
-    parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
-    parser.add_argument("--system", choices=SYSTEMS, required=True)
-    parser.add_argument("--repetitions", type=int, default=30)
-    parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--allow-stateful", action="store_true")
-    args = parser.parse_args()
-    if args.repetitions < 1:
-        raise ValueError("--repetitions must be >= 1")
-
-    benchmark = load(args.benchmark)
-    config = load(args.config)
+def validate_run_inputs(benchmark: dict[str, Any], config: dict[str, Any]) -> str:
+    if config.get("experiment_version") != "1.0":
+        raise ValueError("experiment config must have experiment_version=1.0")
+    configured_benchmark = config.get("benchmark", {})
+    if configured_benchmark.get("release") != "AegisBench-v1":
+        raise ValueError("experiment config benchmark release must be AegisBench-v1")
+    if benchmark.get("version") != "1.0-static":
+        raise ValueError("runner requires a 1.0-static benchmark")
     scenarios = benchmark.get("scenarios")
     if not isinstance(scenarios, list) or not scenarios:
         raise ValueError("benchmark must contain a non-empty scenarios list")
@@ -210,20 +221,38 @@ def main() -> int:
     actual_hash = canonical_hash(benchmark)
     if declared != actual_hash:
         raise ValueError(f"benchmark hash mismatch: declared={declared}, calculated={actual_hash}")
-
     stateful = [s for s in scenarios if s.get("category") == "stateful_sequence"]
-    if stateful and not args.allow_stateful:
-        raise ValueError(
-            f"benchmark contains {len(stateful)} stateful cases; current HTTP runner is single-request. "
-            "Exclude them or implement sequence-aware enforcement before evaluating them."
-        )
+    if stateful:
+        raise ValueError(f"static benchmark unexpectedly contains {len(stateful)} stateful cases")
+    if benchmark.get("role") == "heldout" and configured_benchmark.get("heldout_source_sha256") != actual_hash:
+        raise ValueError("heldout benchmark hash does not match experiment configuration")
+    return actual_hash
 
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--benchmark", type=Path, required=True)
+    parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
+    parser.add_argument("--system", choices=SYSTEMS, required=True)
+    parser.add_argument("--repetitions", type=int, default=None)
+    parser.add_argument("--output", type=Path, required=True)
+    args = parser.parse_args()
+
+    config = load(args.config)
+    repetitions = args.repetitions if args.repetitions is not None else int(config["execution"]["default_repetitions"])
+    if repetitions < 1:
+        raise ValueError("--repetitions must be >= 1")
+
+    benchmark = load(args.benchmark)
+    actual_hash = validate_run_inputs(benchmark, config)
+    scenarios = benchmark["scenarios"]
     seed_ids = {s.get("parent_scenario_id", s.get("id")) for s in scenarios}
     timestamp = datetime.now(timezone.utc).isoformat()
+    commit = git_commit()
     records: list[dict[str, Any]] = []
     timeout = float(config["request"]["timeout_seconds"])
 
-    for repetition in range(1, args.repetitions + 1):
+    for repetition in range(1, repetitions + 1):
         for case in scenarios:
             url, headers, body = request_for(case, args.system, config)
             result = execute(url, headers, body, timeout)
@@ -231,7 +260,7 @@ def main() -> int:
             expected = case["expected"]
             records.append({
                 "timestamp_utc": timestamp,
-                "git_commit": git_commit(),
+                "git_commit": commit,
                 "benchmark_version": benchmark["version"],
                 "benchmark_sha256": actual_hash,
                 "system": args.system,
@@ -252,21 +281,24 @@ def main() -> int:
             })
 
     summary = metric_summary(records)
+    invalid = summary["unclassified"] > 0 or summary["transport_error_rate"] not in (None, 0)
     result = {
         "experiment_version": "1.0",
+        "status": "INVALID" if invalid else "PASS",
         "system": args.system,
         "benchmark": {
             "version": benchmark["version"],
+            "role": benchmark.get("role"),
             "sha256": actual_hash,
             "scenario_count": len(scenarios),
             "unique_seed_count": len(seed_ids),
         },
         "protocol": {
-            "repetitions": args.repetitions,
+            "repetitions": repetitions,
             "total_evaluations": len(records),
-            "stateful_included": bool(stateful),
+            "stateful_included": False,
         },
-        "git_commit": git_commit(),
+        "git_commit": commit,
         "timestamp_utc": timestamp,
         "summary": summary,
         "by_category": stratified(records, "category"),
@@ -275,8 +307,8 @@ def main() -> int:
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({"system": args.system, "benchmark": result["benchmark"], "protocol": result["protocol"], "summary": summary}, indent=2))
-    return 0
+    print(json.dumps({"status": result["status"], "system": args.system, "benchmark": result["benchmark"], "protocol": result["protocol"], "summary": summary}, indent=2))
+    return 2 if invalid else 0
 
 
 if __name__ == "__main__":
