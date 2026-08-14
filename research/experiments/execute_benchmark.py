@@ -453,15 +453,36 @@ def main() -> int:
             "Benchmark does not contain scenarios"
         )
 
-    expected_count = config["benchmark"][
-        "expected_total_count"
-    ]
+    benchmark_declared_count = benchmark.get(
+        "scenario_count"
+    )
 
-    if len(scenarios) != expected_count:
-        raise ValueError(
-            f"Expected {expected_count} scenarios, "
-            f"got {len(scenarios)}"
-        )
+    if benchmark_declared_count is None:
+        # Legacy/core benchmarks (e.g. v0.2) do not carry
+        # scenario_count, so retain the configuration contract.
+        expected_count = config["benchmark"][
+            "expected_total_count"
+        ]
+
+        if len(scenarios) != expected_count:
+            raise ValueError(
+                f"Expected {expected_count} scenarios, "
+                f"got {len(scenarios)}"
+            )
+    else:
+        # Newer benchmarks may declare their own size, allowing
+        # held-out suites to differ from the core benchmark.
+        if not isinstance(benchmark_declared_count, int):
+            raise ValueError(
+                "Benchmark scenario_count must be an integer"
+            )
+
+        if len(scenarios) != benchmark_declared_count:
+            raise ValueError(
+                "Benchmark scenario_count mismatch: "
+                f"declared={benchmark_declared_count}, "
+                f"actual={len(scenarios)}"
+            )
 
     actual_hash = canonical_hash(benchmark)
     declared_hash = benchmark.get(
