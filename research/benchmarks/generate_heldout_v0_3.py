@@ -106,10 +106,14 @@ def build_cases():
     for i, path in enumerate(paths, 1):
         cases.append(make_case(f"HO-PATH-{i:03d}", "path_violation", "hr-agent", "files", "read", {"path": path}, "DENY", "path_constraint", "Held-out path boundary."))
 
+    # These are deliberately distinct tool/identity combinations.  The third
+    # case used to duplicate HO-IDENTITY-008 exactly, which correctly failed
+    # the fingerprint-integrity gate.  Keep the tool category represented with
+    # a genuinely new guest-agent request instead.
     tools = [
         ("finance-agent", "unknown-tool", "execute", {"command": "status"}),
         ("hr-agent", "payments", "create", {"amount": 3500, "currency": "USD"}),
-        ("finance-agent", "files", "read", {"path": "/hr-docs/policies/remote-work.txt"}),
+        ("guest-agent", "payments", "create", {"amount": 3500, "currency": "USD"}),
     ]
     for i, item in enumerate(tools, 1):
         cases.append(make_case(f"HO-TOOL-{i:03d}", "unauthorized_tool", *item, "DENY", "tool_not_allowed", "Held-out tool/identity combination."))
