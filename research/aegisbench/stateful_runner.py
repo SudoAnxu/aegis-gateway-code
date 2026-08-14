@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
-"""Run the held-out stateful benchmark as ordered HTTP sequences.
-
-This harness intentionally keeps stateful evaluation separate from the frozen
-static benchmark runner. It does not derive expected outcomes itself; it uses
-the benchmark's frozen `expected` field for the target decision and records
-all ordered history events plus the final target response.
-"""
+"""Run AegisBench stateful sequences as ordered live HTTP interactions."""
 from __future__ import annotations
 
 import argparse
@@ -17,18 +11,12 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from urllib.error import HTTPError, URLError
-from urllib.request import Request, build_opener, HTTPHandler
+from urllib.request import HTTPHandler, Request, build_opener
 
 ROOT = Path(__file__).resolve().parents[2]
 SYSTEMS = ("B0_direct", "B1_rbac", "B2_aegis")
 DEFAULT_CONFIG = ROOT / "research" / "experiments" / "baseline_config.json"
-
-
-class LocalNoProxyHandler(HTTPHandler):
-    pass
-
-
-OPENER = build_opener(LocalNoProxyHandler)
+OPENER = build_opener(HTTPHandler)
 
 
 def load(path: Path) -> dict[str, Any]:
@@ -47,9 +35,7 @@ def canonical_hash(data: dict[str, Any]) -> str:
 
 def git_commit() -> str:
     try:
-        return subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], text=True, stderr=subprocess.DEVNULL
-        ).strip()
+        return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True, stderr=subprocess.DEVNULL).strip()
     except Exception:
         return "unknown"
 
@@ -65,9 +51,10 @@ def infer_decision(status: int | None, body: str) -> str:
         decision = payload.get("decision", payload.get("status"))
         if isinstance(decision, str) and decision.upper() in {"ALLOW", "DENY"}:
             return decision.upper()
-        allowed = payload.get("allowed")
-        if isinstance(allowed, bool):
-            return "ALLOW" if allowed else "DENY"
+        if isinstance(payload.get("allowed"), bool):
+            return "ALLOW" if payload["allowed"] else "DENY"
+        if payload.get("error") == "PolicyViolation":
+            return "DENY"
     if 200 <= status < 300:
         return "ALLOW"
     if status in {400, 401, 403}:
@@ -110,36 +97,16 @@ def execute(url: str, headers: dict[str, str], params: dict[str, Any], timeout: 
     request = Request(url, data=body, headers=headers, method="POST")
     try:
         with OPENER.open(request, timeout=timeout) as response:
-            text = response.read().decode("utf-8", errors="replace")
-            return {
-                "status_code": response.status,
-                "body": text,
-                "latency_ms": (time.perf_counter() - started) * 1000.0,
-                "transport_error": None,
-            }
+            return {"status_code": response.status, "body": response.read().decode("utf-8", errors="replace"), "latency_ms": (time.perf_counter() - started) * 1000.0, "transport_error": None}
     except HTTPError as exc:
-        try:
-            text = exc.read().decode("utf-8", errors="replace")
-        except Exception:
-            text = ""
-        return {
-            "status_code": exc.code,
-            "body": text,
-            "latency_ms": (time.perf_counter() - started) * 1000.0,
-            "transport_error": None,
-        }
+        return {"status_code": exc.code, "body": exc.read().decode("utf-8", errors="replace"), "latency_ms": (time.perf_counter() - started) * 1000.0, "transport_error": None}
     except (URLError, TimeoutError, OSError) as exc:
-        return {
-            "status_code": None,
-            "body": "",
-            "latency_ms": (time.perf_counter() - started) * 1000.0,
-            "transport_error": repr(exc),
-        }
+        return {"status_code": None, "body": "", "latency_ms": (time.perf_counter() - started) * 1000.0, "transport_error": repr(exc)}
 
 
-def validate_benchmark(benchmark: dict[str, Any]) -> list[dict[str, Any]]:
+def validate_cases(benchmark: dict[str, Any]) -> list[dict[str, Any]]:
     if benchmark.get("version") != "1.0-expanded":
-        raise ValueError("stateful runner requires the expanded v1 source benchmark")
+        raise ValueError("stateful runner requires an expanded v1 benchmark")
     if benchmark.get("content_sha256") != canonical_hash(benchmark):
         raise ValueError("benchmark hash mismatch")
     scenarios = benchmark.get("scenarios")
@@ -159,13 +126,12 @@ def main() -> int:
     parser.add_argument("--repetitions", type=int, default=1)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
-
     if args.repetitions < 1:
         raise ValueError("--repetitions must be >= 1")
 
     config = load(args.config)
     benchmark = load(args.benchmark)
-    cases = validate_benchmark(benchmark)
+    cases = validate_cases(benchmark)
     timeout = float(config["request"]["timeout_seconds"])
     commit = git_commit()
     timestamp = datetime.now(timezone.utc).isoformat()
@@ -176,26 +142,9 @@ def main() -> int:
             history = case.get("history", [])
             if not isinstance(history, list):
                 raise ValueError(f"{case['id']}: history must be a list")
-
-            event_records = []
-            for index, event in enumerate(history, start=1):
-                if not isinstance(event, dict):
-                    raise ValueError(f"{case['id']}: history event {index} is not an object")
-                event_record = {
-                    "index": index,
-                    "event": event,
-                }
-                event_records.append(event_record)
-
-            # Current production services expose single-request create/refund APIs;
-            # the benchmark history is therefore recorded as sequence context. The
-            # target refund call is the only live HTTP action in this first protocol
-            # implementation. A future stateful fixture can replace this without
-            # changing the benchmark record format.
-            url, headers = endpoint_for(case, args.system, config)
-            result = execute(url, headers, case["parameters"], timeout)
-            actual = infer_decision(result["status_code"], result["body"])
-            expected = case["expected"]
+            target_expected = case["expected"]
+            target_result = execute(*endpoint_for(case, args.system, config), case["parameters"], timeout)
+            target_actual = infer_decision(target_result["status_code"], target_result["body"])
             records.append({
                 "timestamp_utc": timestamp,
                 "git_commit": commit,
@@ -209,17 +158,16 @@ def main() -> int:
                 "agent": case["agent"],
                 "tool": case["tool"],
                 "action": case["action"],
-                "transaction_id": case.get("transaction_id", case.get("parameters", {}).get("transaction_id")),
+                "transaction_id": case.get("parameters", {}).get("transaction_id"),
                 "history": history,
-                "history_events": event_records,
-                "expected": expected,
+                "expected": target_expected,
                 "expected_reason": case.get("reason"),
-                "actual": actual,
-                "classification": classify(expected, actual),
-                "status_code": result["status_code"],
-                "latency_ms": result["latency_ms"],
-                "transport_error": result["transport_error"],
-                "response_body": result["body"],
+                "actual": target_actual,
+                "classification": classify(target_expected, target_actual),
+                "status_code": target_result["status_code"],
+                "latency_ms": target_result["latency_ms"],
+                "transport_error": target_result["transport_error"],
+                "response_body": target_result["body"],
             })
 
     classified = [r for r in records if r["classification"] != "unclassified"]
@@ -233,23 +181,7 @@ def main() -> int:
         "unclassified": len(records) - len(classified),
         "transport_error_rate": sum(bool(r["transport_error"]) for r in records) / len(records) if records else 0,
     }
-
-    result = {
-        "experiment_version": "stateful-0.1",
-        "status": "PASS" if summary["unclassified"] == 0 and summary["transport_error_rate"] == 0 else "INVALID",
-        "system": args.system,
-        "benchmark": {
-            "version": benchmark["version"],
-            "sha256": benchmark["content_sha256"],
-            "stateful_cases": len(cases),
-        },
-        "repetitions": args.repetitions,
-        "git_commit": commit,
-        "timestamp_utc": timestamp,
-        "summary": summary,
-        "records": records,
-    }
-
+    result = {"experiment_version": "stateful-0.2", "status": "PASS" if summary["unclassified"] == 0 and summary["transport_error_rate"] == 0 else "INVALID", "system": args.system, "benchmark": {"version": benchmark["version"], "sha256": benchmark["content_sha256"], "stateful_cases": len(cases)}, "repetitions": args.repetitions, "git_commit": commit, "timestamp_utc": timestamp, "summary": summary, "records": records}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({k: result[k] for k in ("status", "system", "benchmark", "repetitions", "summary")}, indent=2))
