@@ -38,28 +38,60 @@ SYSTEMS = (
 )
 
 
+# Two-sided 95% Student-t critical values for df=1..30.
+# For larger samples the normal critical value is a close approximation.
+T_CRITICAL_95 = {
+    1: 12.706,
+    2: 4.303,
+    3: 3.182,
+    4: 2.776,
+    5: 2.571,
+    6: 2.447,
+    7: 2.365,
+    8: 2.306,
+    9: 2.262,
+    10: 2.228,
+    11: 2.201,
+    12: 2.179,
+    13: 2.160,
+    14: 2.145,
+    15: 2.131,
+    16: 2.120,
+    17: 2.110,
+    18: 2.101,
+    19: 2.093,
+    20: 2.086,
+    21: 2.080,
+    22: 2.074,
+    23: 2.069,
+    24: 2.064,
+    25: 2.060,
+    26: 2.056,
+    27: 2.052,
+    28: 2.048,
+    29: 2.045,
+    30: 2.042,
+}
+
+
 def load_json(path: Path) -> dict[str, Any]:
     with path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
 
 
-def mean(values: list[float]) -> float | None:
-    return statistics.mean(values) if values else None
-
-
-def sample_sd(values: list[float]) -> float | None:
-    if len(values) < 2:
-        return None
-    return statistics.stdev(values)
+def t_critical_95(n: int) -> float:
+    if n < 2:
+        raise ValueError("At least two repetitions are required for a CI")
+    return T_CRITICAL_95.get(n - 1, 1.96)
 
 
 def ci95(values: list[float]) -> dict[str, float | None]:
     """
-    95% CI for the mean using a normal critical value.
+    95% CI for a repetition-level mean using Student's t distribution.
 
-    With a small number of repetitions this is only an approximate CI.
-    The important point is that repetitions, rather than individual
-    benchmark scenarios, are treated as independent observations.
+    Repetitions, rather than individual scenarios, are treated as the
+    independent observations. For n > 31, 1.96 is used as the large-sample
+    approximation.
     """
 
     if not values:
@@ -81,15 +113,14 @@ def ci95(values: list[float]) -> dict[str, float | None]:
         }
 
     sd = statistics.stdev(values)
-
-    # Normal approximation for a 95% CI.
-    margin = 1.96 * sd / math.sqrt(len(values))
+    critical = t_critical_95(len(values))
+    margin = critical * sd / math.sqrt(len(values))
 
     return {
         "mean": m,
         "sd": sd,
-        "lower": m - margin,
-        "upper": m + margin,
+        "lower": max(0.0, m - margin),
+        "upper": min(1.0, m + margin),
     }
 
 
@@ -222,8 +253,8 @@ def validate_result(
     if len(records) != expected_scenario_count:
         raise ValueError(
             f"{system} repetition {repetition}: "
-            f"expected {expected_scenario_count} "
-            f"records, got {len(records)}"
+            f"expected {expected_scenario_count} records, "
+            f"got {len(records)}"
         )
 
     repetitions = {
@@ -236,6 +267,25 @@ def validate_result(
             f"{system} repetition {repetition}: "
             f"unexpected record repetition values: "
             f"{repetitions}"
+        )
+
+    unclassified = sum(
+        1
+        for record in records
+        if record.get("classification") == "unclassified"
+    )
+
+    if unclassified:
+        errors = {}
+        for record in records:
+            error = record.get("transport_error")
+            if record.get("classification") == "unclassified" and error:
+                errors[error] = errors.get(error, 0) + 1
+
+        raise RuntimeError(
+            f"{system} repetition {repetition}: "
+            f"{unclassified} unclassified records. "
+            f"Transport errors: {errors}"
         )
 
 
@@ -371,8 +421,6 @@ def main() -> int:
         exist_ok=True,
     )
 
-    # Run the first repetition through the existing executor.
-    # Subsequent repetitions are independently executed.
     result_paths: list[Path] = []
 
     expected_version: str | None = None
@@ -420,8 +468,6 @@ def main() -> int:
             expected_scenario_count,
         )
 
-        # Store a copy with the wrapper-level repetition number.
-        # The executor itself always ran exactly one repetition.
         data["wrapper_repetition"] = repetition
 
         result_paths.append(result_path)
@@ -452,7 +498,7 @@ def main() -> int:
             "complete benchmark repetition"
         ),
         "confidence_interval": (
-            "95% normal approximation"
+            "95% Student-t CI for repetition-level mean"
         ),
         "replicate_files": [
             str(path)
