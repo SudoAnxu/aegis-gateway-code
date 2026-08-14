@@ -5,6 +5,6 @@ agents:
       - tool: payments
         actions: [create, refund]
         conditions:
+          min_amount: 0
           max_amount: 5000
           currencies: [USD, EUR]
-
