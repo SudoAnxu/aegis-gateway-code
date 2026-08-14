@@ -7,7 +7,7 @@
     "development_case_count": 876,
     "heldout_case_count": 522,
     "heldout_source_version": "1.0-static",
-    "heldout_source_sha256": "17865ea0648f234efa0d777f71b6ceb68f7f5ab1ae178b66a98fc7309beab0e86"
+    "heldout_source_sha256": "17865ea0648f234efa0d777f71b6ceb802ee89bbdab66dd064f3d557b0c6173c"
   },
   "systems": {
     "B0_direct": {
