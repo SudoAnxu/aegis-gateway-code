@@ -9,11 +9,6 @@ from pathlib import Path
 from typing import Any
 
 SYSTEMS = ("B0_direct", "B1_rbac", "B2_aegis")
-DISPLAY = {
-    "B0_direct": "B0 Direct",
-    "B1_rbac": "B1 RBAC",
-    "B2_aegis": "B2 Aegis",
-}
 
 
 def load(path: Path) -> dict[str, Any]:
@@ -55,18 +50,20 @@ def aggregate_records(records: list[dict[str, Any]]) -> dict[str, Any]:
             "fp": fp,
             "fn": fn,
             "unclassified": unclassified,
-            "recall": tp / expected_deny if expected_deny else None,
+            "deny_recall": tp / expected_deny if expected_deny else None,
             "unauthorized_execution_rate": (
                 unauthorized_allowed / expected_deny if expected_deny else None
             ),
-            "legitimate_task_success_rate": (
+            "allow_success_rate": (
                 legitimate_allowed / expected_allow if expected_allow else None
             ),
         }
     return result
 
 
-def load_repetitions(results_root: Path, system: str, expected_repetitions: int) -> list[list[dict[str, Any]]]:
+def load_repetitions(
+    results_root: Path, system: str, expected_repetitions: int
+) -> list[list[dict[str, Any]]]:
     """Load the flat files emitted by run_repeated.py.
 
     The runner writes, for example:
@@ -147,8 +144,8 @@ def main() -> int:
         f"- Repetitions checked per system: **{args.repetitions}**",
         "- Classification stability across repetitions: **PASS**",
         "",
-        "| Category | Cases | B0 recall | B0 unauthorized | B1 recall | B1 unauthorized | B2 recall | B2 unauthorized |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|",
+        "| Category | Cases | B0 deny recall | B0 unauthorized | B0 allow success | B1 deny recall | B1 unauthorized | B1 allow success | B2 deny recall | B2 unauthorized | B2 allow success |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
 
     for category in categories:
@@ -156,13 +153,18 @@ def main() -> int:
         cells = [category, str(cases)]
         for system in SYSTEMS:
             item = reports[system][category]
-            recall = "n/a" if item["recall"] is None else pct(item["recall"])
+            deny_recall = "n/a" if item["deny_recall"] is None else pct(item["deny_recall"])
             unauthorized = (
                 "n/a"
                 if item["unauthorized_execution_rate"] is None
                 else pct(item["unauthorized_execution_rate"])
             )
-            cells.extend([recall, unauthorized])
+            allow_success = (
+                "n/a"
+                if item["allow_success_rate"] is None
+                else pct(item["allow_success_rate"])
+            )
+            cells.extend([deny_recall, unauthorized, allow_success])
         lines.append("| " + " | ".join(cells) + " |")
 
     lines.extend([
@@ -170,6 +172,10 @@ def main() -> int:
         "## Interpretation",
         "",
         "This audit uses the first repetition for the category-level counts and checks all repetitions for identical per-scenario classifications. It is therefore an audit of deterministic outcome stability, not an independent-sample confidence interval.",
+        "",
+        "`deny recall` is the fraction of expected-DENY cases correctly denied. `unauthorized execution` is the fraction of expected-DENY cases incorrectly allowed. `allow success` is the fraction of expected-ALLOW cases correctly allowed.",
+        "",
+        "Category labels describe the seed/category provenance of generated cases; a category can therefore contain both expected-ALLOW and expected-DENY mutations. The three metrics above are reported with their appropriate denominators rather than treating every case in a category as having the same expected decision.",
         "",
         "B2's aggregate security result should only be presented with the exact held-out denominator and category coverage shown above.",
     ])
