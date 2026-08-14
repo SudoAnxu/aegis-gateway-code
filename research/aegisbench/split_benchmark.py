@@ -19,7 +19,8 @@ from aegisbench.oracle import decide  # noqa: E402
 SEED = ROOT / "research" / "aegisbench" / "seed_cases_v1.json"
 OUT_DIR = ROOT / "research" / "aegisbench" / "splits"
 
-# Exactly 50 held-out seeds. The development set is the remaining 100.
+# Explicitly define the desired held-out distribution. This table is checked
+# against the source benchmark before any files are written.
 TARGET_HELDOUT = {
     "legitimate": 7,
     "identity_violation": 7,
@@ -37,6 +38,10 @@ STATEFUL_HELDOUT = {
     "state_invalid_transition": 3,
 }
 
+EXPECTED_TOTAL = 150
+EXPECTED_HELDOUT = 50
+EXPECTED_DEVELOPMENT = EXPECTED_TOTAL - EXPECTED_HELDOUT
+
 
 def canonical_hash(payload: dict) -> str:
     unsigned = {k: v for k, v in payload.items() if k != "content_sha256"}
@@ -44,7 +49,49 @@ def canonical_hash(payload: dict) -> str:
     return hashlib.sha256(raw).hexdigest()
 
 
+def requested_heldout_count() -> int:
+    return sum(TARGET_HELDOUT.values()) + sum(STATEFUL_HELDOUT.values())
+
+
+def validate_split_targets(source_scenarios: list[dict]) -> None:
+    if len(source_scenarios) != EXPECTED_TOTAL:
+        raise ValueError(
+            f"Expected exactly {EXPECTED_TOTAL} curated seeds, got {len(source_scenarios)}"
+        )
+
+    counts = Counter(s["category"] for s in source_scenarios)
+    expected_categories = {
+        **{k: v for k, v in TARGET_HELDOUT.items()},
+        "stateful_sequence": sum(STATEFUL_HELDOUT.values()),
+    }
+
+    for category, heldout_count in expected_categories.items():
+        available = counts.get(category, 0)
+        if heldout_count > available:
+            raise ValueError(
+                f"Held-out target for {category}={heldout_count} exceeds available seeds={available}"
+            )
+
+    if requested_heldout_count() != EXPECTED_HELDOUT:
+        raise ValueError(
+            "Split configuration error: held-out targets sum to "
+            f"{requested_heldout_count()}, expected {EXPECTED_HELDOUT}"
+        )
+
+    stateful_counts = Counter(
+        s["reason"] for s in source_scenarios if s["category"] == "stateful_sequence"
+    )
+    for reason, target in STATEFUL_HELDOUT.items():
+        if target > stateful_counts.get(reason, 0):
+            raise ValueError(
+                f"Stateful held-out target for {reason}={target} exceeds available seeds="
+                f"{stateful_counts.get(reason, 0)}"
+            )
+
+
 def stratified_split(scenarios: list[dict]) -> tuple[list[dict], list[dict]]:
+    validate_split_targets(scenarios)
+
     groups: dict[tuple[str, str | None], list[dict]] = defaultdict(list)
     for scenario in scenarios:
         reason = scenario["reason"] if scenario["category"] == "stateful_sequence" else None
@@ -91,9 +138,9 @@ def main() -> int:
         len(heldout),
         len(scenarios),
     )
-    assert len(scenarios) == 150
-    assert len(development) == 100, len(development)
-    assert len(heldout) == 50, len(heldout)
+    assert len(scenarios) == EXPECTED_TOTAL
+    assert len(development) == EXPECTED_DEVELOPMENT, len(development)
+    assert len(heldout) == EXPECTED_HELDOUT, len(heldout)
     assert not ({x["id"] for x in development} & {x["id"] for x in heldout})
 
     for scenario in development + heldout:
