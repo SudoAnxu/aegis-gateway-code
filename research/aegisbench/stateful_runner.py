@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run AegisBench stateful sequences as ordered live HTTP interactions."""
+"""Run AegisBench stateful sequences with explicit history replay and target evaluation."""
 from __future__ import annotations
 
 import argparse
@@ -71,7 +71,7 @@ def classify(expected: str, actual: str) -> str:
     }.get((expected.upper(), actual.upper()), "unclassified")
 
 
-def endpoint_for(case: dict[str, Any], system: str, config: dict[str, Any]) -> tuple[str, dict[str, str]]:
+def endpoint_for_case(case: dict[str, Any], system: str, config: dict[str, Any]) -> tuple[str, dict[str, str]]:
     tool = case["tool"]
     action = case["action"]
     headers = {
@@ -97,11 +97,26 @@ def execute(url: str, headers: dict[str, str], params: dict[str, Any], timeout: 
     request = Request(url, data=body, headers=headers, method="POST")
     try:
         with OPENER.open(request, timeout=timeout) as response:
-            return {"status_code": response.status, "body": response.read().decode("utf-8", errors="replace"), "latency_ms": (time.perf_counter() - started) * 1000.0, "transport_error": None}
+            return {
+                "status_code": response.status,
+                "body": response.read().decode("utf-8", errors="replace"),
+                "latency_ms": (time.perf_counter() - started) * 1000.0,
+                "transport_error": None,
+            }
     except HTTPError as exc:
-        return {"status_code": exc.code, "body": exc.read().decode("utf-8", errors="replace"), "latency_ms": (time.perf_counter() - started) * 1000.0, "transport_error": None}
+        return {
+            "status_code": exc.code,
+            "body": exc.read().decode("utf-8", errors="replace"),
+            "latency_ms": (time.perf_counter() - started) * 1000.0,
+            "transport_error": None,
+        }
     except (URLError, TimeoutError, OSError) as exc:
-        return {"status_code": None, "body": "", "latency_ms": (time.perf_counter() - started) * 1000.0, "transport_error": repr(exc)}
+        return {
+            "status_code": None,
+            "body": "",
+            "latency_ms": (time.perf_counter() - started) * 1000.0,
+            "transport_error": repr(exc),
+        }
 
 
 def validate_cases(benchmark: dict[str, Any]) -> list[dict[str, Any]]:
@@ -116,6 +131,36 @@ def validate_cases(benchmark: dict[str, Any]) -> list[dict[str, Any]]:
     if not selected:
         raise ValueError("no stateful_sequence cases found")
     return selected
+
+
+def initial_history_requests(case: dict[str, Any]) -> list[dict[str, Any]]:
+    requests: list[dict[str, Any]] = []
+    params = case.get("parameters") or {}
+    transaction_id = params.get("transaction_id")
+    amount = params.get("amount")
+    currency = params.get("currency")
+    for event in case.get("history", []):
+        if not isinstance(event, dict):
+            raise ValueError(f"{case['id']}: history event must be an object")
+        event_id = event.get("id") or transaction_id
+        kind = event.get("event")
+        if kind == "payment_created":
+            event_params = {"transaction_id": event_id}
+            if amount is not None:
+                event_params["amount"] = amount
+            if currency is not None:
+                event_params["currency"] = currency
+            requests.append({"kind": kind, "supported": True, "params": event_params, "id": event_id})
+        elif kind == "payment_refunded":
+            event_params = {"transaction_id": event_id}
+            if amount is not None:
+                event_params["amount"] = amount
+            if currency is not None:
+                event_params["currency"] = currency
+            requests.append({"kind": kind, "supported": True, "params": event_params, "id": event_id})
+        else:
+            requests.append({"kind": kind, "supported": False, "params": {}, "id": event_id})
+    return requests
 
 
 def main() -> int:
@@ -139,12 +184,44 @@ def main() -> int:
 
     for repetition in range(1, args.repetitions + 1):
         for case in cases:
-            history = case.get("history", [])
-            if not isinstance(history, list):
-                raise ValueError(f"{case['id']}: history must be a list")
-            target_expected = case["expected"]
-            target_result = execute(*endpoint_for(case, args.system, config), case["parameters"], timeout)
+            history_steps = []
+            history_ok = True
+            for index, history_request in enumerate(initial_history_requests(case), start=1):
+                step = {
+                    "index": index,
+                    "event": history_request["kind"],
+                    "id": history_request["id"],
+                    "supported": history_request["supported"],
+                }
+                if not history_request["supported"]:
+                    history_ok = False
+                    step["skipped"] = True
+                    step["reason"] = "unsupported_history_event"
+                    history_steps.append(step)
+                    continue
+                history_action = "create" if history_request["kind"] == "payment_created" else "refund"
+                history_case = dict(case)
+                history_case["action"] = history_action
+                history_case["parameters"] = history_request["params"]
+                history_url, history_headers = endpoint_for_case(history_case, args.system, config)
+                result = execute(history_url, history_headers, history_request["params"], timeout)
+                actual = infer_decision(result["status_code"], result["body"])
+                step.update({
+                    "action": history_action,
+                    "status_code": result["status_code"],
+                    "actual": actual,
+                    "latency_ms": result["latency_ms"],
+                    "transport_error": result["transport_error"],
+                    "response_body": result["body"],
+                })
+                if result["transport_error"]:
+                    history_ok = False
+                history_steps.append(step)
+
+            target_url, target_headers = endpoint_for_case(case, args.system, config)
+            target_result = execute(target_url, target_headers, case["parameters"], timeout)
             target_actual = infer_decision(target_result["status_code"], target_result["body"])
+            target_expected = case["expected"]
             records.append({
                 "timestamp_utc": timestamp,
                 "git_commit": commit,
@@ -159,7 +236,9 @@ def main() -> int:
                 "tool": case["tool"],
                 "action": case["action"],
                 "transaction_id": case.get("parameters", {}).get("transaction_id"),
-                "history": history,
+                "history": case.get("history", []),
+                "history_steps": history_steps,
+                "history_replay_ok": history_ok,
                 "expected": target_expected,
                 "expected_reason": case.get("reason"),
                 "actual": target_actual,
@@ -179,9 +258,20 @@ def main() -> int:
         "false_positive": sum(r["classification"] == "false_positive" for r in records),
         "false_negative": sum(r["classification"] == "false_negative" for r in records),
         "unclassified": len(records) - len(classified),
+        "history_replay_failures": sum(not r["history_replay_ok"] for r in records),
         "transport_error_rate": sum(bool(r["transport_error"]) for r in records) / len(records) if records else 0,
     }
-    result = {"experiment_version": "stateful-0.2", "status": "PASS" if summary["unclassified"] == 0 and summary["transport_error_rate"] == 0 else "INVALID", "system": args.system, "benchmark": {"version": benchmark["version"], "sha256": benchmark["content_sha256"], "stateful_cases": len(cases)}, "repetitions": args.repetitions, "git_commit": commit, "timestamp_utc": timestamp, "summary": summary, "records": records}
+    result = {
+        "experiment_version": "stateful-0.3",
+        "status": "PASS" if summary["unclassified"] == 0 and summary["transport_error_rate"] == 0 and summary["history_replay_failures"] == 0 else "INVALID",
+        "system": args.system,
+        "benchmark": {"version": benchmark["version"], "sha256": benchmark["content_sha256"], "stateful_cases": len(cases)},
+        "repetitions": args.repetitions,
+        "git_commit": commit,
+        "timestamp_utc": timestamp,
+        "summary": summary,
+        "records": records,
+    }
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({k: result[k] for k in ("status", "system", "benchmark", "repetitions", "summary")}, indent=2))
