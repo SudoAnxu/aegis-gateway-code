@@ -15,9 +15,9 @@ func TestValidatePolicyAllowsKnownConditions(t *testing.T) {
 						Tool:    "payments",
 						Actions: []string{"create"},
 						Conditions: map[string]interface{}{
-							"min_amount":   0,
-							"max_amount":   5000,
-							"currencies":   []interface{}{"USD", "EUR"},
+							"min_amount": 0,
+							"max_amount": 5000,
+							"currencies": []interface{}{"USD", "EUR"},
 						},
 					},
 					{
