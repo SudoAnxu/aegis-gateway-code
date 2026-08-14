@@ -27,14 +27,12 @@ EXPECTED_COUNTS = {
 def main() -> int:
     d = json.loads(SEED.read_text())
     scenarios = d["scenarios"]
-
     assert d["scenario_count"] == 150
     assert len(scenarios) == 150
     assert len({s["id"] for s in scenarios}) == 150
     counts = Counter(s["category"] for s in scenarios)
     assert counts == Counter(EXPECTED_COUNTS)
 
-    # Verify the stored release hash independently of the generator.
     unsigned = {k: v for k, v in d.items() if k != "content_sha256"}
     canonical = json.dumps(unsigned, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
     assert hashlib.sha256(canonical).hexdigest() == d["content_sha256"]
@@ -53,12 +51,12 @@ def main() -> int:
         assert isinstance(s["state"], dict)
 
     stateful = [s for s in scenarios if s["category"] == "stateful_sequence"]
-    assert len(stateful) == 20
     state_reasons = Counter(s["reason"] for s in stateful)
+    assert len(stateful) == 20
     assert state_reasons["state_transition"] == 4
     assert state_reasons["state_replay"] == 4
-    assert state_reasons["state_precondition"] == 8
-    assert state_reasons["state_invalid_transition"] == 4
+    assert state_reasons["state_precondition"] == 4
+    assert state_reasons["state_invalid_transition"] == 8
 
     print("AegisBench seed validation PASS")
     print("scenarios:", len(scenarios))
