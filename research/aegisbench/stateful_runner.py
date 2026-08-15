@@ -158,13 +158,19 @@ def isolated_case(case, repetition):
     return live
 
 
-def event_expected(case: dict[str, Any], event: dict[str, Any], model_created: bool, model_refunded: bool):
+def event_expected(
+    benchmark_txn: str | None,
+    event: dict[str, Any],
+    model_created: bool,
+    model_refunded: bool,
+):
     """Return (expected_decision, reason, next_created, next_refunded).
 
     The event itself is authoritative. Wrong-object events are still exercised;
     they must be denied by the state-aware system and do not mutate target state.
     """
-    target = case.get("parameters", {}).get("transaction_id")
+
+    target = benchmark_txn
     event_id = event.get("id")
     kind = event.get("event")
     if event_id != target:
@@ -182,27 +188,39 @@ def event_expected(case: dict[str, Any], event: dict[str, Any], model_created: b
     return "DENY", "state_unknown_event", model_created, model_refunded
 
 
-def live_event_params(event: dict[str, Any], case: dict[str, Any], live_txn: str):
-    base = case.get("parameters", {})
+def live_event_params(
+    event: dict[str, Any],
+    benchmark_txn: str | None,
+    live_txn: str,
+    base_params: dict[str, Any],
+):
     kind = event.get("event")
     event_id = event.get("id")
-    event_txn = live_txn if event_id == case.get("parameters", {}).get("transaction_id") else f"{live_txn}-other"
+
+    event_txn = (
+        live_txn
+        if event_id == benchmark_txn
+        else f"{live_txn}-other"
+    )
+
     if kind == "payment_created":
         out = {"transaction_id": event_txn}
         for key in ("amount", "currency"):
-            if base.get(key) is not None:
-                out[key] = base[key]
+            if base_params.get(key) is not None:
+                out[key] = base_params[key]
         return out
+
     if kind == "payment_refunded":
         out = {
             "payment_id": event_txn,
-            "reason": base.get("reason") or "AegisBench state replay",
+            "reason": base_params.get("reason") or "AegisBench state replay",
         }
         for key in ("amount", "currency"):
-            if base.get(key) is not None:
-                out[key] = base[key]
+            if base_params.get(key) is not None:
+                out[key] = base_params[key]
         return out
-    return dict(base)
+
+    return dict(base_params)
 
 
 def run_sequence(case, system, config, timeout, repetition):
@@ -237,7 +255,12 @@ def run_sequence(case, system, config, timeout, repetition):
             continue
 
         expected, reason, next_created, next_refunded = event_expected(case, event, created, refunded)
-        params = live_event_params(event, live, live_txn)
+        params = live_event_params(
+            event,
+            benchmark_txn,
+            live_txn,
+            live.get("parameters", {}),
+            )
         action = "create" if event.get("event") == "payment_created" else "refund" if event.get("event") == "payment_refunded" else event.get("event", "unknown")
         request_case = dict(live)
         request_case["action"] = action
@@ -265,20 +288,19 @@ def run_sequence(case, system, config, timeout, repetition):
             "executed": True,
         })
 
-        if not ok:
-            terminal_history = True
-        else:
-            # Only mutate the modeled state on an allowed event. A denied event
-            # must not be treated as a successful transition.
+        if ok and expected == "ALLOW":
+            # Only an allowed transition changes the modeled state.
+            # A correctly denied event leaves the prior state unchanged.
             created, refunded = next_created, next_refunded
-            if expected == "DENY":
-                terminal_history = True
 
         # Continue recording authoritative history events, but once the gateway
         # has correctly denied a terminal transition, later events are expected
         # to be evaluated from the same pre-terminal state.
 
-    target_executed = not terminal_history
+    # History validation and target evaluation are independent. A correctly
+    # denied history event does not terminate the benchmark sequence; it simply
+    # leaves the modeled state unchanged.
+    target_executed = True
     target_result = None
     target_actual = "UNKNOWN"
     if target_executed:
