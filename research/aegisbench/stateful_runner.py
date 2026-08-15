@@ -115,12 +115,13 @@ def model_history(case):
 def live_params(action, case, live_txn):
     base=case.get("parameters",{})
     if action=="refund":
-        # The payment fixture contract requires both payment_id and reason.
-        # Stateful history only carries the event identity, so replay uses a
-        # deterministic synthetic reason; the target uses the case reason when
-        # one is supplied. Amount/currency are intentionally omitted from the
-        # refund request because they are not part of the fixture schema.
+        # The fixture requires payment_id + reason, while the Aegis policy also
+        # requires amount/currency for finance-agent payment actions. Preserve
+        # those policy parameters on the live refund request; the fixture
+        # ignores the extra fields after validating its own required shape.
         out={"payment_id":live_txn,"reason":base.get("reason") or "AegisBench state replay"}
+        for key in ("amount","currency"):
+            if base.get(key) is not None: out[key]=base[key]
     else:
         out={"transaction_id":live_txn}
         for key in ("amount","currency"):
