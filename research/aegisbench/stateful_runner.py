@@ -114,13 +114,17 @@ def model_history(case):
 
 def live_params(action, case, live_txn):
     base=case.get("parameters",{})
-    # IMPORTANT: transaction_id is the frozen benchmark identity. The live
-    # payments fixture accepts transaction_id for create but payment_id for
-    # refund. Do not send both on refund: the fixture rejects that shape.
-    if action=="refund": out={"payment_id":live_txn}
-    else: out={"transaction_id":live_txn}
-    for key in ("amount","currency"):
-        if base.get(key) is not None: out[key]=base[key]
+    if action=="refund":
+        # The payment fixture contract requires both payment_id and reason.
+        # Stateful history only carries the event identity, so replay uses a
+        # deterministic synthetic reason; the target uses the case reason when
+        # one is supplied. Amount/currency are intentionally omitted from the
+        # refund request because they are not part of the fixture schema.
+        out={"payment_id":live_txn,"reason":base.get("reason") or "AegisBench state replay"}
+    else:
+        out={"transaction_id":live_txn}
+        for key in ("amount","currency"):
+            if base.get(key) is not None: out[key]=base[key]
     return out
 
 
@@ -136,7 +140,6 @@ def run_sequence(case,system,config,timeout,repetition):
         step.update(action=action,actual=actual,status_code=result["status_code"],latency_ms=result["latency_ms"],transport_error=result["transport_error"],response_body=result["body"],request_params=params)
         if result["transport_error"] or actual!=spec["expected"]: replay_ok=False
         steps.append(step)
-    # Target is translated at transport only. Benchmark/oracle identity remains unchanged.
     target_params=live_params(case["action"],live,live_txn); target_case=dict(live); target_case["parameters"]=target_params
     url,headers=endpoint_for_case(target_case,system,config); result=execute(url,headers,target_params,timeout); actual=infer_decision(result["status_code"],result["body"])
     return {"live_transaction_id":live_txn,"history_steps":steps,"history_replay_ok":replay_ok,"target":{"actual":actual,**result}}
