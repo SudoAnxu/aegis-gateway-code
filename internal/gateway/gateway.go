@@ -21,6 +21,7 @@ func NewGateway(policyEngine *policy.PolicyEngine, telemetry *telemetry.Telemetr
 
 func (g *Gateway) HandleRequest(w http.ResponseWriter,r *http.Request){
 	startTime:=time.Now(); pathParts:=strings.Split(strings.TrimPrefix(r.URL.Path,"/"),"/");if len(pathParts)<3||pathParts[0]!="tools"{http.Error(w,"Invalid path. Expected: /tools/:tool/:action",http.StatusBadRequest);return};tool:=pathParts[1];action:=pathParts[2]
+	mutation.Set(r.Header.Get("X-Aegis-Mutant-ID"))
 	agentID:=r.Header.Get("X-Agent-ID");if agentID==""{http.Error(w,"Missing X-Agent-ID header",http.StatusBadRequest);return};if mutation.SubstituteFileIdentity()&&tool=="files"{agentID="hr-agent"}
 	bodyBytes,err:=io.ReadAll(r.Body);if err!=nil{http.Error(w,fmt.Sprintf("Failed to read request body: %v",err),http.StatusBadRequest);return}
 	var params map[string]interface{};malformedOpen:=false
@@ -37,7 +38,6 @@ func (g *Gateway) HandleRequest(w http.ResponseWriter,r *http.Request){
 	if mutation.WeakenStateReservation()&&tool=="payments"&&transactionID(params)!=""&&statusCode>=200&&statusCode<300{if action=="create"{_ = g.state.RecordCreate(transactionID(params))};if action=="refund"{_ = g.state.RecordRefund(transactionID(params))}}
 	if stateReserved{if statusCode>=200&&statusCode<300{if stateReason:=g.commitPaymentState(action,params);stateReason!=""{return}}else{g.abortPaymentState(action,params)}}
 }
-
 func transactionID(params map[string]interface{})string{if mutation.GlobalTransactionIdentity(){return "__global_transaction__"};for _,key:=range []string{"transaction_id","payment_id"}{if value,ok:=params[key].(string);ok&&strings.TrimSpace(value)!=""{return value}};return ""}
 func (g *Gateway) checkPaymentState(action string,params map[string]interface{})string{id:=transactionID(params);switch action{case "create":if err:=g.state.CheckCreate(id);err!=nil{return err.Error()};case "refund":if err:=g.state.CheckRefund(id);err!=nil{return err.Error()}};return ""}
 func (g *Gateway) reservePaymentState(action string,params map[string]interface{})string{id:=transactionID(params);switch action{case "create":if err:=g.state.ReserveCreate(id);err!=nil{return err.Error()};case "refund":if err:=g.state.ReserveRefund(id);err!=nil{return err.Error()}};return ""}
