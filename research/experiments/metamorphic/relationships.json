@@ -1,0 +1,10 @@
+{
+  "version": "1.0",
+  "transformations": [
+    {"id":"INV01","type":"invariant","description":"JSON field reordering","expected_relationship":"same"},
+    {"id":"INV02","type":"invariant","description":"JSON formatting/whitespace change","expected_relationship":"same"},
+    {"id":"INV03","type":"invariant","description":"Add irrelevant field","expected_relationship":"same"},
+    {"id":"SEC01","type":"security_sensitive","description":"Payment amount 5000 -> 5001","expected_relationship":"flip_to_deny"},
+    {"id":"SEC02","type":"security_sensitive","description":"HR path /hr-docs/a.txt -> /hr-docs/../finance/a.txt","expected_relationship":"flip_to_deny"}
+  ]
+}
