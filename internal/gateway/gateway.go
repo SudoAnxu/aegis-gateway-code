@@ -87,7 +87,7 @@ func (g *Gateway) HandleRequest(w http.ResponseWriter, r *http.Request) {
 
 	// Stateful payment governance runs after ordinary policy authorization.
 	// This keeps the state machine orthogonal to RBAC/parameter constraints.
-	if allowed && tool == "payments" {
+	if allowed && tool == "payments" && transactionID(params) != "" {
 		if stateReason := g.checkPaymentState(action, params); stateReason != "" {
 			allowed = false
 			reason = stateReason
@@ -132,7 +132,7 @@ func (g *Gateway) HandleRequest(w http.ResponseWriter, r *http.Request) {
 	// reach the downstream tool. Reservations are committed only after a 2xx
 	// response and rolled back on downstream failure.
 	stateReserved := false
-	if tool == "payments" {
+	if tool == "payments" && transactionID(params) != "" {
 		if stateReason := g.reservePaymentState(action, params); stateReason != "" {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusForbidden)
