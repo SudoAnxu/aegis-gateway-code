@@ -1,0 +1,25 @@
+{
+  "version": "1.0",
+  "mutants": [
+    {"id":"M01","description":"Remove minimum amount check","stage":"params"},
+    {"id":"M02","description":"Remove maximum amount check","stage":"params"},
+    {"id":"M03","description":"Ignore missing required parameters (fail-open)","stage":"params"},
+    {"id":"M04","description":"Use raw string prefix matching for paths","stage":"path"},
+    {"id":"M05","description":"Disable path constraint enforcement","stage":"path"},
+    {"id":"M06","description":"Disable identity enforcement","stage":"identity"},
+    {"id":"M07","description":"Permit unauthorized actions for known tools","stage":"action"},
+    {"id":"M08","description":"Permit unknown tools","stage":"action"},
+    {"id":"M09","description":"Treat unsupported parameter types as valid","stage":"params"},
+    {"id":"M10","description":"Skip path canonicalization and allow traversal","stage":"path"},
+    {"id":"M11","description":"Make currency comparison case-insensitive","stage":"params"},
+    {"id":"M12","description":"Introduce off-by-one maximum amount boundary","stage":"params"},
+    {"id":"M13","description":"Introduce off-by-one minimum amount boundary","stage":"params"},
+    {"id":"M14","description":"Disable duplicate-create state check","stage":"state"},
+    {"id":"M15","description":"Disable refund replay state check","stage":"state"},
+    {"id":"M16","description":"Allow refund without prior create","stage":"state"},
+    {"id":"M17","description":"Ignore transaction identity during state evaluation","stage":"state"},
+    {"id":"M18","description":"Allow malformed requests to proceed","stage":"validator"},
+    {"id":"M19","description":"Allow identity substitution for file access","stage":"identity"},
+    {"id":"M20","description":"Race-style state check/commit weakening","stage":"state"}
+  ]
+}
