@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
-"""Compare mutant aggregate results against clean B2.
-
-The script is intentionally configuration-agnostic: each mutant run is
-expected to live under --mutants-root/<mutant-id>/ with a B2 aggregate JSON.
-It records whether any security metric worsened enough to demonstrate that
-at least one benchmark case caught the mutant.
-"""
+"""Compare mutant aggregate results against clean B2."""
 from __future__ import annotations
 
 import argparse
@@ -19,23 +13,30 @@ def load(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def f1_mean(result: dict[str, Any]) -> float:
+    summary = result.get("summary", {})
+    metrics = summary.get("metrics")
+    if isinstance(metrics, dict) and isinstance(metrics.get("f1"), dict):
+        return float(metrics["f1"]["mean"])
+    if "f1" in summary:
+        return float(summary["f1"])
+    raise KeyError("result does not contain a supported F1 metric schema")
+
+
 def summarize_delta(clean: dict[str, Any], mutant: dict[str, Any]) -> tuple[bool, float, list[str]]:
-    clean_f1 = float(clean["summary"]["metrics"]["f1"]["mean"])
-    mutant_f1 = float(mutant["summary"]["metrics"]["f1"]["mean"])
+    clean_f1 = f1_mean(clean)
+    mutant_f1 = f1_mean(mutant)
     delta = mutant_f1 - clean_f1
     caught: list[str] = []
-
+    aggregate_dir = Path(mutant.get("_aggregate_dir", ""))
     for path in mutant.get("replicate_files", []):
-        # Scenario-level evidence is preserved in replicate JSON files; the
-        # optional scan below is intentionally tolerant of absent files.
-        p = Path(mutant.get("_aggregate_dir", "")) / path
+        p = aggregate_dir / path
         if not p.exists():
             continue
         data = load(p)
         for record in data.get("records", []):
             if record.get("classification") in {"false_positive", "false_negative"}:
                 caught.append(str(record.get("scenario_id")))
-
     return bool(caught) or delta < 0.0, delta, sorted(set(caught))
 
 
