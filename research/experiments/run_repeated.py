@@ -24,17 +24,48 @@ import sys
 from pathlib import Path
 from typing import Any
 
+
 ROOT = Path(__file__).resolve().parent
 EXECUTOR = ROOT / "execute_benchmark.py"
 DEFAULT_OUTPUT = ROOT / "results" / "repeated"
-SYSTEMS = ("B0_direct", "B1_rbac", "B2_aegis")
+
+SYSTEMS = (
+    "B0_direct",
+    "B1_rbac",
+    "B2_aegis",
+)
 
 T_CRITICAL_95 = {
-    1: 12.706, 2: 4.303, 3: 3.182, 4: 2.776, 5: 2.571, 6: 2.447,
-    7: 2.365, 8: 2.306, 9: 2.262, 10: 2.228, 11: 2.201, 12: 2.179,
-    13: 2.160, 14: 2.145, 15: 2.131, 16: 2.120, 17: 2.110, 18: 2.101,
-    19: 2.093, 20: 2.086, 21: 2.080, 22: 2.074, 23: 2.069, 24: 2.064,
-    25: 2.060, 26: 2.056, 27: 2.052, 28: 2.048, 29: 2.045, 30: 2.042,
+    1: 12.706,
+    2: 4.303,
+    3: 3.182,
+    4: 2.776,
+    5: 2.571,
+    6: 2.447,
+    7: 2.365,
+    8: 2.306,
+    9: 2.262,
+    10: 2.228,
+    11: 2.201,
+    12: 2.179,
+    13: 2.160,
+    14: 2.145,
+    15: 2.131,
+    16: 2.120,
+    17: 2.110,
+    18: 2.101,
+    19: 2.093,
+    20: 2.086,
+    21: 2.080,
+    22: 2.074,
+    23: 2.069,
+    24: 2.064,
+    25: 2.060,
+    26: 2.056,
+    27: 2.052,
+    28: 2.048,
+    29: 2.045,
+    30: 2.042,
 }
 
 
@@ -49,14 +80,19 @@ def t_critical_95(n: int) -> float:
     return T_CRITICAL_95.get(n - 1, 1.96)
 
 
-def ci95(values: list[float], lower_bound: float | None = None, upper_bound: float | None = None) -> dict[str, float | None]:
+def ci95(
+    values: list[float],
+    lower_bound: float | None = None,
+    upper_bound: float | None = None,
+) -> dict[str, float | None]:
     if not values:
         return {"mean": None, "sd": None, "lower": None, "upper": None}
     m = statistics.mean(values)
     if len(values) < 2:
         return {"mean": m, "sd": None, "lower": None, "upper": None}
     sd = statistics.stdev(values)
-    margin = t_critical_95(len(values)) * sd / math.sqrt(len(values))
+    critical = t_critical_95(len(values))
+    margin = critical * sd / math.sqrt(len(values))
     lower = m - margin
     upper = m + margin
     if lower_bound is not None:
@@ -76,12 +112,16 @@ def run_one(
 ) -> Path:
     repetition_dir = output_dir / f"{system.lower()}_rep{repetition:02d}"
     output_path = output_dir / f"{system.lower()}_rep{repetition:02d}.json"
+
     command = [
         sys.executable,
         str(EXECUTOR),
-        "--system", system,
-        "--repetitions", "1",
-        "--output", str(repetition_dir),
+        "--system",
+        system,
+        "--repetitions",
+        "1",
+        "--output",
+        str(repetition_dir),
     ]
     if config is not None:
         command.extend(["--config", str(config)])
@@ -89,8 +129,10 @@ def run_one(
         command.extend(["--benchmark", str(benchmark)])
     if mutation_id:
         command.extend(["--mutation-id", mutation_id])
+
     print(f"[{system}] repetition {repetition}: running...")
     subprocess.run(command, check=True)
+
     executor_output = repetition_dir / f"{system.lower()}_results.json"
     if not executor_output.exists():
         raise RuntimeError(f"Executor completed but did not create {executor_output}")
@@ -110,22 +152,27 @@ def validate_result(
         raise ValueError(f"{system} repetition {repetition}: wrong system in result")
     if data.get("repetitions") != 1:
         raise ValueError(f"{system} repetition {repetition}: expected executor repetitions=1")
+
     benchmark = data.get("benchmark", {})
     version = benchmark.get("version")
     sha256 = benchmark.get("sha256")
     scenario_count = benchmark.get("scenario_count")
+
     if expected_benchmark_version is not None and version != expected_benchmark_version:
         raise ValueError(f"{system} repetition {repetition}: benchmark version changed: {version!r} != {expected_benchmark_version!r}")
     if expected_hash is not None and sha256 != expected_hash:
         raise ValueError(f"{system} repetition {repetition}: benchmark hash changed: {sha256!r} != {expected_hash!r}")
     if expected_scenario_count is not None and scenario_count != expected_scenario_count:
         raise ValueError(f"{system} repetition {repetition}: scenario count changed: {scenario_count!r} != {expected_scenario_count!r}")
+
     records = data.get("records", [])
     if len(records) != expected_scenario_count:
         raise ValueError(f"{system} repetition {repetition}: expected {expected_scenario_count} records, got {len(records)}")
+
     repetitions = {record.get("repetition") for record in records}
     if repetitions != {1}:
         raise ValueError(f"{system} repetition {repetition}: unexpected record repetition values: {repetitions}")
+
     unclassified = sum(1 for record in records if record.get("classification") == "unclassified")
     if unclassified:
         errors = {}
@@ -156,16 +203,29 @@ def latency_metric(results: list[dict[str, Any]], metric: str) -> list[float]:
 
 
 def aggregate(system: str, results: list[dict[str, Any]]) -> dict[str, Any]:
-    scalar_metrics = ["precision", "recall", "f1", "unauthorized_execution_rate", "legitimate_task_success_rate"]
+    scalar_metrics = [
+        "precision",
+        "recall",
+        "f1",
+        "unauthorized_execution_rate",
+        "legitimate_task_success_rate",
+    ]
     scalar_statistics: dict[str, Any] = {}
     for metric in scalar_metrics:
         values = extract_metric(results, metric)
         scalar_statistics[metric] = {"n": len(values), **ci95(values, lower_bound=0.0, upper_bound=1.0)}
+
     latency_statistics: dict[str, Any] = {}
     for metric in ("mean", "median", "p50", "p95", "p99"):
         values = latency_metric(results, metric)
         latency_statistics[metric] = {"n": len(values), **ci95(values)}
-    return {"system": system, "repetitions": len(results), "metrics": scalar_statistics, "latency_ms": latency_statistics}
+
+    return {
+        "system": system,
+        "repetitions": len(results),
+        "metrics": scalar_statistics,
+        "latency_ms": latency_statistics,
+    }
 
 
 def main() -> int:
@@ -177,15 +237,25 @@ def main() -> int:
     parser.add_argument("--benchmark", type=Path, default=None)
     parser.add_argument("--mutation-id", default=None)
     args = parser.parse_args()
+
     if args.repetitions < 2:
         raise ValueError("--repetitions must be >= 2")
+
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    expected_version = None
-    expected_hash = None
-    expected_scenario_count = None
+    expected_version: str | None = None
+    expected_hash: str | None = None
+    expected_scenario_count: int | None = None
     results: list[dict[str, Any]] = []
+
     for repetition in range(1, args.repetitions + 1):
-        result_path = run_one(args.system, repetition, args.output_dir, args.config, args.benchmark, args.mutation_id)
+        result_path = run_one(
+            args.system,
+            repetition,
+            args.output_dir,
+            args.config,
+            args.benchmark,
+            args.mutation_id,
+        )
         data = load_json(result_path)
         if repetition == 1:
             benchmark = data.get("benchmark", {})
@@ -195,6 +265,7 @@ def main() -> int:
         validate_result(data, args.system, repetition, expected_version, expected_hash, expected_scenario_count)
         data["wrapper_repetition"] = repetition
         results.append(data)
+
     summary = aggregate(args.system, results)
     aggregate_path = args.output_dir / f"{args.system.lower()}_aggregate.json"
     aggregate_result = {
