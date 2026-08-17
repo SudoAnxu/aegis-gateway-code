@@ -19,7 +19,7 @@ def main() -> int:
     parser.add_argument("--catalog", type=Path, required=True)
     parser.add_argument("--benchmark", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
-    parser.add_argument("--config-root", type=Path, required=True)
+    # parser.add_argument("--config-root", type=Path, required=True)
     parser.add_argument("--repetitions", type=int, default=1)
     args = parser.parse_args()
 
@@ -29,21 +29,17 @@ def main() -> int:
 
     for mutant in mutants:
         mutant_id = mutant["id"]
-        config = args.config_root / f"{mutant_id}.json"
-        if not config.exists():
-            print(f"[{mutant_id}] MISSING CONFIG: {config}", file=sys.stderr)
-            continue
 
         output_dir = args.output_root / mutant_id
         command = [
-            sys.executable,
-            "research/experiments/run_repeated.py",
-            "--system", "B2_aegis",
-            "--repetitions", str(args.repetitions),
-            "--benchmark", str(args.benchmark),
-            "--config", str(config),
-            "--output-dir", str(output_dir),
-        ]
+    sys.executable,
+    "research/experiments/run_repeated.py",
+    "--system", "B2_aegis",
+    "--repetitions", str(args.repetitions),
+    "--benchmark", str(args.benchmark),
+    "--mutation-id", mutant_id,
+    "--output-dir", str(output_dir),
+]
         print(f"[{mutant_id}] running")
         subprocess.run(command, check=True)
 
