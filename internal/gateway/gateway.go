@@ -16,6 +16,8 @@ import (
 	"aegis-gateway/pkg/telemetry"
 )
 
+const gatewayDecisionHeader = "X-Aegis-Gateway-Decision"
+
 type Gateway struct { policyEngine *policy.PolicyEngine; telemetry *telemetry.Telemetry; client *http.Client; toolURLs map[string]string; state *state.Store }
 func NewGateway(policyEngine *policy.PolicyEngine, telemetry *telemetry.Telemetry)*Gateway{return &Gateway{policyEngine:policyEngine,telemetry:telemetry,client:&http.Client{Timeout:30*time.Second},toolURLs:map[string]string{"payments":"http://localhost:8081","files":"http://localhost:8082"},state:state.NewStore()}}
 
@@ -30,10 +32,11 @@ func (g *Gateway) HandleRequest(w http.ResponseWriter,r *http.Request){
 	allowed,reason:=g.policyEngine.Evaluate(agentID,tool,action,params);if malformedOpen{allowed=true;reason="malformed_bypass"}
 	if allowed&&tool=="payments"&&transactionID(params)!=""&&!mutation.WeakenStateReservation(){if stateReason:=g.checkPaymentState(action,params);stateReason!=""{allowed=false;reason=stateReason}}
 	latencyMS:=time.Since(startTime).Milliseconds();ctx,span:=g.telemetry.LogDecision(context.Background(),agentID,tool,action,allowed,reason,paramsHash,latencyMS);defer span.End()
-	if !allowed{w.Header().Set("Content-Type","application/json");w.WriteHeader(http.StatusForbidden);json.NewEncoder(w).Encode(map[string]string{"error":"PolicyViolation","reason":reason});return}
-	toolURL,exists:=g.toolURLs[tool];if !exists{if mutation.UnknownToolAllowed(){w.Header().Set("Content-Type","application/json");w.WriteHeader(http.StatusOK);json.NewEncoder(w).Encode(map[string]string{"decision":"ALLOW","tool":tool,"action":action});return};http.Error(w,fmt.Sprintf("Unknown tool: %s",tool),http.StatusBadRequest);return}
+	if !allowed{w.Header().Set(gatewayDecisionHeader,"DENY");w.Header().Set("Content-Type","application/json");w.WriteHeader(http.StatusForbidden);json.NewEncoder(w).Encode(map[string]string{"error":"PolicyViolation","reason":reason});return}
+	toolURL,exists:=g.toolURLs[tool];if !exists{if mutation.UnknownToolAllowed(){w.Header().Set(gatewayDecisionHeader,"ALLOW");w.Header().Set("Content-Type","application/json");w.WriteHeader(http.StatusOK);json.NewEncoder(w).Encode(map[string]string{"decision":"ALLOW","tool":tool,"action":action});return};http.Error(w,fmt.Sprintf("Unknown tool: %s",tool),http.StatusBadRequest);return}
 	stateReserved:=false
-	if tool=="payments"&&transactionID(params)!=""&&!mutation.WeakenStateReservation(){if stateReason:=g.reservePaymentState(action,params);stateReason!=""{w.Header().Set("Content-Type","application/json");w.WriteHeader(http.StatusForbidden);json.NewEncoder(w).Encode(map[string]string{"error":"PolicyViolation","reason":stateReason});return};stateReserved=action=="create"||action=="refund"}
+	if tool=="payments"&&transactionID(params)!=""&&!mutation.WeakenStateReservation(){if stateReason:=g.reservePaymentState(action,params);stateReason!=""{w.Header().Set(gatewayDecisionHeader,"DENY");w.Header().Set("Content-Type","application/json");w.WriteHeader(http.StatusForbidden);json.NewEncoder(w).Encode(map[string]string{"error":"PolicyViolation","reason":stateReason});return};stateReserved=action=="create"||action=="refund"}
+	w.Header().Set(gatewayDecisionHeader,"ALLOW")
 	forwardStart:=time.Now();statusCode,err:=g.forwardRequest(ctx,toolURL,action,bodyBytes,w);forwardLatency:=time.Since(forwardStart).Milliseconds();forwardSpan:=g.telemetry.LogForwardedCall(ctx,tool,action,forwardLatency);defer forwardSpan.End();if err!=nil{if stateReserved{g.abortPaymentState(action,params)};return}
 	if mutation.WeakenStateReservation()&&tool=="payments"&&transactionID(params)!=""&&statusCode>=200&&statusCode<300{if action=="create"{_ = g.state.RecordCreate(transactionID(params))};if action=="refund"{_ = g.state.RecordRefund(transactionID(params))}}
 	if stateReserved{if statusCode>=200&&statusCode<300{if stateReason:=g.commitPaymentState(action,params);stateReason!=""{return}}else{g.abortPaymentState(action,params)}}
