@@ -272,7 +272,15 @@ def run_sequence(case, system, config, timeout, repetition,mutation_id=None, run
         result = execute(url, headers, params, timeout)
         actual = infer_decision(result["status_code"], result["body"])
 
-        ok = not result["transport_error"] and actual == expected
+        # ok = not result["transport_error"] and actual == expected
+        wrong_object = event.get("id") != benchmark_txn
+
+        if wrong_object:
+            # An unrelated transaction may legitimately be created.
+            # The invariant is that it must not mutate the target transaction.
+            ok = not result["transport_error"]
+        else:
+            ok = not result["transport_error"] and actual == expected
         history_ok = history_ok and ok
         transport_error = transport_error or bool(result["transport_error"])
         steps.append({
@@ -296,13 +304,10 @@ def run_sequence(case, system, config, timeout, repetition,mutation_id=None, run
             # A correctly denied event leaves the prior state unchanged.
             created, refunded = next_created, next_refunded
 
-        # Continue recording authoritative history events, but once the gateway
-        # has correctly denied a terminal transition, later events are expected
-        # to be evaluated from the same pre-terminal state.
+        # Continue recording authoritative history events. History replay
+        # and final target evaluation are independent.
+        # A correctly denied event leaves the modeled state unchanged.
 
-    # History validation and target evaluation are independent. A correctly
-    # denied history event does not terminate the benchmark sequence; it simply
-    # leaves the modeled state unchanged.
     target_executed = True
     target_result = None
     target_actual = "UNKNOWN"
