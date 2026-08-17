@@ -1,0 +1,124 @@
+{
+  "experiment_version": "1.0",
+  "system": "B2_aegis",
+  "benchmark": {
+    "version": "1.0-expanded",
+    "sha256": "0379039706c53d5d1675dc83be2ecd4277c7a9e3ded814126515ed946113e3ce",
+    "scenario_count": 941
+  },
+  "repetitions": 30,
+  "statistics_unit": "complete benchmark repetition",
+  "confidence_interval": "95% Student-t CI for repetition-level mean",
+  "replicate_files": [
+    "b2_aegis_rep01.json",
+    "b2_aegis_rep02.json",
+    "b2_aegis_rep03.json",
+    "b2_aegis_rep04.json",
+    "b2_aegis_rep05.json",
+    "b2_aegis_rep06.json",
+    "b2_aegis_rep07.json",
+    "b2_aegis_rep08.json",
+    "b2_aegis_rep09.json",
+    "b2_aegis_rep10.json",
+    "b2_aegis_rep11.json",
+    "b2_aegis_rep12.json",
+    "b2_aegis_rep13.json",
+    "b2_aegis_rep14.json",
+    "b2_aegis_rep15.json",
+    "b2_aegis_rep16.json",
+    "b2_aegis_rep17.json",
+    "b2_aegis_rep18.json",
+    "b2_aegis_rep19.json",
+    "b2_aegis_rep20.json",
+    "b2_aegis_rep21.json",
+    "b2_aegis_rep22.json",
+    "b2_aegis_rep23.json",
+    "b2_aegis_rep24.json",
+    "b2_aegis_rep25.json",
+    "b2_aegis_rep26.json",
+    "b2_aegis_rep27.json",
+    "b2_aegis_rep28.json",
+    "b2_aegis_rep29.json",
+    "b2_aegis_rep30.json"
+  ],
+  "summary": {
+    "system": "B2_aegis",
+    "repetitions": 30,
+    "metrics": {
+      "precision": {
+        "n": 30,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      },
+      "recall": {
+        "n": 30,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      },
+      "f1": {
+        "n": 30,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      },
+      "unauthorized_execution_rate": {
+        "n": 30,
+        "mean": 0.0,
+        "sd": 0.0,
+        "lower": 0.0,
+        "upper": 0.0
+      },
+      "legitimate_task_success_rate": {
+        "n": 30,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      }
+    },
+    "latency_ms": {
+      "mean": {
+        "n": 30,
+        "mean": 1.8298498821863391,
+        "sd": 0.3882815409973483,
+        "lower": 1.6848794513615895,
+        "upper": 1.9748203130110888
+      },
+      "median": {
+        "n": 30,
+        "mean": 1.0423980332537515,
+        "sd": 0.07768834003089628,
+        "lower": 1.013391987549365,
+        "upper": 1.0714040789581378
+      },
+      "p50": {
+        "n": 30,
+        "mean": 1.0423980332537515,
+        "sd": 0.07768834003089628,
+        "lower": 1.013391987549365,
+        "upper": 1.0714040789581378
+      },
+      "p95": {
+        "n": 30,
+        "mean": 2.975472133311996,
+        "sd": 0.33496986786090943,
+        "lower": 2.8504063732133536,
+        "upper": 3.1005378934106385
+      },
+      "p99": {
+        "n": 30,
+        "mean": 4.7170966733574495,
+        "sd": 0.8833454068011453,
+        "lower": 4.387287113361136,
+        "upper": 5.046906233353763
+      }
+    }
+  },
+  "mutant_id": "M15",
+  "description": "Disable refund replay state check"
+}
