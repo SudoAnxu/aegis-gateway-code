@@ -1,0 +1,97 @@
+{
+  "experiment_version": "1.0",
+  "system": "B2_aegis",
+  "benchmark": {
+    "version": "1.0-expanded",
+    "sha256": "0379039706c53d5d1675dc83be2ecd4277c7a9e3ded814126515ed946113e3ce",
+    "scenario_count": 941
+  },
+  "repetitions": 2,
+  "statistics_unit": "complete benchmark repetition",
+  "confidence_interval": "95% Student-t CI for repetition-level mean",
+  "replicate_files": [
+    "b2_aegis_rep01.json",
+    "b2_aegis_rep02.json"
+  ],
+  "summary": {
+    "system": "B2_aegis",
+    "repetitions": 2,
+    "metrics": {
+      "precision": {
+        "n": 2,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      },
+      "recall": {
+        "n": 2,
+        "mean": 0.9291819291819292,
+        "sd": 0.0,
+        "lower": 0.9291819291819292,
+        "upper": 0.9291819291819292
+      },
+      "f1": {
+        "n": 2,
+        "mean": 0.9632911392405064,
+        "sd": 0.0,
+        "lower": 0.9632911392405064,
+        "upper": 0.9632911392405064
+      },
+      "unauthorized_execution_rate": {
+        "n": 2,
+        "mean": 0.07081807081807082,
+        "sd": 0.0,
+        "lower": 0.07081807081807082,
+        "upper": 0.07081807081807082
+      },
+      "legitimate_task_success_rate": {
+        "n": 2,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      }
+    },
+    "latency_ms": {
+      "mean": {
+        "n": 2,
+        "mean": 1.7072965223310401,
+        "sd": 0.10054842542500987,
+        "lower": 0.8039193186034962,
+        "upper": 2.610673726058584
+      },
+      "median": {
+        "n": 2,
+        "mean": 1.1631654997472651,
+        "sd": 0.1152972959060301,
+        "lower": 0.12727708744569122,
+        "upper": 2.1990539120488393
+      },
+      "p50": {
+        "n": 2,
+        "mean": 1.1631654997472651,
+        "sd": 0.1152972959060301,
+        "lower": 0.12727708744569122,
+        "upper": 2.1990539120488393
+      },
+      "p95": {
+        "n": 2,
+        "mean": 3.708756999913021,
+        "sd": 0.7971596584422993,
+        "lower": -3.4533229642838696,
+        "upper": 10.870836964109913
+      },
+      "p99": {
+        "n": 2,
+        "mean": 6.18444879964955,
+        "sd": 1.650838928350788,
+        "lower": -8.647511507977155,
+        "upper": 21.016409107276253
+      }
+    }
+  },
+  "mutant_id": "M06",
+  "description": "Disable identity enforcement",
+  "stage": "identity"
+}

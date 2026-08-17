@@ -1,0 +1,97 @@
+{
+  "experiment_version": "1.0",
+  "system": "B2_aegis",
+  "benchmark": {
+    "version": "1.0-expanded",
+    "sha256": "0379039706c53d5d1675dc83be2ecd4277c7a9e3ded814126515ed946113e3ce",
+    "scenario_count": 941
+  },
+  "repetitions": 2,
+  "statistics_unit": "complete benchmark repetition",
+  "confidence_interval": "95% Student-t CI for repetition-level mean",
+  "replicate_files": [
+    "b2_aegis_rep01.json",
+    "b2_aegis_rep02.json"
+  ],
+  "summary": {
+    "system": "B2_aegis",
+    "repetitions": 2,
+    "metrics": {
+      "precision": {
+        "n": 2,
+        "mean": 0.978494623655914,
+        "sd": 0.0,
+        "lower": 0.978494623655914,
+        "upper": 0.978494623655914
+      },
+      "recall": {
+        "n": 2,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      },
+      "f1": {
+        "n": 2,
+        "mean": 0.9891304347826088,
+        "sd": 0.0,
+        "lower": 0.9891304347826088,
+        "upper": 0.9891304347826088
+      },
+      "unauthorized_execution_rate": {
+        "n": 2,
+        "mean": 0.0,
+        "sd": 0.0,
+        "lower": 0.0,
+        "upper": 0.0
+      },
+      "legitimate_task_success_rate": {
+        "n": 2,
+        "mean": 0.8524590163934426,
+        "sd": 0.0,
+        "lower": 0.8524590163934426,
+        "upper": 0.8524590163934426
+      }
+    },
+    "latency_ms": {
+      "mean": {
+        "n": 2,
+        "mean": 1.4547570169775819,
+        "sd": 0.11420723136672473,
+        "lower": 0.4286622881796316,
+        "upper": 2.4808517457755324
+      },
+      "median": {
+        "n": 2,
+        "mean": 1.0607949998302502,
+        "sd": 0.0870731291354201,
+        "lower": 0.2784865789308243,
+        "upper": 1.8431034207296761
+      },
+      "p50": {
+        "n": 2,
+        "mean": 1.0607949998302502,
+        "sd": 0.0870731291354201,
+        "lower": 0.2784865789308243,
+        "upper": 1.8431034207296761
+      },
+      "p95": {
+        "n": 2,
+        "mean": 3.0425295008171815,
+        "sd": 0.2342920542631163,
+        "lower": 0.9375328294008796,
+        "upper": 5.1475261722334835
+      },
+      "p99": {
+        "n": 2,
+        "mean": 5.979902799299455,
+        "sd": 1.2172947890004135,
+        "lower": -4.956880725167122,
+        "upper": 16.916686323766033
+      }
+    }
+  },
+  "mutant_id": "M12",
+  "description": "Introduce off-by-one maximum amount boundary",
+  "stage": "params"
+}

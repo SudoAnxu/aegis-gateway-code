@@ -1,0 +1,97 @@
+{
+  "experiment_version": "1.0",
+  "system": "B2_aegis",
+  "benchmark": {
+    "version": "1.0-expanded",
+    "sha256": "0379039706c53d5d1675dc83be2ecd4277c7a9e3ded814126515ed946113e3ce",
+    "scenario_count": 941
+  },
+  "repetitions": 2,
+  "statistics_unit": "complete benchmark repetition",
+  "confidence_interval": "95% Student-t CI for repetition-level mean",
+  "replicate_files": [
+    "b2_aegis_rep01.json",
+    "b2_aegis_rep02.json"
+  ],
+  "summary": {
+    "system": "B2_aegis",
+    "repetitions": 2,
+    "metrics": {
+      "precision": {
+        "n": 2,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      },
+      "recall": {
+        "n": 2,
+        "mean": 0.8266178266178266,
+        "sd": 0.0,
+        "lower": 0.8266178266178266,
+        "upper": 0.8266178266178266
+      },
+      "f1": {
+        "n": 2,
+        "mean": 0.9050802139037433,
+        "sd": 0.0,
+        "lower": 0.9050802139037433,
+        "upper": 0.9050802139037433
+      },
+      "unauthorized_execution_rate": {
+        "n": 2,
+        "mean": 0.17338217338217338,
+        "sd": 0.0,
+        "lower": 0.17338217338217338,
+        "upper": 0.17338217338217338
+      },
+      "legitimate_task_success_rate": {
+        "n": 2,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      }
+    },
+    "latency_ms": {
+      "mean": {
+        "n": 2,
+        "mean": 2.166463131226908,
+        "sd": 0.12531574139551468,
+        "lower": 1.040564007830337,
+        "upper": 3.2923622546234785
+      },
+      "median": {
+        "n": 2,
+        "mean": 1.1656705009954749,
+        "sd": 0.24319735613916582,
+        "lower": -1.0193358440992593,
+        "upper": 3.350676846090209
+      },
+      "p50": {
+        "n": 2,
+        "mean": 1.1656705009954749,
+        "sd": 0.24319735613916582,
+        "lower": -1.0193358440992593,
+        "upper": 3.350676846090209
+      },
+      "p95": {
+        "n": 2,
+        "mean": 3.2829424999363255,
+        "sd": 0.39909318781707753,
+        "lower": -0.3027097518315709,
+        "upper": 6.868594751704222
+      },
+      "p99": {
+        "n": 2,
+        "mean": 4.791196800215404,
+        "sd": 0.6557781832199909,
+        "lower": -1.1006414749113818,
+        "upper": 10.68303507534219
+      }
+    }
+  },
+  "mutant_id": "M05",
+  "description": "Disable path constraint enforcement",
+  "stage": "path"
+}

@@ -56,8 +56,12 @@ def main() -> int:
         assert parent_id in seed_by_id
         assert scenario["id"].startswith(parent_id + "::")
         assert scenario["generator_version"] == "aegisbench-expand-v3"
-        expected, reason = decide(scenario)
-        assert (scenario["expected"], scenario["reason"]) == (expected, reason)
+        if "raw_body" in scenario:
+            assert scenario["expected"] == "DENY"
+            assert scenario["reason"] == "malformed_request"
+        else:
+            expected, reason = decide(scenario)
+            assert (scenario["expected"], scenario["reason"]) == (expected, reason)
         parents[parent_id] += 1
         operators[scenario["mutation_operator"]] += 1
         categories[scenario["category"]] += 1

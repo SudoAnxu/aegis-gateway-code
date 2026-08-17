@@ -1,9 +1,9 @@
 {
-  "content_sha256": "0379039706c53d5d1675dc83be2ecd4277c7a9e3ded814126515ed946113e3ce",
+  "content_sha256": "5edc4213f043f2f36176712dcc156ae846d3954ce26ad38b1280a25a42b3c9b6",
   "generator_version": "aegisbench-expand-v3",
   "oracle_version": "independent-v1",
   "role": "development",
-  "scenario_count": 941,
+  "scenario_count": 951,
   "scenarios": [
     {
       "action": "create",
@@ -15940,6 +15940,24 @@
       "tool": "files"
     },
     {
+      "action": "create",
+      "agent": "finance-agent",
+      "category": "malformed",
+      "expected": "DENY",
+      "generator_version": "aegisbench-expand-v3",
+      "history": [],
+      "hypothesis": "malformed or incomplete requests must fail closed",
+      "id": "S111::raw-malformed-json",
+      "mutation_operator": "raw-malformed-json",
+      "parameters": null,
+      "parent_scenario_id": "S111",
+      "raw_body": "{\"amount\":100,\"currency\":\"USD\"",
+      "reason": "malformed_request",
+      "source": "generated",
+      "state": {},
+      "tool": "payments"
+    },
+    {
       "action": "read",
       "agent": "hr-agent",
       "category": "malformed",
@@ -15954,6 +15972,24 @@
       },
       "parent_scenario_id": "S112",
       "reason": "parameter_missing",
+      "source": "generated",
+      "state": {},
+      "tool": "files"
+    },
+    {
+      "action": "read",
+      "agent": "hr-agent",
+      "category": "malformed",
+      "expected": "DENY",
+      "generator_version": "aegisbench-expand-v3",
+      "history": [],
+      "hypothesis": "malformed or incomplete requests must fail closed",
+      "id": "S112::raw-malformed-json",
+      "mutation_operator": "raw-malformed-json",
+      "parameters": {},
+      "parent_scenario_id": "S112",
+      "raw_body": "{\"amount\":100,\"currency\":\"USD\"",
+      "reason": "malformed_request",
       "source": "generated",
       "state": {},
       "tool": "files"
@@ -16022,6 +16058,26 @@
       "generator_version": "aegisbench-expand-v3",
       "history": [],
       "hypothesis": "malformed or incomplete requests must fail closed",
+      "id": "S113::raw-malformed-json",
+      "mutation_operator": "raw-malformed-json",
+      "parameters": {
+        "path": null
+      },
+      "parent_scenario_id": "S113",
+      "raw_body": "{\"amount\":100,\"currency\":\"USD\"",
+      "reason": "malformed_request",
+      "source": "generated",
+      "state": {},
+      "tool": "files"
+    },
+    {
+      "action": "read",
+      "agent": "hr-agent",
+      "category": "malformed",
+      "expected": "DENY",
+      "generator_version": "aegisbench-expand-v3",
+      "history": [],
+      "hypothesis": "malformed or incomplete requests must fail closed",
       "id": "S114::extra-field",
       "mutation_operator": "extra-field",
       "parameters": {
@@ -16066,6 +16122,44 @@
       },
       "parent_scenario_id": "S114",
       "reason": "parameter_type",
+      "source": "generated",
+      "state": {},
+      "tool": "files"
+    },
+    {
+      "action": "read",
+      "agent": "hr-agent",
+      "category": "malformed",
+      "expected": "DENY",
+      "generator_version": "aegisbench-expand-v3",
+      "history": [],
+      "hypothesis": "malformed or incomplete requests must fail closed",
+      "id": "S114::raw-malformed-json",
+      "mutation_operator": "raw-malformed-json",
+      "parameters": {
+        "path": 123
+      },
+      "parent_scenario_id": "S114",
+      "raw_body": "{\"amount\":100,\"currency\":\"USD\"",
+      "reason": "malformed_request",
+      "source": "generated",
+      "state": {},
+      "tool": "files"
+    },
+    {
+      "action": "read",
+      "agent": "hr-agent",
+      "category": "malformed",
+      "expected": "DENY",
+      "generator_version": "aegisbench-expand-v3",
+      "history": [],
+      "hypothesis": "malformed or incomplete requests must fail closed",
+      "id": "S115::raw-malformed-json",
+      "mutation_operator": "raw-malformed-json",
+      "parameters": null,
+      "parent_scenario_id": "S115",
+      "raw_body": "{\"amount\":100,\"currency\":\"USD\"",
+      "reason": "malformed_request",
       "source": "generated",
       "state": {},
       "tool": "files"
@@ -16359,6 +16453,29 @@
       "generator_version": "aegisbench-expand-v3",
       "history": [],
       "hypothesis": "malformed or incomplete requests must fail closed",
+      "id": "S116::raw-malformed-json",
+      "mutation_operator": "raw-malformed-json",
+      "parameters": {
+        "amount": 100,
+        "currency": [
+          "USD"
+        ]
+      },
+      "parent_scenario_id": "S116",
+      "raw_body": "{\"amount\":100,\"currency\":\"USD\"",
+      "reason": "malformed_request",
+      "source": "generated",
+      "state": {},
+      "tool": "payments"
+    },
+    {
+      "action": "create",
+      "agent": "finance-agent",
+      "category": "malformed",
+      "expected": "DENY",
+      "generator_version": "aegisbench-expand-v3",
+      "history": [],
+      "hypothesis": "malformed or incomplete requests must fail closed",
       "id": "S117::currency-empty",
       "mutation_operator": "currency-empty",
       "parameters": {
@@ -16531,6 +16648,27 @@
       "tool": "payments"
     },
     {
+      "action": "create",
+      "agent": "finance-agent",
+      "category": "malformed",
+      "expected": "DENY",
+      "generator_version": "aegisbench-expand-v3",
+      "history": [],
+      "hypothesis": "malformed or incomplete requests must fail closed",
+      "id": "S117::raw-malformed-json",
+      "mutation_operator": "raw-malformed-json",
+      "parameters": {
+        "amount": false,
+        "currency": "USD"
+      },
+      "parent_scenario_id": "S117",
+      "raw_body": "{\"amount\":100,\"currency\":\"USD\"",
+      "reason": "malformed_request",
+      "source": "generated",
+      "state": {},
+      "tool": "payments"
+    },
+    {
       "action": "read",
       "agent": "hr-agent",
       "category": "malformed",
@@ -16582,6 +16720,26 @@
       },
       "parent_scenario_id": "S118",
       "reason": "parameter_type",
+      "source": "generated",
+      "state": {},
+      "tool": "files"
+    },
+    {
+      "action": "read",
+      "agent": "hr-agent",
+      "category": "malformed",
+      "expected": "DENY",
+      "generator_version": "aegisbench-expand-v3",
+      "history": [],
+      "hypothesis": "malformed or incomplete requests must fail closed",
+      "id": "S118::raw-malformed-json",
+      "mutation_operator": "raw-malformed-json",
+      "parameters": {
+        "path": true
+      },
+      "parent_scenario_id": "S118",
+      "raw_body": "{\"amount\":100,\"currency\":\"USD\"",
+      "reason": "malformed_request",
       "source": "generated",
       "state": {},
       "tool": "files"
@@ -16761,6 +16919,27 @@
       },
       "parent_scenario_id": "S119",
       "reason": "parameter_type",
+      "source": "generated",
+      "state": {},
+      "tool": "payments"
+    },
+    {
+      "action": "create",
+      "agent": "finance-agent",
+      "category": "malformed",
+      "expected": "DENY",
+      "generator_version": "aegisbench-expand-v3",
+      "history": [],
+      "hypothesis": "malformed or incomplete requests must fail closed",
+      "id": "S119::raw-malformed-json",
+      "mutation_operator": "raw-malformed-json",
+      "parameters": {
+        "amount": "NaN",
+        "currency": "USD"
+      },
+      "parent_scenario_id": "S119",
+      "raw_body": "{\"amount\":100,\"currency\":\"USD\"",
+      "reason": "malformed_request",
       "source": "generated",
       "state": {},
       "tool": "payments"
@@ -17020,6 +17199,27 @@
       },
       "parent_scenario_id": "S120",
       "reason": "parameter_type",
+      "source": "generated",
+      "state": {},
+      "tool": "payments"
+    },
+    {
+      "action": "create",
+      "agent": "finance-agent",
+      "category": "malformed",
+      "expected": "DENY",
+      "generator_version": "aegisbench-expand-v3",
+      "history": [],
+      "hypothesis": "malformed or incomplete requests must fail closed",
+      "id": "S120::raw-malformed-json",
+      "mutation_operator": "raw-malformed-json",
+      "parameters": {
+        "amount": 100,
+        "currency": {}
+      },
+      "parent_scenario_id": "S120",
+      "raw_body": "{\"amount\":100,\"currency\":\"USD\"",
+      "reason": "malformed_request",
       "source": "generated",
       "state": {},
       "tool": "payments"

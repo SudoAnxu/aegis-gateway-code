@@ -1,0 +1,97 @@
+{
+  "experiment_version": "1.0",
+  "system": "B2_aegis",
+  "benchmark": {
+    "version": "1.0-expanded",
+    "sha256": "0379039706c53d5d1675dc83be2ecd4277c7a9e3ded814126515ed946113e3ce",
+    "scenario_count": 941
+  },
+  "repetitions": 2,
+  "statistics_unit": "complete benchmark repetition",
+  "confidence_interval": "95% Student-t CI for repetition-level mean",
+  "replicate_files": [
+    "b2_aegis_rep01.json",
+    "b2_aegis_rep02.json"
+  ],
+  "summary": {
+    "system": "B2_aegis",
+    "repetitions": 2,
+    "metrics": {
+      "precision": {
+        "n": 2,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      },
+      "recall": {
+        "n": 2,
+        "mean": 0.9804639804639804,
+        "sd": 0.0,
+        "lower": 0.9804639804639804,
+        "upper": 0.9804639804639804
+      },
+      "f1": {
+        "n": 2,
+        "mean": 0.9901356350184956,
+        "sd": 0.0,
+        "lower": 0.9901356350184956,
+        "upper": 0.9901356350184956
+      },
+      "unauthorized_execution_rate": {
+        "n": 2,
+        "mean": 0.019536019536019536,
+        "sd": 0.0,
+        "lower": 0.019536019536019536,
+        "upper": 0.019536019536019536
+      },
+      "legitimate_task_success_rate": {
+        "n": 2,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      }
+    },
+    "latency_ms": {
+      "mean": {
+        "n": 2,
+        "mean": 1.8832656801259002,
+        "sd": 0.2911016475231961,
+        "lower": -0.7321367115914659,
+        "upper": 4.498668071843266
+      },
+      "median": {
+        "n": 2,
+        "mean": 0.9570464999342221,
+        "sd": 0.06200124385729767,
+        "lower": 0.39999640127098246,
+        "upper": 1.5140965985974617
+      },
+      "p50": {
+        "n": 2,
+        "mean": 0.9570464999342221,
+        "sd": 0.06200124385729767,
+        "lower": 0.39999640127098246,
+        "upper": 1.5140965985974617
+      },
+      "p95": {
+        "n": 2,
+        "mean": 2.854573500371771,
+        "sd": 0.028570649930971127,
+        "lower": 2.597880531444389,
+        "upper": 3.111266469299153
+      },
+      "p99": {
+        "n": 2,
+        "mean": 4.563683100059281,
+        "sd": 0.5757055527571663,
+        "lower": -0.6087427258236895,
+        "upper": 9.73610892594225
+      }
+    }
+  },
+  "mutant_id": "M02",
+  "description": "Remove maximum amount check",
+  "stage": "params"
+}

@@ -1,0 +1,97 @@
+{
+  "experiment_version": "1.0",
+  "system": "B2_aegis",
+  "benchmark": {
+    "version": "1.0-expanded",
+    "sha256": "0379039706c53d5d1675dc83be2ecd4277c7a9e3ded814126515ed946113e3ce",
+    "scenario_count": 941
+  },
+  "repetitions": 2,
+  "statistics_unit": "complete benchmark repetition",
+  "confidence_interval": "95% Student-t CI for repetition-level mean",
+  "replicate_files": [
+    "b2_aegis_rep01.json",
+    "b2_aegis_rep02.json"
+  ],
+  "summary": {
+    "system": "B2_aegis",
+    "repetitions": 2,
+    "metrics": {
+      "precision": {
+        "n": 2,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      },
+      "recall": {
+        "n": 2,
+        "mean": 0.978021978021978,
+        "sd": 0.0,
+        "lower": 0.978021978021978,
+        "upper": 0.978021978021978
+      },
+      "f1": {
+        "n": 2,
+        "mean": 0.9888888888888888,
+        "sd": 0.0,
+        "lower": 0.9888888888888888,
+        "upper": 0.9888888888888888
+      },
+      "unauthorized_execution_rate": {
+        "n": 2,
+        "mean": 0.02197802197802198,
+        "sd": 0.0,
+        "lower": 0.02197802197802198,
+        "upper": 0.02197802197802198
+      },
+      "legitimate_task_success_rate": {
+        "n": 2,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      }
+    },
+    "latency_ms": {
+      "mean": {
+        "n": 2,
+        "mean": 1.6005814750295708,
+        "sd": 0.0525960661666815,
+        "lower": 1.12803218368177,
+        "upper": 2.0731307663773717
+      },
+      "median": {
+        "n": 2,
+        "mean": 1.066866000655864,
+        "sd": 0.025779698433328356,
+        "lower": 0.8352483320031752,
+        "upper": 1.2984836693085526
+      },
+      "p50": {
+        "n": 2,
+        "mean": 1.066866000655864,
+        "sd": 0.025779698433328356,
+        "lower": 0.8352483320031752,
+        "upper": 1.2984836693085526
+      },
+      "p95": {
+        "n": 2,
+        "mean": 3.01024850068643,
+        "sd": 0.084416529720944,
+        "lower": 2.251808293936847,
+        "upper": 3.768688707436013
+      },
+      "p99": {
+        "n": 2,
+        "mean": 4.74219640018419,
+        "sd": 0.47738900037188675,
+        "lower": 0.4530955174669087,
+        "upper": 9.03129728290147
+      }
+    }
+  },
+  "mutant_id": "M19",
+  "description": "Allow identity substitution for file access",
+  "stage": "identity"
+}

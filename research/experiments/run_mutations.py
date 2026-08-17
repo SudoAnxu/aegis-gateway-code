@@ -64,8 +64,16 @@ def main() -> int:
             ]
 
         print(f"[{mutant_id}] stage={stage}: running")
-        subprocess.run(command, check=True)
 
+        if stage in STATE_STAGES:
+            completed = subprocess.run(command)
+            if completed.returncode not in (0, 2):
+                raise RuntimeError(
+                    f"{mutant_id}: stateful runner failed with exit code "
+                    f"{completed.returncode}"
+                )
+        else:
+            subprocess.run(command, check=True)
         if stage in STATE_STAGES:
             result_path = output_dir / "b2_aegis_stateful.json"
         else:
@@ -73,6 +81,23 @@ def main() -> int:
 
         if result_path.exists():
             data = json.loads(result_path.read_text(encoding="utf-8"))
+            summary = data.get("summary", {})
+
+            if stage in STATE_STAGES:
+                transport_errors = summary.get("transport_error_rate", 0)
+                history_failures = summary.get("history_replay_failures", 0)
+                unclassified = summary.get("unclassified", 0)
+                false_positive = summary.get("false_positive", 0)
+                false_negative = summary.get("false_negative", 0)
+
+                if transport_errors or unclassified:
+                    mutation_status = "ERROR"
+                elif history_failures or false_positive or false_negative:
+                    mutation_status = "KILLED"
+                else:
+                    mutation_status = "SURVIVED"
+
+                data["mutation_status"] = mutation_status
             data["mutant_id"] = mutant_id
             data["description"] = mutant.get("description", mutant_id)
             data["stage"] = stage

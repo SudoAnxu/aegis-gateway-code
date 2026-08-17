@@ -130,7 +130,10 @@ def build_request(
     endpoints = config["endpoints"]
     tool = case["tool"]
     action = case["action"]
-    body = json.dumps(case["parameters"], ensure_ascii=False).encode("utf-8")
+    if "raw_body" in case:
+        body = case["raw_body"].encode("utf-8")
+    else:
+        body = json.dumps(case["parameters"], ensure_ascii=False).encode("utf-8")
     headers = {
         config["request"]["agent_header"]: case["agent"],
         "Content-Type": config["request"]["content_type"],

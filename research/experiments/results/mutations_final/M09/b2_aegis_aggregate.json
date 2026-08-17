@@ -1,0 +1,97 @@
+{
+  "experiment_version": "1.0",
+  "system": "B2_aegis",
+  "benchmark": {
+    "version": "1.0-expanded",
+    "sha256": "0379039706c53d5d1675dc83be2ecd4277c7a9e3ded814126515ed946113e3ce",
+    "scenario_count": 941
+  },
+  "repetitions": 2,
+  "statistics_unit": "complete benchmark repetition",
+  "confidence_interval": "95% Student-t CI for repetition-level mean",
+  "replicate_files": [
+    "b2_aegis_rep01.json",
+    "b2_aegis_rep02.json"
+  ],
+  "summary": {
+    "system": "B2_aegis",
+    "repetitions": 2,
+    "metrics": {
+      "precision": {
+        "n": 2,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      },
+      "recall": {
+        "n": 2,
+        "mean": 0.8070818070818071,
+        "sd": 0.0,
+        "lower": 0.8070818070818071,
+        "upper": 0.8070818070818071
+      },
+      "f1": {
+        "n": 2,
+        "mean": 0.8932432432432432,
+        "sd": 0.0,
+        "lower": 0.8932432432432432,
+        "upper": 0.8932432432432432
+      },
+      "unauthorized_execution_rate": {
+        "n": 2,
+        "mean": 0.19291819291819293,
+        "sd": 0.0,
+        "lower": 0.19291819291819293,
+        "upper": 0.19291819291819293
+      },
+      "legitimate_task_success_rate": {
+        "n": 2,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      }
+    },
+    "latency_ms": {
+      "mean": {
+        "n": 2,
+        "mean": 1.7887926854284575,
+        "sd": 0.07547737736385679,
+        "lower": 1.1106662819622752,
+        "upper": 2.46691908889464
+      },
+      "median": {
+        "n": 2,
+        "mean": 1.1338260001139133,
+        "sd": 0.12282727773972765,
+        "lower": 0.030284475351436413,
+        "upper": 2.2373675248763902
+      },
+      "p50": {
+        "n": 2,
+        "mean": 1.1338260001139133,
+        "sd": 0.12282727773972765,
+        "lower": 0.030284475351436413,
+        "upper": 2.2373675248763902
+      },
+      "p95": {
+        "n": 2,
+        "mean": 3.763654999602295,
+        "sd": 0.17955845357468675,
+        "lower": 2.150412295797651,
+        "upper": 5.376897703406939
+      },
+      "p99": {
+        "n": 2,
+        "mean": 5.539163200228359,
+        "sd": 0.5432175317844065,
+        "lower": 0.6586259585470602,
+        "upper": 10.419700441909658
+      }
+    }
+  },
+  "mutant_id": "M09",
+  "description": "Treat unsupported parameter types as valid",
+  "stage": "params"
+}
