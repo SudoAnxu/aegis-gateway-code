@@ -149,10 +149,10 @@ def validate_cases(benchmark):
     return selected
 
 
-def isolated_case(case, repetition):
+def isolated_case(case, repetition, run_id):
     live = deepcopy(case)
     benchmark_txn = live.get("parameters", {}).get("transaction_id")
-    live_txn = f"aegisbench-r{repetition}-{case['id']}"
+    live_txn = f"aegisbench-{run_id}-r{repetition}-{case['id']}"
     if benchmark_txn:
         live.setdefault("parameters", {})["transaction_id"] = live_txn
     live["_benchmark_transaction_id"] = benchmark_txn
@@ -225,8 +225,8 @@ def live_event_params(
     return dict(base_params)
 
 
-def run_sequence(case, system, config, timeout, repetition,mutation_id=None):
-    live = isolated_case(case, repetition)
+def run_sequence(case, system, config, timeout, repetition,mutation_id=None, run_id = None):
+    live = isolated_case(case, repetition, run_id)
     live_txn = live["_live_transaction_id"]
     benchmark_txn = live["_benchmark_transaction_id"]
     steps = []
@@ -256,7 +256,8 @@ def run_sequence(case, system, config, timeout, repetition,mutation_id=None):
             terminal_history = True
             continue
 
-        expected, reason, next_created, next_refunded = event_expected(case, event, created, refunded)
+        # expected, reason, next_created, next_refunded = event_expected(case, event, created, refunded)
+        expected, reason, next_created, next_refunded = event_expected(benchmark_txn, event, created, refunded)
         params = live_event_params(
             event,
             benchmark_txn,
@@ -352,18 +353,19 @@ def main():
     args = p.parse_args()
     if args.repetitions < 1:
         raise ValueError("--repetitions must be >= 1")
-
+    run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f")
     config = load(args.config)
     benchmark = load(args.benchmark)
     cases = validate_cases(benchmark)
     timeout = float(config["request"]["timeout_seconds"])
     commit = git_commit()
     timestamp = datetime.now(timezone.utc).isoformat()
+    run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f")
     records = []
 
     for repetition in range(1, args.repetitions + 1):
         for case in cases:
-            result = run_sequence(case, args.system, config, timeout, repetition, args.mutation_id,)
+            result = run_sequence(case, args.system, config, timeout, repetition, args.mutation_id, run_id)
             target = result["target"]
             expected = case["expected"]
             records.append({
