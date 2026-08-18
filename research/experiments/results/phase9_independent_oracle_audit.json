@@ -1,0 +1,2732 @@
+{
+  "protocol_version": "phase9-independent-review-v1",
+  "cases_path": "research/experiments/phase9_independent_validation/independent_cases_v1.json",
+  "reference_path": "/workspaces/aegis-gateway-code/research/aegisbench/splits/heldout_static_v1.json",
+  "sample_size": 300,
+  "category_counts": {
+    "action_authorization": 40,
+    "identity_violation": 45,
+    "legitimate": 40,
+    "malformed": 55,
+    "parameter_constraints": 55,
+    "path_constraints": 40,
+    "stateful_sequence": 10,
+    "unauthorized_tool": 15
+  },
+  "independent_label_counts": {
+    "ALLOW": 43,
+    "DENY": 257
+  },
+  "oracle_label_counts": {
+    "ALLOW": 43,
+    "DENY": 257
+  },
+  "agreement_count": 300,
+  "agreement_rate": 1.0,
+  "cohen_kappa": 1.0,
+  "disagreement_count": 0,
+  "disagreements": [],
+  "case_results": [
+    {
+      "scenario_id": "IR001",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR002",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR003",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR004",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR005",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR006",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR007",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR008",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR009",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR010",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR011",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR012",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR013",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR014",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR015",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR016",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR017",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR018",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR019",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR020",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR021",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR022",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR023",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR024",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR025",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR026",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR027",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR028",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR029",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR030",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized payment operation within documented constraints",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR031",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized HR file read within the documented prefix",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR032",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized HR file read within the documented prefix",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR033",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized HR file read within the documented prefix",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR034",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized HR file read within the documented prefix",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR035",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized HR file read within the documented prefix",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR036",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized HR file read within the documented prefix",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR037",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized HR file read within the documented prefix",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR038",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized HR file read within the documented prefix",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR039",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized HR file read within the documented prefix",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR040",
+      "category": "legitimate",
+      "independent_decision": "ALLOW",
+      "independent_reason": "authorized HR file read within the documented prefix",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "authorized",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR041",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount is outside the permitted inclusive range",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR042",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount is outside the permitted inclusive range",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR043",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "currency is outside the permitted set",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR044",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR045",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR046",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment amount is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR047",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment currency is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR048",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount is outside the permitted inclusive range",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR049",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount is outside the permitted inclusive range",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR050",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "currency is outside the permitted set",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR051",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR052",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR053",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment amount is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR054",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment currency is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR055",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount is outside the permitted inclusive range",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR056",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount is outside the permitted inclusive range",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR057",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "currency is outside the permitted set",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR058",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR059",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR060",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment amount is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR061",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment currency is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR062",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount is outside the permitted inclusive range",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR063",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount is outside the permitted inclusive range",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR064",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "currency is outside the permitted set",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR065",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR066",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR067",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment amount is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR068",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment currency is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR069",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount is outside the permitted inclusive range",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR070",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount is outside the permitted inclusive range",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR071",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "currency is outside the permitted set",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR072",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR073",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR074",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment amount is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR075",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment currency is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR076",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount is outside the permitted inclusive range",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR077",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount is outside the permitted inclusive range",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR078",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "currency is outside the permitted set",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR079",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR080",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR081",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment amount is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR082",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment currency is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR083",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount is outside the permitted inclusive range",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR084",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount is outside the permitted inclusive range",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR085",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "currency is outside the permitted set",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR086",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR087",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR088",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment amount is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR089",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment currency is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR090",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount is outside the permitted inclusive range",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR091",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount is outside the permitted inclusive range",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR092",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "currency is outside the permitted set",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR093",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR094",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR095",
+      "category": "parameter_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment amount is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR096",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR097",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR098",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR099",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR100",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR101",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR102",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR103",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR104",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR105",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR106",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR107",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR108",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR109",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR110",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR111",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR112",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR113",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR114",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR115",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR116",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR117",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR118",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR119",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR120",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR121",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR122",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR123",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR124",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR125",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR126",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR127",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR128",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR129",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR130",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR131",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR132",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR133",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR134",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR135",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR136",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR137",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR138",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR139",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR140",
+      "category": "identity_violation",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR141",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR142",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR143",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR144",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR145",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR146",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR147",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR148",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR149",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR150",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR151",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR152",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR153",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR154",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR155",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR156",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR157",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR158",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR159",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR160",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR161",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR162",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR163",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR164",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR165",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR166",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR167",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR168",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR169",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR170",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR171",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR172",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR173",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR174",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR175",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR176",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR177",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR178",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR179",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR180",
+      "category": "action_authorization",
+      "independent_decision": "DENY",
+      "independent_reason": "action is not authorized for the claimed agent and tool",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_action",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR181",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR182",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR183",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR184",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR185",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR186",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR187",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR188",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR189",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR190",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR191",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR192",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR193",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR194",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR195",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR196",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR197",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR198",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR199",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR200",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR201",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR202",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR203",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR204",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR205",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR206",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR207",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR208",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR209",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR210",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR211",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR212",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR213",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR214",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR215",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR216",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR217",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR218",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR219",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR220",
+      "category": "path_constraints",
+      "independent_decision": "DENY",
+      "independent_reason": "path is outside the authorized HR prefix",
+      "oracle_decision": "DENY",
+      "oracle_reason": "path_constraint",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR221",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR222",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR223",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR224",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR225",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR226",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR227",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR228",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR229",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR230",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR231",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR232",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR233",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR234",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR235",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR236",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR237",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR238",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR239",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR240",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment amount has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR241",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment currency has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR242",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment currency has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR243",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment currency has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR244",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment currency has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR245",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment currency has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR246",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment currency has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR247",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment currency has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR248",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment currency has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR249",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment currency has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR250",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment currency has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR251",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment currency has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR252",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment currency has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR253",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment currency has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR254",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment currency has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR255",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "payment currency has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR256",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment amount is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR257",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment amount is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR258",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment amount is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR259",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment amount is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR260",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment amount is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR261",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment amount is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR262",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment amount is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR263",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment amount is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR264",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment amount is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR265",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "required payment amount is missing",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_missing",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR266",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "file path has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR267",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "file path has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR268",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "file path has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR269",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "file path has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR270",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "file path has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR271",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "file path has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR272",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "file path has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR273",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "file path has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR274",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "file path has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR275",
+      "category": "malformed",
+      "independent_decision": "DENY",
+      "independent_reason": "file path has an invalid type",
+      "oracle_decision": "DENY",
+      "oracle_reason": "parameter_type",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR276",
+      "category": "unauthorized_tool",
+      "independent_decision": "DENY",
+      "independent_reason": "tool is outside the declared authorization surface",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_tool",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR277",
+      "category": "unauthorized_tool",
+      "independent_decision": "DENY",
+      "independent_reason": "tool is outside the declared authorization surface",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_tool",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR278",
+      "category": "unauthorized_tool",
+      "independent_decision": "DENY",
+      "independent_reason": "tool is outside the declared authorization surface",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_tool",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR279",
+      "category": "unauthorized_tool",
+      "independent_decision": "DENY",
+      "independent_reason": "tool is outside the declared authorization surface",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_tool",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR280",
+      "category": "unauthorized_tool",
+      "independent_decision": "DENY",
+      "independent_reason": "tool is outside the declared authorization surface",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_tool",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR281",
+      "category": "unauthorized_tool",
+      "independent_decision": "DENY",
+      "independent_reason": "tool is outside the declared authorization surface",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_tool",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR282",
+      "category": "unauthorized_tool",
+      "independent_decision": "DENY",
+      "independent_reason": "tool is outside the declared authorization surface",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_tool",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR283",
+      "category": "unauthorized_tool",
+      "independent_decision": "DENY",
+      "independent_reason": "tool is outside the declared authorization surface",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_tool",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR284",
+      "category": "unauthorized_tool",
+      "independent_decision": "DENY",
+      "independent_reason": "tool is outside the declared authorization surface",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_tool",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR285",
+      "category": "unauthorized_tool",
+      "independent_decision": "DENY",
+      "independent_reason": "tool is outside the declared authorization surface",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_tool",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR286",
+      "category": "unauthorized_tool",
+      "independent_decision": "DENY",
+      "independent_reason": "tool is outside the declared authorization surface",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_tool",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR287",
+      "category": "unauthorized_tool",
+      "independent_decision": "DENY",
+      "independent_reason": "tool is outside the declared authorization surface",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_tool",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR288",
+      "category": "unauthorized_tool",
+      "independent_decision": "DENY",
+      "independent_reason": "tool is outside the declared authorization surface",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_tool",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR289",
+      "category": "unauthorized_tool",
+      "independent_decision": "DENY",
+      "independent_reason": "tool is outside the declared authorization surface",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_tool",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR290",
+      "category": "unauthorized_tool",
+      "independent_decision": "DENY",
+      "independent_reason": "tool is outside the declared authorization surface",
+      "oracle_decision": "DENY",
+      "oracle_reason": "unauthorized_tool",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR291",
+      "category": "stateful_sequence",
+      "independent_decision": "ALLOW",
+      "independent_reason": "refund follows a valid creation state",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "state_transition",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR292",
+      "category": "stateful_sequence",
+      "independent_decision": "ALLOW",
+      "independent_reason": "refund follows a valid creation state",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "state_transition",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR293",
+      "category": "stateful_sequence",
+      "independent_decision": "ALLOW",
+      "independent_reason": "refund follows a valid creation state",
+      "oracle_decision": "ALLOW",
+      "oracle_reason": "state_transition",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR294",
+      "category": "stateful_sequence",
+      "independent_decision": "DENY",
+      "independent_reason": "refund requires prior creation of the same transaction",
+      "oracle_decision": "DENY",
+      "oracle_reason": "state_precondition",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR295",
+      "category": "stateful_sequence",
+      "independent_decision": "DENY",
+      "independent_reason": "refund requires prior creation of the same transaction",
+      "oracle_decision": "DENY",
+      "oracle_reason": "state_precondition",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR296",
+      "category": "stateful_sequence",
+      "independent_decision": "DENY",
+      "independent_reason": "transaction has already been refunded",
+      "oracle_decision": "DENY",
+      "oracle_reason": "state_replay",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR297",
+      "category": "stateful_sequence",
+      "independent_decision": "DENY",
+      "independent_reason": "transaction has already been refunded",
+      "oracle_decision": "DENY",
+      "oracle_reason": "state_replay",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR298",
+      "category": "stateful_sequence",
+      "independent_decision": "DENY",
+      "independent_reason": "duplicate creation is invalid",
+      "oracle_decision": "DENY",
+      "oracle_reason": "state_invalid_transition",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR299",
+      "category": "stateful_sequence",
+      "independent_decision": "DENY",
+      "independent_reason": "unknown state event",
+      "oracle_decision": "DENY",
+      "oracle_reason": "state_unknown_event",
+      "agreement": true
+    },
+    {
+      "scenario_id": "IR300",
+      "category": "stateful_sequence",
+      "independent_decision": "DENY",
+      "independent_reason": "refund requires prior creation of the same transaction",
+      "oracle_decision": "DENY",
+      "oracle_reason": "state_precondition",
+      "agreement": true
+    }
+  ],
+  "claim_boundary": "Agreement is measured only on the independently authored/labelled sample; it does not establish independent ground truth for the full Phase 8 dataset."
+}
