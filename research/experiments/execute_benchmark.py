@@ -114,7 +114,13 @@ def infer_decision(status_code: int | None, body: str, headers: dict[str, str] |
         "FORBIDDEN",
         "MISSING X-AGENT-ID HEADER",
     )
+    malformed_json_markers = (
+        "INVALID JSON:",
+        "UNEXPECTED END OF JSON INPUT",
+    )
     if any(marker in body_upper for marker in deny_markers):
+        return "DENY"
+    if status_code == 400 and any(marker in body_upper for marker in malformed_json_markers):
         return "DENY"
     if status_code is not None and 200 <= status_code < 300:
         return "ALLOW"
