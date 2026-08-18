@@ -1,0 +1,6 @@
+{
+  "protocol_version": "phase9-independent-review-v1",
+  "scenario_count": 0,
+  "labeling_note": "Replace this template with 200–400 independently authored and independently labelled cases before running validate_review.py.",
+  "scenarios": []
+}
