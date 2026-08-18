@@ -1,0 +1,112 @@
+diff --git a/internal/mutation/mutation.go b/internal/mutation/mutation.go
+--- a/internal/mutation/mutation.go
++++ b/internal/mutation/mutation.go
+@@ -22,7 +22,21 @@ func current() string {
+ func Enabled(id string) bool { return id != "" && current() == id }
+ func Current() string { return current() }
+ 
+ func AgentMatches(requestAgent, policyAgent string) bool { return requestAgent == policyAgent || Enabled("M06") }
+-func ActionAllowed(allowed bool) bool { return allowed || Enabled("M07") }
++
++// ActionAllowed is normally the second predicate in the policy conjunction
++// (agent identity AND permitted action). M21 deliberately weakens that
++// composition by treating the action predicate as satisfied, leaving identity
++// as the only effective gate. This models a realistic boolean-composition
++// weakening without changing the clean path.
++func ActionAllowed(allowed bool) bool {
++	return allowed || Enabled("M07") || Enabled("M21")
++}
++
++// FailOpenOnStateError models an experiment-only fail-open bug in the
++// state-enforcement layer: state-check errors are treated as successful checks.
++// The clean implementation remains fail-closed because this is inert unless
++// M23 is explicitly selected by the mutation harness.
++func FailOpenOnStateError() bool { return Enabled("M23") }
++
+ func UnknownToolAllowed() bool { return Enabled("M08") }
+ func MissingParameterFailsOpen() bool { return Enabled("M03") }
+ func UnsupportedTypeFailsOpen() bool { return Enabled("M09") }
+*** Update File: internal/state/store.go
+@@
+ type Store struct { mu sync.Mutex; transactions map[string]Status }
+ func NewStore()*Store{return &Store{transactions:make(map[string]Status)}}
+-func (s *Store) CheckCreate(id string) error { if id==""{return fmt.Errorf("state_missing_transaction")}; if mutation.SkipDuplicateCreate(){return nil}; s.mu.Lock();defer s.mu.Unlock();if _,exists:=s.transactions[id];exists{return fmt.Errorf("state_invalid_transition")};return nil }
+-func (s *Store) ReserveCreate(id string) error { if id==""{return fmt.Errorf("state_missing_transaction")};s.mu.Lock();defer s.mu.Unlock();if !mutation.SkipDuplicateCreate(){if _,exists:=s.transactions[id];exists{return fmt.Errorf("state_invalid_transition")}};s.transactions[id]=Creating;return nil }
+-func (s *Store) CommitCreate(id string) error {s.mu.Lock();defer s.mu.Unlock();if s.transactions[id]!=Creating{return fmt.Errorf("state_invalid_transition")};s.transactions[id]=Created;return nil}
++func failOpen(err error) error { if err != nil && mutation.FailOpenOnStateError(){return nil};return err }
++func (s *Store) CheckCreate(id string) error { if id==""{return failOpen(fmt.Errorf("state_missing_transaction"))}; if mutation.SkipDuplicateCreate(){return nil}; s.mu.Lock();defer s.mu.Unlock();if _,exists:=s.transactions[id];exists{return failOpen(fmt.Errorf("state_invalid_transition"))};return nil }
++func (s *Store) ReserveCreate(id string) error { if id==""{return failOpen(fmt.Errorf("state_missing_transaction"))};s.mu.Lock();defer s.mu.Unlock();if !mutation.SkipDuplicateCreate(){if _,exists:=s.transactions[id];exists{return failOpen(fmt.Errorf("state_invalid_transition"))}};s.transactions[id]=Creating;return nil }
++func (s *Store) CommitCreate(id string) error {s.mu.Lock();defer s.mu.Unlock();if s.transactions[id]!=Creating{return failOpen(fmt.Errorf("state_invalid_transition"))};s.transactions[id]=Created;return nil}
+ func (s *Store) AbortCreate(id string){s.mu.Lock();defer s.mu.Unlock();if s.transactions[id]==Creating{delete(s.transactions,id)}}
+ func (s *Store) RecordCreate(id string)error{if err:=s.ReserveCreate(id);err!=nil{return err};return s.CommitCreate(id)}
+-func (s *Store) CheckRefund(id string) error {if id==""{return fmt.Errorf("state_missing_transaction")};s.mu.Lock();defer s.mu.Unlock();return s.checkRefundLocked(id)}
+-func (s *Store) checkRefundLocked(id string) error {status,exists:=s.transactions[id];if !exists{if mutation.AllowRefundWithoutCreate(){return nil};return fmt.Errorf("state_precondition")};if !mutation.SkipRefundReplay()&&(status==Refunded||status==Refunding){return fmt.Errorf("state_replay")};if status != Created && !mutation.AllowRefundWithoutCreate() && !mutation.SkipRefundReplay() {return fmt.Errorf("state_invalid_transition")};return nil}
+-func (s *Store) ReserveRefund(id string) error {if id==""{return fmt.Errorf("state_missing_transaction")};s.mu.Lock();defer s.mu.Unlock();if err:=s.checkRefundLocked(id);err!=nil{return err};s.transactions[id]=Refunding;return nil}
+-func (s *Store) CommitRefund(id string)error{s.mu.Lock();defer s.mu.Unlock();if s.transactions[id]!=Refunding{return fmt.Errorf("state_invalid_transition")};s.transactions[id]=Refunded;return nil}
++func (s *Store) CheckRefund(id string) error {if id==""{return failOpen(fmt.Errorf("state_missing_transaction"))};s.mu.Lock();defer s.mu.Unlock();return s.checkRefundLocked(id)}
++func (s *Store) checkRefundLocked(id string) error {status,exists:=s.transactions[id];if !exists{if mutation.AllowRefundWithoutCreate(){return nil};return failOpen(fmt.Errorf("state_precondition"))};if !mutation.SkipRefundReplay()&&(status==Refunded||status==Refunding){return failOpen(fmt.Errorf("state_replay"))};if status != Created && !mutation.AllowRefundWithoutCreate() && !mutation.SkipRefundReplay() {return failOpen(fmt.Errorf("state_invalid_transition"))};return nil}
++func (s *Store) ReserveRefund(id string) error {if id==""{return failOpen(fmt.Errorf("state_missing_transaction"))};s.mu.Lock();defer s.mu.Unlock();if err:=s.checkRefundLocked(id);err!=nil{return err};s.transactions[id]=Refunding;return nil}
++func (s *Store) CommitRefund(id string)error{s.mu.Lock();defer s.mu.Unlock();if s.transactions[id]!=Refunding{return failOpen(fmt.Errorf("state_invalid_transition"))};s.transactions[id]=Refunded;return nil}
+ func (s *Store) AbortRefund(id string){s.mu.Lock();defer s.mu.Unlock();if s.transactions[id]==Refunding{s.transactions[id]=Created}}
+ func (s *Store) RecordRefund(id string)error{if err:=s.ReserveRefund(id);err!=nil{return err};return s.CommitRefund(id)}
+*** Add File: internal/mutation/mutation_phase9_test.go
++package mutation
++
++import "testing"
++
++func TestM21WeakensActionPredicateOnlyWhenEnabled(t *testing.T) {
++	Set("")
++	if ActionAllowed(false) {
++		t.Fatal("clean B2 must reject an unauthorized action predicate")
++	}
++
++	Set("M21")
++	if !ActionAllowed(false) {
++		t.Fatal("M21 should weaken the action predicate")
++	}
++
++	Set("")
++}
++
+*** Add File: internal/state/store_phase9_test.go
++package state
++
++import (
++	"testing"
++
++	"aegis-gateway/internal/mutation"
++)
++
++func TestM23FailsOpenStateErrorsOnlyWhenEnabled(t *testing.T) {
++	store := NewStore()
++    store.transactions["txn-1"] = Created
++
++	mutation.Set("")
++	if err := store.CheckCreate("txn-1"); err == nil {
++		t.Fatal("clean B2 must reject duplicate create")
++	}
++
++	mutation.Set("M23")
++	if err := store.CheckCreate("txn-1"); err != nil {
++		t.Fatalf("M23 should fail open state errors, got %v", err)
++	}
++
++	mutation.Set("")
++}
++
+*** Add File: research/experiments/mutation_testing/mutants_phase9.json
++{
++  "version": "phase9-1.0",
++  "mutants": [
++    {
++      "id": "M21",
++      "description": "Weaken identity/action authorization composition by treating the action predicate as satisfied",
++      "stage": "action"
++    },
++    {
++      "id": "M23",
++      "description": "Fail open on state-enforcement errors",
++      "stage": "state"
++    }
++  ]
++}
