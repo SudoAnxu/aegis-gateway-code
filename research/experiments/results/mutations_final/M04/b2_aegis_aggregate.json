@@ -1,0 +1,97 @@
+{
+  "experiment_version": "1.0",
+  "system": "B2_aegis",
+  "benchmark": {
+    "version": "1.0-expanded",
+    "sha256": "5edc4213f043f2f36176712dcc156ae846d3954ce26ad38b1280a25a42b3c9b6",
+    "scenario_count": 951
+  },
+  "repetitions": 2,
+  "statistics_unit": "complete benchmark repetition",
+  "confidence_interval": "95% Student-t CI for repetition-level mean",
+  "replicate_files": [
+    "b2_aegis_rep01.json",
+    "b2_aegis_rep02.json"
+  ],
+  "summary": {
+    "system": "B2_aegis",
+    "repetitions": 2,
+    "metrics": {
+      "precision": {
+        "n": 2,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      },
+      "recall": {
+        "n": 2,
+        "mean": 0.9939686369119421,
+        "sd": 0.0,
+        "lower": 0.9939686369119421,
+        "upper": 0.9939686369119421
+      },
+      "f1": {
+        "n": 2,
+        "mean": 0.9969751966122203,
+        "sd": 0.0,
+        "lower": 0.9969751966122203,
+        "upper": 0.9969751966122203
+      },
+      "unauthorized_execution_rate": {
+        "n": 2,
+        "mean": 0.006031363088057901,
+        "sd": 0.0,
+        "lower": 0.006031363088057901,
+        "upper": 0.006031363088057901
+      },
+      "legitimate_task_success_rate": {
+        "n": 2,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      }
+    },
+    "latency_ms": {
+      "mean": {
+        "n": 2,
+        "mean": 3.4986504395000733,
+        "sd": 0.855083803907716,
+        "lower": -4.183848937906644,
+        "upper": 11.18114981690679
+      },
+      "median": {
+        "n": 2,
+        "mean": 1.110186500227428,
+        "sd": 0.057064224430113435,
+        "lower": 0.5974930464944919,
+        "upper": 1.6228799539603642
+      },
+      "p50": {
+        "n": 2,
+        "mean": 1.110186500227428,
+        "sd": 0.057064224430113435,
+        "lower": 0.5974930464944919,
+        "upper": 1.6228799539603642
+      },
+      "p95": {
+        "n": 2,
+        "mean": 3.0567742496714345,
+        "sd": 0.008550688520698232,
+        "lower": 2.9799505992450577,
+        "upper": 3.1335979000978114
+      },
+      "p99": {
+        "n": 2,
+        "mean": 5.840298750626971,
+        "sd": 0.43028614397175946,
+        "lower": 1.9743934229118172,
+        "upper": 9.706204078342125
+      }
+    }
+  },
+  "mutant_id": "M04",
+  "description": "Use raw string prefix matching for paths",
+  "stage": "path"
+}

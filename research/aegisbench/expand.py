@@ -18,10 +18,22 @@ GENERATOR_VERSION = "aegisbench-expand-v3"
 
 
 def mutate(seed: dict) -> list[dict]:
+    cases = []
+    if seed.get("category") == "malformed":
+        x = deepcopy(seed)
+        x["id"] = f"{seed['id']}::raw-malformed-json"
+        x["raw_body"] = '{"amount":100,"currency":"USD"'
+        x["source"] = "generated"
+        x["parent_scenario_id"] = seed["id"]
+        x["mutation_operator"] = "raw-malformed-json"
+        x["generator_version"] = GENERATOR_VERSION
+        x["expected"] = "DENY"
+        x["reason"] = "malformed_request"
+        cases.append(x)
     base = seed["parameters"]
     if not isinstance(base, dict):
-        return []
-    cases = []
+        return cases
+
 
     def add(name: str, params: dict, *, history=None) -> None:
         x = deepcopy(seed)

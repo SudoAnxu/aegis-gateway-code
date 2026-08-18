@@ -1,0 +1,97 @@
+{
+  "experiment_version": "1.0",
+  "system": "B2_aegis",
+  "benchmark": {
+    "version": "1.0-expanded",
+    "sha256": "5edc4213f043f2f36176712dcc156ae846d3954ce26ad38b1280a25a42b3c9b6",
+    "scenario_count": 951
+  },
+  "repetitions": 2,
+  "statistics_unit": "complete benchmark repetition",
+  "confidence_interval": "95% Student-t CI for repetition-level mean",
+  "replicate_files": [
+    "b2_aegis_rep01.json",
+    "b2_aegis_rep02.json"
+  ],
+  "summary": {
+    "system": "B2_aegis",
+    "repetitions": 2,
+    "metrics": {
+      "precision": {
+        "n": 2,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      },
+      "recall": {
+        "n": 2,
+        "mean": 0.9782870928829915,
+        "sd": 0.0,
+        "lower": 0.9782870928829915,
+        "upper": 0.9782870928829915
+      },
+      "f1": {
+        "n": 2,
+        "mean": 0.9890243902439025,
+        "sd": 0.0,
+        "lower": 0.9890243902439025,
+        "upper": 0.9890243902439025
+      },
+      "unauthorized_execution_rate": {
+        "n": 2,
+        "mean": 0.021712907117008445,
+        "sd": 0.0,
+        "lower": 0.021712907117008445,
+        "upper": 0.021712907117008445
+      },
+      "legitimate_task_success_rate": {
+        "n": 2,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      }
+    },
+    "latency_ms": {
+      "mean": {
+        "n": 2,
+        "mean": 2.3939373317669332,
+        "sd": 0.4929080610371362,
+        "lower": -2.0345945322809023,
+        "upper": 6.822469195814769
+      },
+      "median": {
+        "n": 2,
+        "mean": 1.0265955006616423,
+        "sd": 0.015173804404333623,
+        "lower": 0.890266473779775,
+        "upper": 1.1629245275435096
+      },
+      "p50": {
+        "n": 2,
+        "mean": 1.0265955006616423,
+        "sd": 0.015173804404333623,
+        "lower": 0.890266473779775,
+        "upper": 1.1629245275435096
+      },
+      "p95": {
+        "n": 2,
+        "mean": 3.048686499823816,
+        "sd": 0.37338773641836503,
+        "lower": -0.3060151556819619,
+        "upper": 6.403388155329594
+      },
+      "p99": {
+        "n": 2,
+        "mean": 5.045236000114528,
+        "sd": 1.4799660085166089,
+        "lower": -8.251516770844317,
+        "upper": 18.341988771073375
+      }
+    }
+  },
+  "mutant_id": "M19",
+  "description": "Allow identity substitution for file access",
+  "stage": "identity"
+}

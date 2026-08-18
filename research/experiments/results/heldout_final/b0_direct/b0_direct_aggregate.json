@@ -1,0 +1,122 @@
+{
+  "experiment_version": "1.0",
+  "system": "B0_direct",
+  "benchmark": {
+    "version": "1.0-static",
+    "sha256": "17865ea0648f234efa0d777f71b6ceb802ee89bbdab66dd064f3d557b0c6173c",
+    "scenario_count": 522
+  },
+  "repetitions": 30,
+  "statistics_unit": "complete benchmark repetition",
+  "confidence_interval": "95% Student-t CI for repetition-level mean",
+  "replicate_files": [
+    "b0_direct_rep01.json",
+    "b0_direct_rep02.json",
+    "b0_direct_rep03.json",
+    "b0_direct_rep04.json",
+    "b0_direct_rep05.json",
+    "b0_direct_rep06.json",
+    "b0_direct_rep07.json",
+    "b0_direct_rep08.json",
+    "b0_direct_rep09.json",
+    "b0_direct_rep10.json",
+    "b0_direct_rep11.json",
+    "b0_direct_rep12.json",
+    "b0_direct_rep13.json",
+    "b0_direct_rep14.json",
+    "b0_direct_rep15.json",
+    "b0_direct_rep16.json",
+    "b0_direct_rep17.json",
+    "b0_direct_rep18.json",
+    "b0_direct_rep19.json",
+    "b0_direct_rep20.json",
+    "b0_direct_rep21.json",
+    "b0_direct_rep22.json",
+    "b0_direct_rep23.json",
+    "b0_direct_rep24.json",
+    "b0_direct_rep25.json",
+    "b0_direct_rep26.json",
+    "b0_direct_rep27.json",
+    "b0_direct_rep28.json",
+    "b0_direct_rep29.json",
+    "b0_direct_rep30.json"
+  ],
+  "summary": {
+    "system": "B0_direct",
+    "repetitions": 30,
+    "metrics": {
+      "precision": {
+        "n": 30,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      },
+      "recall": {
+        "n": 30,
+        "mean": 0.3459715639810427,
+        "sd": 0.0,
+        "lower": 0.3459715639810427,
+        "upper": 0.3459715639810427
+      },
+      "f1": {
+        "n": 30,
+        "mean": 0.5140845070422535,
+        "sd": 0.0,
+        "lower": 0.5140845070422535,
+        "upper": 0.5140845070422535
+      },
+      "unauthorized_execution_rate": {
+        "n": 30,
+        "mean": 0.6540284360189573,
+        "sd": 0.0,
+        "lower": 0.6540284360189573,
+        "upper": 0.6540284360189573
+      },
+      "legitimate_task_success_rate": {
+        "n": 30,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      }
+    },
+    "latency_ms": {
+      "mean": {
+        "n": 30,
+        "mean": 1.0084340678160184,
+        "sd": 0.11946168206893468,
+        "lower": 0.9638313512611745,
+        "upper": 1.0530367843708623
+      },
+      "median": {
+        "n": 30,
+        "mean": 0.8658398000003823,
+        "sd": 0.012631124843919872,
+        "lower": 0.8611237900512079,
+        "upper": 0.8705558099495567
+      },
+      "p50": {
+        "n": 30,
+        "mean": 0.8658398000003823,
+        "sd": 0.012631124843919872,
+        "lower": 0.8611237900512079,
+        "upper": 0.8705558099495567
+      },
+      "p95": {
+        "n": 30,
+        "mean": 1.4281290999345702,
+        "sd": 0.5782241670465853,
+        "lower": 1.2122408905834128,
+        "upper": 1.6440173092857275
+      },
+      "p99": {
+        "n": 30,
+        "mean": 2.5407391837118922,
+        "sd": 1.5117228259809077,
+        "lower": 1.9763159850011478,
+        "upper": 3.1051623824226366
+      }
+    }
+  }
+}

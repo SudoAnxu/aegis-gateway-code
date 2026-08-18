@@ -1,0 +1,97 @@
+{
+  "experiment_version": "1.0",
+  "system": "B2_aegis",
+  "benchmark": {
+    "version": "1.0-expanded",
+    "sha256": "5edc4213f043f2f36176712dcc156ae846d3954ce26ad38b1280a25a42b3c9b6",
+    "scenario_count": 951
+  },
+  "repetitions": 2,
+  "statistics_unit": "complete benchmark repetition",
+  "confidence_interval": "95% Student-t CI for repetition-level mean",
+  "replicate_files": [
+    "b2_aegis_rep01.json",
+    "b2_aegis_rep02.json"
+  ],
+  "summary": {
+    "system": "B2_aegis",
+    "repetitions": 2,
+    "metrics": {
+      "precision": {
+        "n": 2,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      },
+      "recall": {
+        "n": 2,
+        "mean": 0.9806996381182147,
+        "sd": 0.0,
+        "lower": 0.9806996381182147,
+        "upper": 0.9806996381182147
+      },
+      "f1": {
+        "n": 2,
+        "mean": 0.9902557856272838,
+        "sd": 0.0,
+        "lower": 0.9902557856272838,
+        "upper": 0.9902557856272838
+      },
+      "unauthorized_execution_rate": {
+        "n": 2,
+        "mean": 0.019300361881785282,
+        "sd": 0.0,
+        "lower": 0.019300361881785282,
+        "upper": 0.019300361881785282
+      },
+      "legitimate_task_success_rate": {
+        "n": 2,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      }
+    },
+    "latency_ms": {
+      "mean": {
+        "n": 2,
+        "mean": 1.9376266125056376,
+        "sd": 0.26634225231283093,
+        "lower": -0.45532502360236826,
+        "upper": 4.3305782486136435
+      },
+      "median": {
+        "n": 2,
+        "mean": 1.2354155005596112,
+        "sd": 0.11359034082402045,
+        "lower": 0.2148632240787267,
+        "upper": 2.255967777040496
+      },
+      "p50": {
+        "n": 2,
+        "mean": 1.2354155005596112,
+        "sd": 0.11359034082402045,
+        "lower": 0.2148632240787267,
+        "upper": 2.255967777040496
+      },
+      "p95": {
+        "n": 2,
+        "mean": 3.5693192494363757,
+        "sd": 0.2854735031758596,
+        "lower": 1.0044829136386397,
+        "upper": 6.134155585234112
+      },
+      "p99": {
+        "n": 2,
+        "mean": 5.1499002497621404,
+        "sd": 0.8233363968322838,
+        "lower": -2.2473645880863833,
+        "upper": 12.547165087610665
+      }
+    }
+  },
+  "mutant_id": "M11",
+  "description": "Make currency comparison case-insensitive",
+  "stage": "params"
+}

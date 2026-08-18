@@ -1,0 +1,97 @@
+{
+  "experiment_version": "1.0",
+  "system": "B2_aegis",
+  "benchmark": {
+    "version": "1.0-expanded",
+    "sha256": "5edc4213f043f2f36176712dcc156ae846d3954ce26ad38b1280a25a42b3c9b6",
+    "scenario_count": 951
+  },
+  "repetitions": 2,
+  "statistics_unit": "complete benchmark repetition",
+  "confidence_interval": "95% Student-t CI for repetition-level mean",
+  "replicate_files": [
+    "b2_aegis_rep01.json",
+    "b2_aegis_rep02.json"
+  ],
+  "summary": {
+    "system": "B2_aegis",
+    "repetitions": 2,
+    "metrics": {
+      "precision": {
+        "n": 2,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      },
+      "recall": {
+        "n": 2,
+        "mean": 0.9071170084439083,
+        "sd": 0.0,
+        "lower": 0.9071170084439083,
+        "upper": 0.9071170084439083
+      },
+      "f1": {
+        "n": 2,
+        "mean": 0.9512966476913346,
+        "sd": 0.0,
+        "lower": 0.9512966476913346,
+        "upper": 0.9512966476913346
+      },
+      "unauthorized_execution_rate": {
+        "n": 2,
+        "mean": 0.09288299155609167,
+        "sd": 0.0,
+        "lower": 0.09288299155609167,
+        "upper": 0.09288299155609167
+      },
+      "legitimate_task_success_rate": {
+        "n": 2,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      }
+    },
+    "latency_ms": {
+      "mean": {
+        "n": 2,
+        "mean": 3.5737974721441894,
+        "sd": 0.39335366386169923,
+        "lower": 0.039711966246459784,
+        "upper": 7.1078829780419195
+      },
+      "median": {
+        "n": 2,
+        "mean": 1.2525125002866844,
+        "sd": 0.01866691226275632,
+        "lower": 1.0847996501761372,
+        "upper": 1.4202253503972315
+      },
+      "p50": {
+        "n": 2,
+        "mean": 1.2525125002866844,
+        "sd": 0.01866691226275632,
+        "lower": 1.0847996501761372,
+        "upper": 1.4202253503972315
+      },
+      "p95": {
+        "n": 2,
+        "mean": 4.110064999622409,
+        "sd": 0.11487232504456328,
+        "lower": 3.0779947374994663,
+        "upper": 5.142135261745352
+      },
+      "p99": {
+        "n": 2,
+        "mean": 6.353907249831536,
+        "sd": 0.6238354129189116,
+        "lower": 0.7490587549218617,
+        "upper": 11.958755744741211
+      }
+    }
+  },
+  "mutant_id": "M07",
+  "description": "Permit unauthorized actions for known tools",
+  "stage": "action"
+}

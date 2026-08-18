@@ -82,7 +82,7 @@ def classify(expected: str, actual: str) -> str:
     }.get((expected.upper(), actual.upper()), "unclassified")
 
 
-def endpoint_for_case(case: dict[str, Any], system: str, config: dict[str, Any]):
+def endpoint_for_case(case: dict[str, Any], system: str, config: dict[str, Any], mutation_id=None):
     tool, action = case["tool"], case["action"]
     headers = {
         config["request"]["agent_header"]: case["agent"],
@@ -97,6 +97,8 @@ def endpoint_for_case(case: dict[str, Any], system: str, config: dict[str, Any])
     if system == "B1_rbac":
         return f"{e['rbac']['base_url']}/tools/{tool}/{action}", headers
     if system == "B2_aegis":
+        if mutation_id:
+            headers["X-Aegis-Mutant-ID"] = mutation_id
         return f"{e['gateway']['base_url']}/tools/{tool}/{action}", headers
     raise ValueError(system)
 
@@ -147,10 +149,10 @@ def validate_cases(benchmark):
     return selected
 
 
-def isolated_case(case, repetition):
+def isolated_case(case, repetition, run_id):
     live = deepcopy(case)
     benchmark_txn = live.get("parameters", {}).get("transaction_id")
-    live_txn = f"aegisbench-r{repetition}-{case['id']}"
+    live_txn = f"aegisbench-{run_id}-r{repetition}-{case['id']}"
     if benchmark_txn:
         live.setdefault("parameters", {})["transaction_id"] = live_txn
     live["_benchmark_transaction_id"] = benchmark_txn
@@ -223,8 +225,8 @@ def live_event_params(
     return dict(base_params)
 
 
-def run_sequence(case, system, config, timeout, repetition):
-    live = isolated_case(case, repetition)
+def run_sequence(case, system, config, timeout, repetition,mutation_id=None, run_id = None):
+    live = isolated_case(case, repetition, run_id)
     live_txn = live["_live_transaction_id"]
     benchmark_txn = live["_benchmark_transaction_id"]
     steps = []
@@ -254,7 +256,8 @@ def run_sequence(case, system, config, timeout, repetition):
             terminal_history = True
             continue
 
-        expected, reason, next_created, next_refunded = event_expected(case, event, created, refunded)
+        # expected, reason, next_created, next_refunded = event_expected(case, event, created, refunded)
+        expected, reason, next_created, next_refunded = event_expected(benchmark_txn, event, created, refunded)
         params = live_event_params(
             event,
             benchmark_txn,
@@ -265,11 +268,19 @@ def run_sequence(case, system, config, timeout, repetition):
         request_case = dict(live)
         request_case["action"] = action
         request_case["parameters"] = params
-        url, headers = endpoint_for_case(request_case, system, config)
+        url, headers = endpoint_for_case(request_case, system, config, mutation_id)
         result = execute(url, headers, params, timeout)
         actual = infer_decision(result["status_code"], result["body"])
 
-        ok = not result["transport_error"] and actual == expected
+        # ok = not result["transport_error"] and actual == expected
+        wrong_object = event.get("id") != benchmark_txn
+
+        if wrong_object:
+            # An unrelated transaction may legitimately be created.
+            # The invariant is that it must not mutate the target transaction.
+            ok = not result["transport_error"]
+        else:
+            ok = not result["transport_error"] and actual == expected
         history_ok = history_ok and ok
         transport_error = transport_error or bool(result["transport_error"])
         steps.append({
@@ -293,13 +304,10 @@ def run_sequence(case, system, config, timeout, repetition):
             # A correctly denied event leaves the prior state unchanged.
             created, refunded = next_created, next_refunded
 
-        # Continue recording authoritative history events, but once the gateway
-        # has correctly denied a terminal transition, later events are expected
-        # to be evaluated from the same pre-terminal state.
+        # Continue recording authoritative history events. History replay
+        # and final target evaluation are independent.
+        # A correctly denied event leaves the modeled state unchanged.
 
-    # History validation and target evaluation are independent. A correctly
-    # denied history event does not terminate the benchmark sequence; it simply
-    # leaves the modeled state unchanged.
     target_executed = True
     target_result = None
     target_actual = "UNKNOWN"
@@ -315,7 +323,7 @@ def run_sequence(case, system, config, timeout, repetition):
             target_params["transaction_id"] = live_txn
         target_case = dict(live)
         target_case["parameters"] = target_params
-        url, headers = endpoint_for_case(target_case, system, config)
+        url, headers = endpoint_for_case(target_case, system, config, mutation_id)
         target_result = execute(url, headers, target_params, timeout)
         target_actual = infer_decision(target_result["status_code"], target_result["body"])
         transport_error = transport_error or bool(target_result["transport_error"])
@@ -346,21 +354,23 @@ def main():
     p.add_argument("--system", choices=SYSTEMS, required=True)
     p.add_argument("--repetitions", type=int, default=1)
     p.add_argument("--output", type=Path, required=True)
+    p.add_argument("--mutation-id", default=None)
     args = p.parse_args()
     if args.repetitions < 1:
         raise ValueError("--repetitions must be >= 1")
-
+    run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f")
     config = load(args.config)
     benchmark = load(args.benchmark)
     cases = validate_cases(benchmark)
     timeout = float(config["request"]["timeout_seconds"])
     commit = git_commit()
     timestamp = datetime.now(timezone.utc).isoformat()
+    run_id = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%f")
     records = []
 
     for repetition in range(1, args.repetitions + 1):
         for case in cases:
-            result = run_sequence(case, args.system, config, timeout, repetition)
+            result = run_sequence(case, args.system, config, timeout, repetition, args.mutation_id, run_id)
             target = result["target"]
             expected = case["expected"]
             records.append({

@@ -1,0 +1,97 @@
+{
+  "experiment_version": "1.0",
+  "system": "B2_aegis",
+  "benchmark": {
+    "version": "1.0-expanded",
+    "sha256": "5edc4213f043f2f36176712dcc156ae846d3954ce26ad38b1280a25a42b3c9b6",
+    "scenario_count": 951
+  },
+  "repetitions": 2,
+  "statistics_unit": "complete benchmark repetition",
+  "confidence_interval": "95% Student-t CI for repetition-level mean",
+  "replicate_files": [
+    "b2_aegis_rep01.json",
+    "b2_aegis_rep02.json"
+  ],
+  "summary": {
+    "system": "B2_aegis",
+    "repetitions": 2,
+    "metrics": {
+      "precision": {
+        "n": 2,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      },
+      "recall": {
+        "n": 2,
+        "mean": 0.9939686369119421,
+        "sd": 0.0,
+        "lower": 0.9939686369119421,
+        "upper": 0.9939686369119421
+      },
+      "f1": {
+        "n": 2,
+        "mean": 0.9969751966122203,
+        "sd": 0.0,
+        "lower": 0.9969751966122203,
+        "upper": 0.9969751966122203
+      },
+      "unauthorized_execution_rate": {
+        "n": 2,
+        "mean": 0.006031363088057901,
+        "sd": 0.0,
+        "lower": 0.006031363088057901,
+        "upper": 0.006031363088057901
+      },
+      "legitimate_task_success_rate": {
+        "n": 2,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      }
+    },
+    "latency_ms": {
+      "mean": {
+        "n": 2,
+        "mean": 3.029914251308986,
+        "sd": 0.7974676608618174,
+        "lower": -4.134932960244684,
+        "upper": 10.194761462862655
+      },
+      "median": {
+        "n": 2,
+        "mean": 1.0014139998020255,
+        "sd": 0.007544829954400963,
+        "lower": 0.9336274844190484,
+        "upper": 1.0692005151850026
+      },
+      "p50": {
+        "n": 2,
+        "mean": 1.0014139998020255,
+        "sd": 0.007544829954400963,
+        "lower": 0.9336274844190484,
+        "upper": 1.0692005151850026
+      },
+      "p95": {
+        "n": 2,
+        "mean": 2.9581427502307633,
+        "sd": 0.4727662899613279,
+        "lower": -1.2894253965268945,
+        "upper": 7.205710896988421
+      },
+      "p99": {
+        "n": 2,
+        "mean": 5.060878999302076,
+        "sd": 1.8522435861666755,
+        "lower": -11.580601207083415,
+        "upper": 21.702359205687568
+      }
+    }
+  },
+  "mutant_id": "M10",
+  "description": "Skip path canonicalization and allow traversal",
+  "stage": "path"
+}

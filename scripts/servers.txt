@@ -1,0 +1,9 @@
+python research/fixtures/tool_services.py payments --port 8081
+
+python research/fixtures/tool_services.py files --port 8082
+
+python research/fixtures/tool_services.py rbac --port 8090
+
+go run ./cmd/aegis
+
+python research/aegisbench/fixtures/unknown_tool.py

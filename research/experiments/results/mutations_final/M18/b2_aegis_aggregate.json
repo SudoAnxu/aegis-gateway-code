@@ -1,0 +1,97 @@
+{
+  "experiment_version": "1.0",
+  "system": "B2_aegis",
+  "benchmark": {
+    "version": "1.0-expanded",
+    "sha256": "5edc4213f043f2f36176712dcc156ae846d3954ce26ad38b1280a25a42b3c9b6",
+    "scenario_count": 951
+  },
+  "repetitions": 2,
+  "statistics_unit": "complete benchmark repetition",
+  "confidence_interval": "95% Student-t CI for repetition-level mean",
+  "replicate_files": [
+    "b2_aegis_rep01.json",
+    "b2_aegis_rep02.json"
+  ],
+  "summary": {
+    "system": "B2_aegis",
+    "repetitions": 2,
+    "metrics": {
+      "precision": {
+        "n": 2,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      },
+      "recall": {
+        "n": 2,
+        "mean": 0.9879372738238842,
+        "sd": 0.0,
+        "lower": 0.9879372738238842,
+        "upper": 0.9879372738238842
+      },
+      "f1": {
+        "n": 2,
+        "mean": 0.9939320388349515,
+        "sd": 0.0,
+        "lower": 0.9939320388349515,
+        "upper": 0.9939320388349515
+      },
+      "unauthorized_execution_rate": {
+        "n": 2,
+        "mean": 0.012062726176115802,
+        "sd": 0.0,
+        "lower": 0.012062726176115802,
+        "upper": 0.012062726176115802
+      },
+      "legitimate_task_success_rate": {
+        "n": 2,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      }
+    },
+    "latency_ms": {
+      "mean": {
+        "n": 2,
+        "mean": 2.457592756030964,
+        "sd": 0.20481867058413716,
+        "lower": 0.6173996637832178,
+        "upper": 4.297785848278711
+      },
+      "median": {
+        "n": 2,
+        "mean": 1.150231500105292,
+        "sd": 0.13914235006615328,
+        "lower": -0.0998927717719198,
+        "upper": 2.400355771982504
+      },
+      "p50": {
+        "n": 2,
+        "mean": 1.150231500105292,
+        "sd": 0.13914235006615328,
+        "lower": -0.0998927717719198,
+        "upper": 2.400355771982504
+      },
+      "p95": {
+        "n": 2,
+        "mean": 3.705150250425504,
+        "sd": 0.3447509722202077,
+        "lower": 0.6077355673987777,
+        "upper": 6.8025649334522305
+      },
+      "p99": {
+        "n": 2,
+        "mean": 7.03145899979063,
+        "sd": 0.4372811979475631,
+        "lower": 3.10270661829145,
+        "upper": 10.96021138128981
+      }
+    }
+  },
+  "mutant_id": "M18",
+  "description": "Allow malformed requests to proceed",
+  "stage": "validator"
+}
