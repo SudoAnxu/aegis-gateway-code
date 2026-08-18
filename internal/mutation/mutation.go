@@ -26,17 +26,14 @@ func Enabled(id string) bool { return id != "" && current() == id }
 func Current() string { return current() }
 
 func AgentMatches(requestAgent, policyAgent string) bool { return requestAgent == policyAgent || Enabled("M06") }
-func ActionAllowed(allowed bool) bool { return allowed || Enabled("M07") }
 
-// AgentAndActionAllowed models the composite authorization condition. Clean
-// behavior requires both identity and action authorization. M21 intentionally
-// weakens that conjunction to an OR so one satisfied condition can bypass the
-// other; this is a targeted experiment-only mutation.
-func AgentAndActionAllowed(agentAllowed, actionAllowed bool) bool {
-	if Enabled("M21") {
-		return agentAllowed || actionAllowed
-	}
-	return agentAllowed && actionAllowed
+// ActionAllowed is normally the second predicate in the policy conjunction
+// (agent identity AND permitted action). M21 deliberately weakens that
+// composition by treating the action predicate as satisfied, leaving identity
+// as the only effective gate. This models a realistic boolean-composition
+// weakening without changing the clean path.
+func ActionAllowed(allowed bool) bool {
+	return allowed || Enabled("M07") || Enabled("M21")
 }
 
 func UnknownToolAllowed() bool { return Enabled("M08") }
