@@ -36,10 +36,11 @@ func ActionAllowed(allowed bool) bool {
 	return allowed || Enabled("M07") || Enabled("M21")
 }
 
-// FailOpenOnStateBackendError injects a state-layer backend failure for M23.
-// The gateway's M23 path intentionally converts that infrastructure error into
-// an allow decision. The hook is inert for clean B2 and all existing mutants.
-func FailOpenOnStateBackendError() bool { return Enabled("M23") }
+// FailOpenOnStateError models an experiment-only fail-open bug in the
+// state-enforcement layer: state-check errors are treated as successful checks.
+// The clean implementation remains fail-closed because this is inert unless
+// M23 is explicitly selected by the mutation harness.
+func FailOpenOnStateError() bool { return Enabled("M23") }
 
 func UnknownToolAllowed() bool { return Enabled("M08") }
 func MissingParameterFailsOpen() bool { return Enabled("M03") }
