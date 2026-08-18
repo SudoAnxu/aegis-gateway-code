@@ -26,22 +26,7 @@ func Enabled(id string) bool { return id != "" && current() == id }
 func Current() string { return current() }
 
 func AgentMatches(requestAgent, policyAgent string) bool { return requestAgent == policyAgent || Enabled("M06") }
-
-// ActionAllowed is normally the second predicate in the policy conjunction
-// (agent identity AND permitted action). M21 deliberately weakens that
-// composition by treating the action predicate as satisfied, leaving identity
-// as the only effective gate. This models a realistic boolean-composition
-// weakening without changing the clean path.
-func ActionAllowed(allowed bool) bool {
-	return allowed || Enabled("M07") || Enabled("M21")
-}
-
-// FailOpenOnStateError models an experiment-only fail-open bug in the
-// state-enforcement layer: state-check errors are treated as successful checks.
-// The clean implementation remains fail-closed because this is inert unless
-// M23 is explicitly selected by the mutation harness.
-func FailOpenOnStateError() bool { return Enabled("M23") }
-
+func ActionAllowed(allowed bool) bool { return allowed || Enabled("M07") }
 func UnknownToolAllowed() bool { return Enabled("M08") }
 func MissingParameterFailsOpen() bool { return Enabled("M03") }
 func UnsupportedTypeFailsOpen() bool { return Enabled("M09") }
