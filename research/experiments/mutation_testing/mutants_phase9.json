@@ -1,0 +1,15 @@
+{
+  "version": "phase9-1.0",
+  "mutants": [
+    {
+      "id": "M21",
+      "description": "Weaken identity/action authorization composition by treating the action predicate as satisfied",
+      "stage": "action"
+    },
+    {
+      "id": "M23",
+      "description": "Fail open on state-enforcement errors",
+      "stage": "state"
+    }
+  ]
+}
