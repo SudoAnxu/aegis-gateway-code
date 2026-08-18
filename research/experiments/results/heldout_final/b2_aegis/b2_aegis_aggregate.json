@@ -1,0 +1,122 @@
+{
+  "experiment_version": "1.0",
+  "system": "B2_aegis",
+  "benchmark": {
+    "version": "1.0-static",
+    "sha256": "17865ea0648f234efa0d777f71b6ceb802ee89bbdab66dd064f3d557b0c6173c",
+    "scenario_count": 522
+  },
+  "repetitions": 30,
+  "statistics_unit": "complete benchmark repetition",
+  "confidence_interval": "95% Student-t CI for repetition-level mean",
+  "replicate_files": [
+    "b2_aegis_rep01.json",
+    "b2_aegis_rep02.json",
+    "b2_aegis_rep03.json",
+    "b2_aegis_rep04.json",
+    "b2_aegis_rep05.json",
+    "b2_aegis_rep06.json",
+    "b2_aegis_rep07.json",
+    "b2_aegis_rep08.json",
+    "b2_aegis_rep09.json",
+    "b2_aegis_rep10.json",
+    "b2_aegis_rep11.json",
+    "b2_aegis_rep12.json",
+    "b2_aegis_rep13.json",
+    "b2_aegis_rep14.json",
+    "b2_aegis_rep15.json",
+    "b2_aegis_rep16.json",
+    "b2_aegis_rep17.json",
+    "b2_aegis_rep18.json",
+    "b2_aegis_rep19.json",
+    "b2_aegis_rep20.json",
+    "b2_aegis_rep21.json",
+    "b2_aegis_rep22.json",
+    "b2_aegis_rep23.json",
+    "b2_aegis_rep24.json",
+    "b2_aegis_rep25.json",
+    "b2_aegis_rep26.json",
+    "b2_aegis_rep27.json",
+    "b2_aegis_rep28.json",
+    "b2_aegis_rep29.json",
+    "b2_aegis_rep30.json"
+  ],
+  "summary": {
+    "system": "B2_aegis",
+    "repetitions": 30,
+    "metrics": {
+      "precision": {
+        "n": 30,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      },
+      "recall": {
+        "n": 30,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      },
+      "f1": {
+        "n": 30,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      },
+      "unauthorized_execution_rate": {
+        "n": 30,
+        "mean": 0.0,
+        "sd": 0.0,
+        "lower": 0.0,
+        "upper": 0.0
+      },
+      "legitimate_task_success_rate": {
+        "n": 30,
+        "mean": 1.0,
+        "sd": 0.0,
+        "lower": 1.0,
+        "upper": 1.0
+      }
+    },
+    "latency_ms": {
+      "mean": {
+        "n": 30,
+        "mean": 3.155124877715357,
+        "sd": 1.362884840226238,
+        "lower": 2.646272455978761,
+        "upper": 3.663977299451953
+      },
+      "median": {
+        "n": 30,
+        "mean": 1.0021291500227865,
+        "sd": 0.09843417318890506,
+        "lower": 0.9653773527098901,
+        "upper": 1.0388809473356828
+      },
+      "p50": {
+        "n": 30,
+        "mean": 1.0021291500227865,
+        "sd": 0.09843417318890506,
+        "lower": 0.9653773527098901,
+        "upper": 1.0388809473356828
+      },
+      "p95": {
+        "n": 30,
+        "mean": 3.3029855250333635,
+        "sd": 0.5706047311093952,
+        "lower": 3.0899421403617895,
+        "upper": 3.5160289097049375
+      },
+      "p99": {
+        "n": 30,
+        "mean": 5.686071211995706,
+        "sd": 1.7871538031393,
+        "lower": 5.018811944079688,
+        "upper": 6.353330479911725
+      }
+    }
+  }
+}
