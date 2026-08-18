@@ -1,0 +1,25 @@
+{
+  "experiment": "phase9_isolated_mutation_detection",
+  "version": "phase9-1.0",
+  "execution": "detached_git_worktree",
+  "baseline_passed": true,
+  "mutants": [
+    {
+      "mutant_id": "M21",
+      "description": "Weaken identity/action authorization composition by treating the action predicate as satisfied",
+      "baseline_passed": true,
+      "mutated_passed": false,
+      "detected": true
+    },
+    {
+      "mutant_id": "M23",
+      "description": "Fail open on state-enforcement errors",
+      "baseline_passed": true,
+      "mutated_passed": false,
+      "detected": true
+    }
+  ],
+  "detected": 2,
+  "total": 2,
+  "survived": 0
+}
