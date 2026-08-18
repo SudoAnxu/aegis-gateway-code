@@ -40,7 +40,7 @@ The results are benchmark-level measurements. They are not claims of universal s
 - Stateful mutant evaluations: 5 × 130 = 650
 - Total mutation evaluations: 29,180
 
-Stateful mutants use a dedicated sequence runner because their behavior depends on ordered payment histories rather than isolated requests. The runner passes the mutation ID to B2 through `X-Aegis-Mutant-ID`, while the resulting artifact stores the mutation identity and status at the artifact level. fileciteturn867file0L1-L3
+Stateful mutants use a dedicated sequence runner because their behavior depends on ordered payment histories rather than isolated requests. The stateful runner passes the mutation ID to B2 through `X-Aegis-Mutant-ID`, while the resulting artifact stores the mutation identity and status at the artifact level.
 
 ## 3. Experimental systems
 
@@ -48,9 +48,9 @@ The baseline configuration defines three systems:
 
 - **B0 Direct:** requests are sent directly to controlled tool fixtures without a governance gateway; parameter and path constraints are disabled at the governance layer.
 - **B1 RBAC:** coarse-grained authorization based on agent, tool, and action; parameter- and path-level constraints are intentionally not enforced.
-- **B2 Aegis:** requests are evaluated by the Aegis policy gateway before reaching the controlled tool fixtures. fileciteturn868file0L1-L2
+- **B2 Aegis:** requests are evaluated by the Aegis policy gateway before reaching the controlled tool fixtures.
 
-B0 is therefore a **direct-execution baseline**, not an idealized system that is guaranteed to return ALLOW for every request. Its requests are sent directly to controlled fixtures, and the configured direct fallback is explicitly a permissive fixture for tools without a dedicated service. fileciteturn868file0L1-L2
+B0 is therefore a **direct-execution baseline**, not an idealized system that is guaranteed to return ALLOW for every request. Its requests are sent directly to controlled fixtures, and the configured direct fallback is explicitly a permissive fixture for tools without a dedicated service.
 
 This distinction matters when interpreting B0's nonzero true-positive count: B0's measured rejections should not be described as evidence of Aegis-like policy enforcement, nor should B0 be described as an unconditional-ALLOW oracle.
 
@@ -129,7 +129,7 @@ M12 and M13 are the only ordinary mutants with nonzero false-positive counts. Th
 | M17 | 130 | 129 | 0 | 0 | 1 | 0.9961 | 67 | KILLED |
 | M20 | 130 | 0 | 0 | 0 | 130 | 0.0000 | 48 | KILLED |
 
-All five stateful mutants were killed. The stateful mutation criterion treats any false positive, false negative, history-replay failure, or transport/unclassified error as evidence that the mutation did not preserve the required stateful behavior; transport errors and unclassified records instead cause an `ERROR` status. This criterion is implemented in `run_mutations.py`. fileciteturn859file0L2-L3
+All five stateful mutants were killed. The stateful mutation criterion treats any false positive, false negative, history-replay failure, or transport/unclassified error as evidence that the mutation did not preserve the required stateful behavior; transport errors and unclassified records instead cause an `ERROR` status. This criterion is implemented in `run_mutations.py`.
 
 ## 6. M14/M15 investigation and resolution
 
@@ -139,9 +139,9 @@ The original mutation-detection logic inspected only `*/b2_aegis_aggregate.json`
 
 The mutation-detection implementation was subsequently extended to process both ordinary aggregate artifacts and stateful artifacts. Stateful detection uses the authoritative `mutation_status` written by the stateful mutation runner. The final detection report contains all 20 mutants and reports 20/20 detected with zero survivors.
 
-This distinction is important: **no experimental result was silently changed from SURVIVED to KILLED. The reporting pipeline was corrected so that stateful mutation results were included in the detection analysis.**
+This distinction is important: **the earlier 18/20 detection result was caused by the detector not discovering stateful result files; it was not a recorded SURVIVED status being silently changed to KILLED.** The stateful runner had already produced dedicated artifacts for M14-M20.
 
-The individual M14/M15 records corroborate genuine mutated behavior. M14 contains false negatives on duplicate-create cases and history-replay failures; M15 contains false negatives on replay-related cases and a history-replay failure. The mutation identity is stored at the artifact level (`mutant_id`) rather than duplicated into every record. 
+The individual M14/M15 records corroborate genuine mutated behavior. M14 contains false negatives on duplicate-create cases and history-replay failures; M15 contains false negatives on replay-related cases and a history-replay failure. The mutation identity is stored at the artifact level (`mutant_id`) rather than duplicated into every record.
 
 ## 7. Phase 9 metamorphic testing
 
