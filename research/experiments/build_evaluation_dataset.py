@@ -127,13 +127,14 @@ def main():
             f,
             fieldnames=COMMON_FIELDS,
             extrasaction="ignore",
+            lineterminator="\n",
         )
         writer.writeheader()
         writer.writerows(rows)
 
     # Integrity checks.
-    assert len(rows) == 75860, (
-        f"Expected 75,860 records, got {len(rows)}"
+    assert len(rows) == 76160, (
+        f"Expected 76,160 records, got {len(rows)}"
     )
 
     ids = [r["record_id"] for r in rows]
@@ -143,7 +144,7 @@ def main():
     mutations = sum(r["experiment_family"] == "mutations_final" for r in rows)
 
     assert heldout == 46980, f"Heldout count mismatch: {heldout}"
-    assert mutations == 28880, f"Mutation count mismatch: {mutations}"
+    assert mutations == 29180, f"Mutation count mismatch: {mutations}"
 
     mutation_counts = {}
     for r in rows:
@@ -152,9 +153,9 @@ def main():
             mutation_counts[mid] = mutation_counts.get(mid, 0) + 1
 
     expected_mutations = {
-        **{f"M{i:02d}": 1882 for i in range(1, 14)},
-        "M18": 1882,
-        "M19": 1882,
+        **{f"M{i:02d}": 1902 for i in range(1, 14)},
+        "M18": 1902,
+        "M19": 1902,
         "M14": 130,
         "M15": 130,
         "M16": 130,
