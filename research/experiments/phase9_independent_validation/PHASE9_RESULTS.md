@@ -10,6 +10,8 @@ This project was conducted by a single researcher. Consequently, the contract-de
 
 Instead, the validation separates case construction/labeling from `aegisbench.oracle`: cases are generated from the standalone policy contract, labels are assigned by the standalone policy-contract labeler, the labeled artifact is frozen and hashed, and only afterward is the existing benchmark oracle run for comparison.
 
+The later full-corpus cross-check uses a **second structurally independent policy oracle** with no imports from Aegis or `aegisbench`. It compares that oracle against the frozen benchmark labels across the complete 1,508-scenario expanded development + held-out corpus. This is a full-corpus implementation-consistency check, not independent human ground truth.
+
 The earlier 300-case policy-contract consistency artifact is retained as a development/self-consistency check. Its 300/300 agreement with the oracle should not be presented as independent validation.
 
 ## Held-out validation set
@@ -38,7 +40,7 @@ The final labeled artifact has SHA-256:
 
 The frozen labeled cases contain no `oracle_expected` or `oracle_reason` fields before oracle comparison.
 
-## Oracle comparison
+## Oracle comparison: held-out contract-derived sample
 
 The frozen 300-case held-out set was compared against the existing `aegisbench.oracle` only after labeling and freezing.
 
@@ -50,6 +52,32 @@ Results:
 - disagreements: **0**
 
 This supports consistency between the standalone policy-contract labeling procedure and the existing benchmark oracle on the sampled held-out cases. It does **not** establish that the oracle is objectively correct, nor does it establish independent ground truth for the full Phase 8 dataset.
+
+## Full-corpus independent oracle cross-check
+
+To strengthen the oracle-circularity audit, Phase 9 adds a second policy oracle, `independent_oracle_v2.py`. The implementation uses Python standard-library dependencies only and has no imports from Aegis or `aegisbench`. It uses a structurally different control flow from the existing oracle and returns only ALLOW/DENY decisions.
+
+The cross-check runner loads the frozen expanded development and held-out corpora, verifies their content hashes, rejects duplicate scenario IDs across the two corpora, and compares Oracle V2 against the frozen benchmark expected labels. It does not import or execute `aegisbench.oracle`.
+
+The two frozen source corpora contain:
+
+| Corpus | Cases | SHA-256 |
+|---|---:|---|
+| `development_expanded_v1.json` | 951 | `5edc4213f043f2f36176712dcc156ae846d3954ce26ad38b1280a25a42b3c9b6` |
+| `heldout_expanded_v1.json` | 557 | `61b2871cd20be10fcfc3d9124b0bbc68f7f5ab1ae178b66a98fc7309beab0e86` |
+| **Total** | **1,508** | — |
+
+Results:
+
+- total scenarios: **1,508**
+- agreement: **1,508/1,508 (100.000000%)**
+- disagreements: **0**
+
+This is stronger evidence than the 300-case audit for **full-corpus implementation consistency**: a separately implemented policy oracle reproduces every frozen benchmark label in the 1,508-scenario expanded corpus. It still does not establish independent human ground truth or prove that the shared policy interpretation is objectively correct.
+
+The result is recorded in:
+
+`research/experiments/results/phase9_full_oracle_crosscheck_v2.json`
 
 ## Earlier consistency check
 
@@ -71,7 +99,7 @@ Two targeted mutation operators were selected for Phase 9:
 Mutation execution uses detached Git worktrees so the normal checkout is not modified. The clean baseline passed both mutation sentinels before mutation. Both mutated variants then failed their corresponding sentinel tests:
 
 | Mutant | Clean baseline | Mutated variant | Detected |
-|---|---:|---:|---:|
+|---|---:|---:|---|
 | M21 | PASS | FAIL | Yes |
 | M23 | PASS | FAIL | Yes |
 | **Total** | **2/2** | **0/2 surviving** | **2/2 detected** |
@@ -113,6 +141,20 @@ python research/experiments/phase9_independent_validation/validate_review.py \
   --output /tmp/phase9_consistency_recheck.json
 ```
 
+Run the full-corpus independent-oracle cross-check:
+
+```bash
+python research/experiments/phase9_independent_validation/run_full_oracle_crosscheck_v2.py
+```
+
+Expected result:
+
+```text
+scenario_count: 1508
+agreement: 1508/1508 (100.000000%)
+disagreements: 0
+```
+
 Re-run the isolated mutation experiment:
 
 ```bash
@@ -125,14 +167,15 @@ Phase 9 supports the following claims:
 
 1. A 300-case contract-derived held-out sample was labeled independently of the existing benchmark oracle at the **software-procedure level**, then frozen before oracle comparison.
 2. Those labels agreed perfectly with the existing oracle on the sampled cases.
-3. Two specifically selected mutation operators were both detected in isolated execution.
-4. The normal repository regression suite remains passing.
+3. A structurally independent second policy oracle reproduced all **1,508** frozen labels in the expanded development + held-out corpus.
+4. Two specifically selected mutation operators were both detected in isolated execution.
+5. The normal repository regression suite remains passing.
 
 Phase 9 does **not** support these claims:
 
 - independent human ground truth;
-- correctness of the oracle over the entire Phase 8 dataset;
-- exhaustive validation of all 76,160 Phase 8 records;
+- proof of objective correctness of the policy interpretation;
+- exhaustive validation of all 76,160 Phase 8 exported evaluation records as independent scenarios;
 - complete security coverage;
 - complete mutation coverage;
 - broader security coverage merely from the two selected mutation operators.
