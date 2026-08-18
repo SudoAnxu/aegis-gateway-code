@@ -11,9 +11,11 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[3]
-EXPECTED_SHA = {
-    ROOT / "internal" / "mutation" / "mutation.go": "92b9c7a1780ffbf1b4fd04f1242711493ac68bca",
-    ROOT / "internal" / "state" / "store.go": "534fbc743979897373d795ede4f4b2ae071b63d7",
+EXPECTED_SHA256 = {
+    ROOT / "internal" / "mutation" / "mutation.go":
+        "0f4413045e70c5eff68ecaf63fa1da0f23b9aca63064c06389c58e098cf984e5",
+    ROOT / "internal" / "state" / "store.go":
+        "4cf7b1a459c8df5b4a9bbf72f86cae033683f008a5d23d30d370d4f0256592a0",
 }
 
 MUTATION_GO = '''package mutation
@@ -116,12 +118,12 @@ def sha256(path: Path) -> str:
 
 
 def main() -> int:
-    for path, expected in EXPECTED_SHA.items():
+    for path, expected in EXPECTED_SHA256.items():
         actual = sha256(path)
         if actual != expected:
             raise SystemExit(f"REFUSING TO EDIT {path}: expected SHA {expected}, got {actual}")
 
-    mutation_path, state_path = EXPECTED_SHA
+    mutation_path, state_path = EXPECTED_SHA256
     mutation_path.write_text(MUTATION_GO, encoding="utf-8")
     state_path.write_text(STATE_GO, encoding="utf-8")
 
