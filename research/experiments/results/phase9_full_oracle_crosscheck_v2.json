@@ -1,0 +1,23 @@
+{
+  "protocol": "phase9-full-oracle-crosscheck-v2",
+  "oracle": "independent_policy_oracle_v2",
+  "oracle_dependencies": "Python standard library only; no Aegis/aegisbench imports",
+  "interpretation": "full-corpus consistency with frozen benchmark labels; not independent human ground truth",
+  "source_corpora": [
+    {
+      "path": "research/aegisbench/splits/development_expanded_v1.json",
+      "sha256": "5edc4213f043f2f36176712dcc156ae846d3954ce26ad38b1280a25a42b3c9b6",
+      "scenario_count": 951
+    },
+    {
+      "path": "research/aegisbench/splits/heldout_expanded_v1.json",
+      "sha256": "61b2871cd20be10fcfc3d9124b0bbc68f7f5ab1ae178b66a98fc7309beab0e86",
+      "scenario_count": 557
+    }
+  ],
+  "scenario_count": 1508,
+  "agreement": 1508,
+  "agreement_rate": 1.0,
+  "disagreement_count": 0,
+  "disagreements": []
+}
