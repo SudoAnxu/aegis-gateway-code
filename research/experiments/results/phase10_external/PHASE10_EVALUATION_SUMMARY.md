@@ -43,6 +43,15 @@ Final artifact: `research/experiments/results/phase10_external/llm_groq_gptoss12
 The 20-case corpus contains 17 adversarial/policy-violating scenarios and 3 legitimate controls. The observed gateway decisions were 17 DENY and 3 ALLOW, matching the intended case split. This should be reported as an exact result for this frozen corpus, not as a general security rate for LLM agents.
 
 For denied requests, the gateway response records `downstream_executed: false`; the experiment therefore evaluates the intended enforcement boundary rather than relying on the model to self-police its tool requests.
+### Label consistency note
+
+The audit artifact reports 19/20 agreement with the frozen expected labels because
+LLM20 (`boundary_exact_limit`) is labeled `DENY` despite requesting exactly
+`5000 USD`. The declared payment policy permits amounts in the inclusive range
+`0 <= amount <= 5000`, and the observed gateway decision for LLM20 was therefore
+`ALLOW`. This is treated as a benchmark-label inconsistency rather than an
+authorization failure. The raw result is preserved unchanged; the expected label
+is not retroactively modified.
 
 ## 3. Stateful-context validation
 
@@ -57,7 +66,32 @@ The LLM harness was corrected so that the model controls the proposed operation 
 
 This regression is important because allowing the model to omit or rewrite benchmark history would invalidate stateful authorization evaluation.
 
-## 4. Experimental interpretation
+## 4. HTTP latency
+
+The controlled HTTP benchmark used 280 scenarios, 30 repetitions, and 10 warm-up
+requests per system, for 8,400 measured samples per system.
+
+| System | Samples | Mean (ms) | P50 (ms) | P95 (ms) | P99 (ms) |
+|---|---:|---:|---:|---:|---:|
+| B0 | 8400 | 0.541 | 0.430 | 0.852 | 2.071 |
+| B1 | 8400 | 0.566 | 0.453 | 0.896 | 2.005 |
+| Aegis HTTP | 8400 | 1.590 | 1.092 | 3.538 | 5.698 |
+
+Relative to B0, Aegis HTTP shows approximately 193.78% higher mean
+wall-clock latency under this protocol. B1 is approximately 4.51% above B0.
+
+A small number of isolated tail samples exceeded 100 ms. These were not
+consistently reproduced for the corresponding scenarios: the largest observed
+outlier was 749.906 ms, while only 2 of 30 repetitions for that scenario
+exceeded 20 ms. Therefore the extreme tail should be reported as observed
+end-to-end outliers rather than interpreted as the normal policy-decision cost.
+
+The gateway timing decomposition recorded mean policy-decision instrumentation
+of approximately 0.0048 ms and mean downstream forwarding instrumentation of
+approximately 1.114 ms. These measurements are independent instrumentation
+records and are not subtracted from client-observed wall-clock latency.
+
+## 5. Experimental interpretation
 
 The combined evaluation supports a narrower and defensible claim:
 
@@ -71,13 +105,13 @@ The experiments do **not** establish:
 - universal security across LLMs, providers, or deployment environments;
 - superiority over OPA in every policy language or deployment configuration.
 
-## 5. Reporting guidance
+## 6. Reporting guidance
 
 Do not describe the 17/20 result as an `85% security rate`. The 20 cases were intentionally constructed as 17 adversarial cases plus 3 legitimate controls. The scientifically useful observation is that all 17 adversarial cases were denied and all 3 controls were allowed in this frozen run.
 
 Likewise, the OPA 300/300 result should be described as agreement with the benchmark's declared expected decisions, not as independent human ground truth.
 
-## 6. Remaining submission work
+## 7. Remaining submission work
 
 The engineering/evaluation loop for Phase 10 is complete. Before submission, the remaining work is primarily manuscript preparation and evidence packaging:
 
