@@ -36,17 +36,53 @@ def static_decision(case: dict) -> bool:
 def state_decision(case: dict) -> tuple[bool, str]:
     if case.get("tool") != "payments":
         return True, "not_applicable"
+
     params = case.get("parameters", {})
     txid = params.get("transaction_id") or params.get("payment_id")
+
     if not isinstance(txid, str) or not txid:
         return True, "no_transaction_id"
+
     history = case.get("history", [])
-    events = {h.get("event") for h in history if h.get("id") == txid}
+    tx_events = [
+        h.get("event")
+        for h in history
+        if h.get("id") == txid
+    ]
+
+    allowed_events = {
+        "payment_created",
+        "payment_refunded",
+    }
+
+    # Unknown state events invalidate the transaction history.
+    for event in tx_events:
+        if event not in allowed_events:
+            return False, "state_invalid_transition"
+
+    # A transaction may be created at most once.
+    if tx_events.count("payment_created") > 1:
+        return False, "state_invalid_transition"
+
+    # A transaction may be refunded at most once.
+    if tx_events.count("payment_refunded") > 1:
+        return False, "state_invalid_transition"
+
     action = case.get("action")
-    if action == "create" and ("payment_created" in events or "payment_refunded" in events):
-        return False, "state_invalid_transition"
-    if action == "refund" and ("payment_created" not in events or "payment_refunded" in events):
-        return False, "state_invalid_transition"
+
+    if action == "create":
+        # Creation is valid only when the transaction has no prior
+        # creation/refund state.
+        if tx_events:
+            return False, "state_invalid_transition"
+        return True, "state_allowed"
+
+    if action == "refund":
+        # Refund requires exactly one prior creation and no prior refund.
+        if tx_events != ["payment_created"]:
+            return False, "state_invalid_transition"
+        return True, "state_allowed"
+
     return True, "state_allowed"
 
 
