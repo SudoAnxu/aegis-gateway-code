@@ -2,28 +2,76 @@
 
 This directory contains non-invasive infrastructure for strengthening the Aegis evaluation without modifying the frozen Phase 8 benchmark, oracle, runners, policy implementation, or shared dependencies.
 
-## Components
+## 1. LLM-in-the-loop adversarial evaluation
 
-### 1. Latency
+The provider adapter `llm_openai_compatible_adapter.py` works with **Groq** and **OpenRouter** because both expose OpenAI-compatible chat-completions interfaces. It uses only Python standard-library HTTP code; no provider SDK is required.
 
-`latency_benchmark.py` measures wall-clock latency for a supplied B0/B1/B2/OPA command over a frozen corpus and reports mean, P50, P95, and P99. It is a generic measurement harness; the empirical paper result must only be generated from an actual controlled run.
+Set locally:
 
-### 2. OPA/Rego baseline
+```bash
+export LLM_PROVIDER=groq                 # or openrouter
+export LLM_API_KEY='...'
+export LLM_MODEL='your-model-slug'
+export AEGIS_BASE_URL='http://127.0.0.1:8080'
+```
 
-`opa_policy.rego` defines the static policy surface used by the benchmark. `run_opa_baseline.py` invokes the installed `opa` binary and compares decisions with frozen benchmark labels. Stateful transaction semantics are intentionally documented as an external adapter responsibility rather than silently folded into the Rego policy.
+For OpenRouter, `openrouter/free` is supported as a router choice, but a concrete free model slug should be pinned for the paper if reproducibility matters. Do not commit API keys.
 
-### 3. LLM-in-the-loop adversarial evaluation
+Start Aegis in one terminal:
 
-`llm_adversarial_cases_v1.json` contains 20 adversarial/control objectives. `run_llm_adversarial.py` is provider-agnostic: it takes a provider adapter command and a gateway adapter command. No credentials, provider API keys, or provider-specific SDK state are committed.
+```bash
+go run cmd/aegis/main.go
+```
 
-A provider adapter should read one case JSON object from stdin and emit JSON containing:
+Run the multi-turn agentic evaluation in another:
 
-- `tool_call`: the actual model-generated tool request, or `null` when the model refuses;
-- `refused`: optional boolean;
-- `text`: optional model response;
-- `metadata`: optional model/provider metadata that contains no secrets.
+```bash
+python research/experiments/phase10_external_evaluation/run_llm_agentic.py \
+  --cases research/experiments/phase10_external_evaluation/llm_adversarial_cases_v1.json \
+  --provider-command 'python research/experiments/phase10_external_evaluation/llm_openai_compatible_adapter.py' \
+  --gateway-command 'python research/experiments/phase10_external_evaluation/aegis_http_adapter.py' \
+  --max-turns 3 \
+  --output research/experiments/results/phase10_external/llm_<provider>_<model>.json
+```
 
-The gateway adapter receives the emitted `tool_call` JSON and should return a machine-readable decision containing `ALLOW` or `DENY` plus any downstream outcome needed for analysis.
+The adapter exposes one synthetic function, `gateway_tool_call`, to the model. The model generates the actual agent/tool/action/parameter request; the gateway is the only component that can approve the request. The runner can feed the gateway result back to the model for subsequent turns. A model refusal is recorded separately from a gateway denial and is **not** counted as a gateway block.
+
+## 2. OPA/Rego baseline
+
+`opa_policy.rego` defines the static policy surface. `opa_case_adapter.py` supplies the explicit transaction-state preconditions from the benchmark history without importing Aegis code. This is deliberately a policy-engine comparison, not a claim that OPA is itself a transaction ledger.
+
+Install OPA and verify:
+
+```bash
+opa version
+```
+
+Run:
+
+```bash
+python research/experiments/phase10_external_evaluation/run_opa_baseline.py \
+  --cases research/experiments/phase9_independent_validation/contract_heldout_v2.json \
+  --output research/experiments/results/phase10_external/opa_contract_heldout_v2.json
+```
+
+The runner reports agreement/disagreements against the frozen benchmark labels and records the state-adapter boundary.
+
+## 3. Latency
+
+`latency_benchmark.py` measures wall-clock latency for a supplied B0/B1/B2/OPA command over a frozen corpus and reports mean, P50, P95, and P99. Use the same host, corpus, warm-up policy, repetition count, serialization, and transport for every system. Do not compare a local function call against a networked service and call that a fair overhead comparison.
+
+Example shape:
+
+```bash
+python research/experiments/phase10_external_evaluation/latency_benchmark.py \
+  --cases <frozen-corpus.json> \
+  --system b2 \
+  --repetitions 100 \
+  --command '<command containing {case_json}>' \
+  --output research/experiments/results/phase10_external/latency_b2.json
+```
+
+The empirical latency table is intentionally empty until real controlled runs are performed.
 
 ## Freeze boundary
 
@@ -36,6 +84,10 @@ These experiments must not modify:
 - shared libraries used by Phase 8 runners.
 
 All new outputs belong under `research/experiments/results/phase10_external/`.
+
+## Reproducibility
+
+Keep provider/model configuration outside Git. Each final result artifact should record the provider, exact model slug, benchmark hash, repository commit, environment, and experiment protocol version. For the paper, pin a concrete model rather than relying on a moving free-model router.
 
 ## No fabricated results
 
