@@ -1,0 +1,47 @@
+{
+  "decision_latency_ms": {
+    "all": {
+      "count": 8410,
+      "max_ms": 2,
+      "mean_ms": 0.0047562425683709865,
+      "min_ms": 0,
+      "p50_ms": 0.0,
+      "p95_ms": 0.0,
+      "p99_ms": 0.0
+    },
+    "allow": {
+      "count": 1360,
+      "max_ms": 2,
+      "mean_ms": 0.005147058823529412,
+      "min_ms": 0,
+      "p50_ms": 0.0,
+      "p95_ms": 0.0,
+      "p99_ms": 0.0
+    },
+    "deny": {
+      "count": 7050,
+      "max_ms": 2,
+      "mean_ms": 0.004680851063829788,
+      "min_ms": 0,
+      "p50_ms": 0.0,
+      "p95_ms": 0.0,
+      "p99_ms": 0.0
+    }
+  },
+  "decision_record_complete": false,
+  "decision_records": 8410,
+  "expected_decision_records": 8400,
+  "forward_latency_ms": {
+    "count": 1360,
+    "max_ms": 15,
+    "mean_ms": 1.1139705882352942,
+    "min_ms": 0,
+    "p50_ms": 1.0,
+    "p95_ms": 3.0,
+    "p99_ms": 5.0
+  },
+  "forward_records": 1360,
+  "log": "logs/aegis.log",
+  "note": "Decision latency is gateway pre-forward work as instrumented by policy.evaluate; forward latency is downstream tool HTTP work as instrumented by tool.forward. They are not subtracted from client wall-clock samples because the log entries are independently timed.",
+  "protocol": "phase10-gateway-timing-decomposition-v1"
+}
