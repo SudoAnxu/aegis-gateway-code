@@ -15,7 +15,7 @@ export LLM_MODEL='your-model-slug'
 export AEGIS_BASE_URL='http://127.0.0.1:8080'
 ```
 
-For OpenRouter, `openrouter/free` is supported as a router choice, but a concrete free model slug should be pinned for the paper if reproducibility matters. Do not commit API keys.
+For OpenRouter, a concrete model slug should be pinned for the paper if reproducibility matters. Do not commit API keys.
 
 Start Aegis in one terminal:
 
@@ -23,24 +23,24 @@ Start Aegis in one terminal:
 go run cmd/aegis/main.go
 ```
 
-Run the multi-turn agentic evaluation in another:
+Run the agentic evaluation in another:
 
 ```bash
 python research/experiments/phase10_external_evaluation/run_llm_agentic.py \
   --cases research/experiments/phase10_external_evaluation/llm_adversarial_cases_v1.json \
   --provider-command 'python research/experiments/phase10_external_evaluation/llm_openai_compatible_adapter.py' \
   --gateway-command 'python research/experiments/phase10_external_evaluation/aegis_http_adapter.py' \
-  --max-turns 3 \
+  --max-turns 1 \
   --output research/experiments/results/phase10_external/llm_<provider>_<model>.json
 ```
 
-The adapter exposes one synthetic function, `gateway_tool_call`, to the model. The model generates the actual agent/tool/action/parameter request; the gateway is the only component that can approve the request. The runner can feed the gateway result back to the model for subsequent turns. A model refusal is recorded separately from a gateway denial and is **not** counted as a gateway block.
+The model generates the actual agent/tool/action/parameter request; Aegis is the only component that can approve it. A model refusal is recorded separately from a gateway denial and is **not** counted as a gateway block.
 
 ## 2. OPA/Rego baseline
 
-`opa_policy.rego` defines the static policy surface. `opa_case_adapter.py` supplies the explicit transaction-state preconditions from the benchmark history without importing Aegis code. This is deliberately a policy-engine comparison, not a claim that OPA is itself a transaction ledger.
+`opa_policy.rego` defines the static policy surface. `opa_case_adapter.py` supplies explicit transaction-state preconditions from the benchmark history without importing Aegis code. This is deliberately a policy-engine comparison, not a claim that OPA is itself a transaction ledger.
 
-Install OPA and verify:
+Verify OPA:
 
 ```bash
 opa version
@@ -54,24 +54,70 @@ python research/experiments/phase10_external_evaluation/run_opa_baseline.py \
   --output research/experiments/results/phase10_external/opa_contract_heldout_v2.json
 ```
 
-The runner reports agreement/disagreements against the frozen benchmark labels and records the state-adapter boundary.
+## 3. Controlled latency: B0, B1, B2
 
-## 3. Latency
+Phase 10 now includes two standalone HTTP controls so the latency comparison uses the **same transport and request driver**:
 
-`latency_benchmark.py` measures wall-clock latency for a supplied B0/B1/B2/OPA command over a frozen corpus and reports mean, P50, P95, and P99. Use the same host, corpus, warm-up policy, repetition count, serialization, and transport for every system. Do not compare a local function call against a networked service and call that a fair overhead comparison.
+- **B0:** pass-through authorization control; accepts every valid request and performs no policy evaluation.
+- **B1:** standalone static-policy control; checks identity, tool, action, amount, currency, and path constraints, but has no transaction-state handling.
+- **B2:** the real Aegis HTTP gateway, including policy and transaction-state enforcement.
 
-Example shape:
+The B0/B1 implementation is `baseline_http_server.go`. It does **not** import `internal/policy` or `internal/gateway`, so the baseline is not simply timing Aegis under a different label.
+
+### Start B0
 
 ```bash
-python research/experiments/phase10_external_evaluation/latency_benchmark.py \
-  --cases <frozen-corpus.json> \
-  --system b2 \
-  --repetitions 100 \
-  --command '<command containing {case_json}>' \
-  --output research/experiments/results/phase10_external/latency_b2.json
+go run research/experiments/phase10_external_evaluation/baseline_http_server.go \
+  --mode b0 --port 8083
 ```
 
-The empirical latency table is intentionally empty until real controlled runs are performed.
+### Start B1
+
+```bash
+go run research/experiments/phase10_external_evaluation/baseline_http_server.go \
+  --mode b1 --port 8084
+```
+
+### Start B2/Aegis
+
+```bash
+go run cmd/aegis/main.go
+```
+
+Use the **same frozen corpus, host, repetitions, warm-up count, HTTP client, and serialization** for all three systems. Do not compare a local function call against a networked service and call it an authorization overhead comparison.
+
+Example with the 300-case held-out corpus:
+
+```bash
+CASES=research/experiments/phase9_independent_validation/contract_heldout_v2.json
+OUT=research/experiments/results/phase10_external
+
+python research/experiments/phase10_external_evaluation/latency_http_benchmark.py \
+  --cases "$CASES" --system b0 --base-url http://127.0.0.1:8083 \
+  --repetitions 100 --warmup 20 \
+  --output "$OUT/latency_b0_http_v1.json"
+
+python research/experiments/phase10_external_evaluation/latency_http_benchmark.py \
+  --cases "$CASES" --system b1 --base-url http://127.0.0.1:8084 \
+  --repetitions 100 --warmup 20 \
+  --output "$OUT/latency_b1_http_v1.json"
+
+python research/experiments/phase10_external_evaluation/latency_http_benchmark.py \
+  --cases "$CASES" --system b2 --base-url http://127.0.0.1:8080 \
+  --repetitions 100 --warmup 20 \
+  --output "$OUT/latency_b2_http_v1.json"
+```
+
+This produces 30,000 samples per system for the 300-case corpus at 100 repetitions. If runtime is excessive on the available host, use 30 repetitions and report the exact value; do not silently mix repetition counts.
+
+Build the paper table:
+
+```bash
+python research/experiments/phase10_external_evaluation/summarize_latency.py \
+  "$OUT/latency_b0_http_v1.json" \
+  "$OUT/latency_b1_http_v1.json" \
+  "$OUT/latency_b2_http_v1.json"
+```
 
 ## Freeze boundary
 
@@ -91,4 +137,4 @@ Keep provider/model configuration outside Git. Each final result artifact should
 
 ## No fabricated results
 
-This directory is infrastructure plus a fixed adversarial case specification. It does not claim latency, OPA, or LLM results until the corresponding commands have been executed in a controlled environment and the resulting JSON artifacts have been frozen and committed.
+This directory contains infrastructure plus fixed evaluation specifications. It does not claim latency, OPA, or LLM results until the corresponding commands have actually been executed in a controlled environment and the resulting JSON artifacts have been frozen and committed.
