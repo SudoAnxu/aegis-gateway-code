@@ -1,0 +1,3049 @@
+{
+  "agreement": 295,
+  "case_count": 300,
+  "disagreement_count": 5,
+  "disagreements": [
+    {
+      "expected": "DENY",
+      "id": "CH2-285",
+      "opa": "ALLOW",
+      "reason": "authorized"
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-286",
+      "opa": "ALLOW",
+      "reason": "authorized"
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-292",
+      "opa": "ALLOW",
+      "reason": "authorized"
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-293",
+      "opa": "ALLOW",
+      "reason": "authorized"
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-298",
+      "opa": "ALLOW",
+      "reason": "authorized"
+    }
+  ],
+  "expected_counts": {
+    "ALLOW": 49,
+    "DENY": 251
+  },
+  "interpretation": "OPA evaluates the static policy surface; explicit transaction-state preconditions are supplied by the independent adapter.",
+  "opa_counts": {
+    "ALLOW": 54,
+    "DENY": 246
+  },
+  "protocol": "phase10-opa-baseline-v2",
+  "rows": [
+    {
+      "expected": "ALLOW",
+      "id": "CH2-001",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-002",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-003",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-004",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-005",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-006",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-007",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-008",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-009",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-010",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-011",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-012",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-013",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-014",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-015",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-016",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-017",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-018",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-019",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-020",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-021",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-022",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-023",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-024",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-025",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-026",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-027",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-028",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-029",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-030",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-031",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-032",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-033",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-034",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-035",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-036",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-037",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-038",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-039",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-040",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-041",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-042",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-043",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-044",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-045",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-046",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-047",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-048",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-049",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-050",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-051",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-052",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-053",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-054",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-055",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-056",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-057",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-058",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-059",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-060",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-061",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-062",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-063",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-064",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-065",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-066",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-067",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-068",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-069",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-070",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-071",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-072",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-073",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-074",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-075",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-076",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-077",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-078",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-079",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-080",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-081",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-082",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-083",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-084",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-085",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-086",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-087",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-088",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-089",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-090",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-091",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-092",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-093",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-094",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-095",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-096",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-097",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-098",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-099",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-100",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-101",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-102",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-103",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-104",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-105",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-106",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-107",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-108",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-109",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-110",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-111",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-112",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-113",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-114",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-115",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-116",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-117",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-118",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-119",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-120",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-121",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-122",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-123",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-124",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-125",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-126",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-127",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-128",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-129",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-130",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-131",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-132",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-133",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-134",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-135",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-136",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-137",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-138",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-139",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-140",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-141",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-142",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-143",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-144",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-145",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-146",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-147",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-148",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-149",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-150",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-151",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-152",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-153",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-154",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-155",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-156",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-157",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-158",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-159",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-160",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-161",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-162",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-163",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-164",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-165",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-166",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-167",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-168",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-169",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-170",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-171",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-172",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-173",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-174",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-175",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-176",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-177",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-178",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-179",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-180",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-181",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-182",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-183",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-184",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-185",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-186",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-187",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-188",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-189",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-190",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-191",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-192",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-193",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-194",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-195",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-196",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-197",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-198",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-199",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-200",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-201",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-202",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-203",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-204",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-205",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-206",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-207",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-208",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-209",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-210",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-211",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-212",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-213",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-214",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-215",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-216",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-217",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-218",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-219",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-220",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-221",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-222",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-223",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-224",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-225",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-226",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-227",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-228",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-229",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-230",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-231",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-232",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-233",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-234",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-235",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-236",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-237",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-238",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-239",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-240",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-241",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-242",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-243",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-244",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-245",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-246",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-247",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-248",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-249",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-250",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-251",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-252",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-253",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-254",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-255",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-256",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-257",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-258",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-259",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-260",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-261",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-262",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-263",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-264",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-265",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-266",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-267",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-268",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-269",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-270",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-271",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-272",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-273",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-274",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-275",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-276",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-277",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-278",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-279",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-280",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "policy_denied",
+        "state_handled_by_adapter": true,
+        "static_policy": "DENY"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-281",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-282",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-283",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "state_invalid_transition",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-284",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "state_invalid_transition",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-285",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-286",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-287",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "state_invalid_transition",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-288",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "state_invalid_transition",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-289",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-290",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "state_invalid_transition",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-291",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "state_invalid_transition",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-292",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-293",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-294",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "state_invalid_transition",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "ALLOW",
+      "id": "CH2-295",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-296",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "state_invalid_transition",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-297",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "state_invalid_transition",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-298",
+      "opa": {
+        "decision": "ALLOW",
+        "reason_class": "authorized",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-299",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "state_invalid_transition",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    },
+    {
+      "expected": "DENY",
+      "id": "CH2-300",
+      "opa": {
+        "decision": "DENY",
+        "reason_class": "state_invalid_transition",
+        "state_handled_by_adapter": true,
+        "static_policy": "ALLOW"
+      }
+    }
+  ]
+}
