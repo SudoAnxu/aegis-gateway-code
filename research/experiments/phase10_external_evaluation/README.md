@@ -56,13 +56,27 @@ python research/experiments/phase10_external_evaluation/run_opa_baseline.py \
 
 ## 3. Controlled latency: B0, B1, B2
 
-Phase 10 now includes two standalone HTTP controls so the latency comparison uses the **same transport and request driver**:
+Phase 10 includes two standalone HTTP controls so the latency comparison uses the **same transport and request driver**:
 
 - **B0:** pass-through authorization control; accepts every valid request and performs no policy evaluation.
 - **B1:** standalone static-policy control; checks identity, tool, action, amount, currency, and path constraints, but has no transaction-state handling.
 - **B2:** the real Aegis HTTP gateway, including policy and transaction-state enforcement.
 
 The B0/B1 implementation is `baseline_http_server.go`. It does **not** import `internal/policy` or `internal/gateway`, so the baseline is not simply timing Aegis under a different label.
+
+### Important state-control rule
+
+Do **not** repeatedly benchmark the stateful payment cases against one persistent Aegis process: a successful `create` changes gateway state, so later repetitions of the same transaction are semantically different. That would contaminate the latency measurement.
+
+Use the deterministic helper below to derive a latency-only slice from the frozen held-out corpus:
+
+```bash
+python research/experiments/phase10_external_evaluation/prepare_latency_corpus.py \
+  --source research/experiments/phase9_independent_validation/contract_heldout_v2.json \
+  --output research/experiments/results/phase10_external/latency_corpus_v1.json
+```
+
+The helper selects `category != stateful_sequence`, records the source SHA-256, and never modifies the source benchmark. The complete 300-case corpus remains the accuracy/evaluation corpus; the derived slice is only for repeated latency measurement.
 
 ### Start B0
 
@@ -84,12 +98,10 @@ go run research/experiments/phase10_external_evaluation/baseline_http_server.go 
 go run cmd/aegis/main.go
 ```
 
-Use the **same frozen corpus, host, repetitions, warm-up count, HTTP client, and serialization** for all three systems. Do not compare a local function call against a networked service and call it an authorization overhead comparison.
-
-Example with the 300-case held-out corpus:
+Use the **same derived latency corpus, host, repetitions, warm-up count, HTTP client, and serialization** for all three systems.
 
 ```bash
-CASES=research/experiments/phase9_independent_validation/contract_heldout_v2.json
+CASES=research/experiments/results/phase10_external/latency_corpus_v1.json
 OUT=research/experiments/results/phase10_external
 
 python research/experiments/phase10_external_evaluation/latency_http_benchmark.py \
@@ -108,7 +120,7 @@ python research/experiments/phase10_external_evaluation/latency_http_benchmark.p
   --output "$OUT/latency_b2_http_v1.json"
 ```
 
-This produces 30,000 samples per system for the 300-case corpus at 100 repetitions. If runtime is excessive on the available host, use 30 repetitions and report the exact value; do not silently mix repetition counts.
+Do not force a 30,000-sample target if the derived corpus is smaller; report the actual `sample_count` recorded in each artifact. The critical requirement is identical corpus/repetition settings across B0/B1/B2.
 
 Build the paper table:
 
