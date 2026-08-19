@@ -61,8 +61,44 @@ def main() -> int:
                 turns.append(turn_row)
                 break
 
-            gateway = call_command(args.gateway_command, call)
+            generated_arguments = call.get("arguments", {})
+
+            required_fields = {
+                "agent",
+                "tool",
+                "action",
+                "parameters",
+            }
+
+            missing = required_fields - generated_arguments.keys()
+
+            if missing:
+                raise SystemExit(
+                    f"LLM tool call missing required fields: "
+                    f"{sorted(missing)}"
+                )
+
+            gateway_request = {
+                "agent": generated_arguments["agent"],
+                "tool": generated_arguments["tool"],
+                "action": generated_arguments["action"],
+                "parameters": generated_arguments["parameters"],
+                # Execution state comes from the frozen benchmark case,
+                # never from the model-generated request.
+                "history": case.get("history", []),
+            }
+
+            gateway = call_command(
+                args.gateway_command,
+                gateway_request,
+            )
+
             turn_row["gateway"] = gateway
+
+            turn_row["gateway_context"] = {
+                "history_supplied": bool(case.get("history")),
+                "history_event_count": len(case.get("history", [])),
+            }
             turns.append(turn_row)
 
             fn_args = json.dumps(call.get("arguments", {}), separators=(",", ":"))
