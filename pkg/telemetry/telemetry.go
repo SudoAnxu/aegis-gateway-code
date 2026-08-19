@@ -19,21 +19,22 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-// Telemetry manages OpenTelemetry and logging
+// Telemetry manages OpenTelemetry and logging.
 type Telemetry struct {
 	tracer     trace.Tracer
 	logFile    *os.File
 	logDir     string
 	serviceName string
+	forwardTimingLog bool
 }
 
-// DecisionLog represents a structured audit log entry
+// DecisionLog represents a structured audit log entry.
 type DecisionLog struct {
 	Timestamp    string            `json:"timestamp"`
 	AgentID      string            `json:"agent.id"`
 	ToolName     string            `json:"tool.name"`
 	ToolAction   string            `json:"tool.action"`
-	Decision     string            `json:"decision.allow"` // "true" or "false"
+	Decision     string            `json:"decision.allow"`
 	Reason       string            `json:"reason,omitempty"`
 	PolicyVersion string           `json:"policy.version,omitempty"`
 	ParamsHash   string            `json:"params.hash"`
@@ -42,9 +43,19 @@ type DecisionLog struct {
 	SpanID       string            `json:"span.id"`
 }
 
-// NewTelemetry initializes OpenTelemetry and logging
+// ForwardLog is emitted only when AEGIS_FORWARD_TIMING_LOG=1. It is intended
+// for controlled latency decomposition runs and is not enabled by default.
+type ForwardLog struct {
+	Timestamp string `json:"timestamp"`
+	Event     string `json:"event"`
+	ToolName  string `json:"tool.name"`
+	ToolAction string `json:"tool.action"`
+	LatencyMS int64 `json:"latency.ms"`
+	TraceID   string `json:"trace.id"`
+}
+
+// NewTelemetry initializes OpenTelemetry and logging.
 func NewTelemetry(serviceName, logDir string) (*Telemetry, error) {
-	// Ensure log directory exists
 	if err := os.MkdirAll(logDir, 0755); err != nil {
 		return nil, fmt.Errorf("failed to create log directory: %w", err)
 	}
@@ -55,13 +66,11 @@ func NewTelemetry(serviceName, logDir string) (*Telemetry, error) {
 		return nil, fmt.Errorf("failed to open log file: %w", err)
 	}
 
-	// Initialize OTLP exporter
 	exporter, err := otlptracehttp.New(context.Background(),
 		otlptracehttp.WithEndpoint("localhost:4318"),
 		otlptracehttp.WithInsecure(),
 	)
 	if err != nil {
-		// Fallback to no-op if exporter fails (for local dev)
 		fmt.Printf("WARNING: Failed to initialize OTLP exporter: %v\n", err)
 		exporter = nil
 	}
@@ -71,7 +80,6 @@ func NewTelemetry(serviceName, logDir string) (*Telemetry, error) {
 		resource, _ := resource.New(context.Background(),
 			resource.WithAttributes(semconv.ServiceName(serviceName)),
 		)
-
 		tp = sdktrace.NewTracerProvider(
 			sdktrace.WithBatcher(exporter),
 			sdktrace.WithResource(resource),
@@ -80,16 +88,16 @@ func NewTelemetry(serviceName, logDir string) (*Telemetry, error) {
 	}
 
 	tracer := otel.Tracer(serviceName)
-
 	return &Telemetry{
-		tracer:      tracer,
-		logFile:     logFile,
-		logDir:      logDir,
+		tracer: tracer,
+		logFile: logFile,
+		logDir: logDir,
 		serviceName: serviceName,
+		forwardTimingLog: os.Getenv("AEGIS_FORWARD_TIMING_LOG") == "1",
 	}, nil
 }
 
-// HashParams creates a SHA-256 hash of request parameters
+// HashParams creates a SHA-256 hash of request parameters.
 func HashParams(params interface{}) string {
 	data, err := json.Marshal(params)
 	if err != nil {
@@ -99,7 +107,7 @@ func HashParams(params interface{}) string {
 	return hex.EncodeToString(hash[:])
 }
 
-// LogDecision creates a span and logs the decision
+// LogDecision creates a span and logs the decision.
 func (t *Telemetry) LogDecision(ctx context.Context, agentID, tool, action string, allowed bool, reason string, paramsHash string, latencyMS int64) (context.Context, trace.Span) {
 	ctx, span := t.tracer.Start(ctx, "policy.evaluate",
 		trace.WithAttributes(
@@ -116,35 +124,28 @@ func (t *Telemetry) LogDecision(ctx context.Context, agentID, tool, action strin
 	if allowed {
 		decisionStr = "true"
 	}
-
 	logEntry := DecisionLog{
-		Timestamp:  time.Now().UTC().Format(time.RFC3339),
-		AgentID:    agentID,
-		ToolName:   tool,
+		Timestamp: time.Now().UTC().Format(time.RFC3339),
+		AgentID: agentID,
+		ToolName: tool,
 		ToolAction: action,
-		Decision:   decisionStr,
-		Reason:     reason,
+		Decision: decisionStr,
+		Reason: reason,
 		ParamsHash: paramsHash,
-		LatencyMS:  latencyMS,
-		TraceID:    span.SpanContext().TraceID().String(),
-		SpanID:     span.SpanContext().SpanID().String(),
+		LatencyMS: latencyMS,
+		TraceID: span.SpanContext().TraceID().String(),
+		SpanID: span.SpanContext().SpanID().String(),
 	}
 
-	if !allowed {
-		logEntry.Reason = reason
-	}
-
-	// Write to log file
 	logJSON, _ := json.Marshal(logEntry)
-	t.logFile.WriteString(string(logJSON) + "\n")
-
-	// Also write to stdout
+	_, _ = t.logFile.WriteString(string(logJSON) + "\n")
 	fmt.Println(string(logJSON))
-
 	return ctx, span
 }
 
-// LogForwardedCall logs a forwarded call to a tool
+// LogForwardedCall records the downstream forwarding span. Optional structured
+// logging is enabled only for controlled decomposition experiments so the
+// normal gateway behavior and primary latency measurements remain unchanged.
 func (t *Telemetry) LogForwardedCall(ctx context.Context, tool, action string, latencyMS int64) trace.Span {
 	_, span := t.tracer.Start(ctx, "tool.forward",
 		trace.WithAttributes(
@@ -153,11 +154,22 @@ func (t *Telemetry) LogForwardedCall(ctx context.Context, tool, action string, l
 			attribute.Int64("latency.ms", latencyMS),
 		),
 	)
+	if t.forwardTimingLog {
+		entry := ForwardLog{
+			Timestamp: time.Now().UTC().Format(time.RFC3339),
+			Event: "tool.forward",
+			ToolName: tool,
+			ToolAction: action,
+			LatencyMS: latencyMS,
+			TraceID: span.SpanContext().TraceID().String(),
+		}
+		data, _ := json.Marshal(entry)
+		_, _ = t.logFile.WriteString(string(data) + "\n")
+	}
 	return span
 }
 
-// Close closes the log file
+// Close closes the log file.
 func (t *Telemetry) Close() error {
 	return t.logFile.Close()
 }
-
