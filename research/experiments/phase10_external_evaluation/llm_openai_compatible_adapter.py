@@ -17,6 +17,8 @@ Optional:
   LLM_TEMPERATURE (default: 0)
   LLM_MAX_TOKENS (default: 256)
   LLM_REQUEST_TIMEOUT (default: 120)
+  LLM_MAX_RETRIES (default: 5)
+  LLM_RETRY_BASE_SECONDS (default: 2)
   OPENROUTER_HTTP_REFERER
   OPENROUTER_X_TITLE
 """
@@ -25,7 +27,9 @@ from __future__ import annotations
 
 import json
 import os
+import random
 import sys
+import time
 import urllib.error
 import urllib.request
 import uuid
@@ -114,6 +118,25 @@ def make_messages(case: dict[str, Any]) -> list[dict[str, Any]]:
     ]
 
 
+def retry_delay_seconds(exc: urllib.error.HTTPError, attempt: int) -> float:
+    """Return a bounded delay for a retryable 429 response.
+
+    Prefer an explicit Retry-After header when supplied by the provider.
+    Otherwise use exponential backoff with small jitter. The delay is outside
+    the gateway measurement path and therefore does not alter authorization
+    decisions or gateway latency metrics.
+    """
+    retry_after = exc.headers.get("Retry-After") if exc.headers else None
+    if retry_after:
+        try:
+            return max(0.0, min(float(retry_after), 60.0))
+        except ValueError:
+            pass
+
+    base = float(os.environ.get("LLM_RETRY_BASE_SECONDS", "2"))
+    return min(base * (2 ** attempt), 60.0) + random.uniform(0.0, 0.25)
+
+
 def request_api(messages: list[dict[str, Any]]) -> dict[str, Any]:
     key = os.environ.get("LLM_API_KEY")
     model = os.environ.get("LLM_MODEL")
@@ -143,80 +166,101 @@ def request_api(messages: list[dict[str, Any]]) -> dict[str, Any]:
         separators=(",", ":"),
     ).encode("utf-8")
 
-    req = urllib.request.Request(
-        endpoint(),
-        data=data,
-        method="POST",
-        headers={
-            "Authorization": f"Bearer {key}",
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-            "User-Agent": "aegis-phase10-llm-evaluation/1.0",
-        },
-    )
-
-    if provider == "openrouter":
-        referer = os.environ.get("OPENROUTER_HTTP_REFERER")
-        title = os.environ.get("OPENROUTER_X_TITLE")
-
-        if referer:
-            req.add_header("HTTP-Referer", referer)
-
-        if title:
-            req.add_header("X-Title", title)
-
     timeout = float(
         os.environ.get("LLM_REQUEST_TIMEOUT", "120")
     )
+    max_retries = int(os.environ.get("LLM_MAX_RETRIES", "5"))
+    retries = 0
 
-    try:
-        with urllib.request.urlopen(
-            req,
-            timeout=timeout,
-        ) as response:
-            raw = response.read().decode("utf-8")
-            return json.loads(raw)
-
-    except urllib.error.HTTPError as exc:
-        detail = exc.read().decode(
-            "utf-8",
-            errors="replace",
+    while True:
+        req = urllib.request.Request(
+            endpoint(),
+            data=data,
+            method="POST",
+            headers={
+                "Authorization": f"Bearer {key}",
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "User-Agent": "aegis-phase10-llm-evaluation/1.0",
+            },
         )
 
+        if provider == "openrouter":
+            referer = os.environ.get("OPENROUTER_HTTP_REFERER")
+            title = os.environ.get("OPENROUTER_X_TITLE")
+
+            if referer:
+                req.add_header("HTTP-Referer", referer)
+
+            if title:
+                req.add_header("X-Title", title)
+
         try:
-            error_payload = json.loads(detail)
-        except json.JSONDecodeError:
-            error_payload = {}
+            with urllib.request.urlopen(
+                req,
+                timeout=timeout,
+            ) as response:
+                raw = response.read().decode("utf-8")
+                payload = json.loads(raw)
+                if retries:
+                    payload["_rate_limit_retries"] = retries
+                return payload
 
-        error = error_payload.get("error", {})
-        error_code = error.get("code")
-        failed_generation = error.get("failed_generation")
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode(
+                "utf-8",
+                errors="replace",
+            )
 
-        # Groq returns HTTP 400 with tool_use_failed when the model
-        # refuses to generate a required tool call. This is a valid
-        # experimental outcome, not an infrastructure failure.
-        if (
-            exc.code == 400
-            and error_code == "tool_use_failed"
-            and failed_generation is not None
-        ):
-            return {
-                "_provider_refusal": True,
-                "provider": provider,
-                "model": model,
-                "response_model": None,
-                "text": failed_generation,
-                "provider_error": "tool_use_failed",
-            }
+            try:
+                error_payload = json.loads(detail)
+            except json.JSONDecodeError:
+                error_payload = {}
 
-        raise SystemExit(
-            f"LLM API HTTP {exc.code}: {detail[-3000:]}"
-        ) from exc
+            error = error_payload.get("error", {})
+            error_code = error.get("code")
+            failed_generation = error.get("failed_generation")
 
-    except urllib.error.URLError as exc:
-        raise SystemExit(
-            f"LLM API connection failed: {exc}"
-        ) from exc
+            # Groq returns HTTP 400 with tool_use_failed when the model
+            # refuses to generate a required tool call. This is a valid
+            # experimental outcome, not an infrastructure failure.
+            if (
+                exc.code == 400
+                and error_code == "tool_use_failed"
+                and failed_generation is not None
+            ):
+                return {
+                    "_provider_refusal": True,
+                    "provider": provider,
+                    "model": model,
+                    "response_model": None,
+                    "text": failed_generation,
+                    "provider_error": "tool_use_failed",
+                    "_rate_limit_retries": retries,
+                }
+
+            # Rate limiting is transient infrastructure state. Retry the
+            # exact same request without changing the case, prompt, tool
+            # schema, model, or sampling parameters.
+            if exc.code == 429 and retries < max_retries:
+                delay = retry_delay_seconds(exc, retries)
+                retries += 1
+                print(
+                    f"LLM API rate limited (429); retry {retries}/{max_retries} "
+                    f"after {delay:.2f}s",
+                    file=sys.stderr,
+                )
+                time.sleep(delay)
+                continue
+
+            raise SystemExit(
+                f"LLM API HTTP {exc.code}: {detail[-3000:]}"
+            ) from exc
+
+        except urllib.error.URLError as exc:
+            raise SystemExit(
+                f"LLM API connection failed: {exc}"
+            ) from exc
 
 
 def emit_refusal(payload: dict[str, Any]) -> int:
@@ -235,6 +279,9 @@ def emit_refusal(payload: dict[str, Any]) -> int:
                     ),
                     "provider_error": payload.get(
                         "provider_error"
+                    ),
+                    "rate_limit_retries": payload.get(
+                        "_rate_limit_retries", 0
                     ),
                 },
             },
@@ -315,6 +362,9 @@ def main() -> int:
                     ),
                     "response_model": payload.get(
                         "model"
+                    ),
+                    "rate_limit_retries": payload.get(
+                        "_rate_limit_retries", 0
                     ),
                 },
             },
