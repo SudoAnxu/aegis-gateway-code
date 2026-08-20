@@ -5,24 +5,72 @@ The provider adapter and gateway adapter are intentionally separate processes.
 This runner records whether the model refused, generated one or more tool calls,
 and whether Aegis allowed or denied each call. No tool call is executed outside
 of the configured gateway adapter.
+
+Optional diagnostic logging records subprocess return codes, elapsed time, and
+captured stdout/stderr without changing the benchmark inputs or request
+parameters. The diagnostic log is JSONL so a failed run remains inspectable even
+when the final result artifact is never written.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import shlex
 import subprocess
+import time
 from pathlib import Path
 from typing import Any
 
 
-def call_command(command: str, payload: dict[str, Any]) -> dict[str, Any]:
-    proc = subprocess.run(command, shell=True, input=json.dumps(payload), text=True, capture_output=True, check=False)
+def call_command(
+    command: str,
+    payload: dict[str, Any],
+    *,
+    stage: str,
+    case_id: str,
+    turn: int,
+    debug_log: Path | None,
+) -> dict[str, Any]:
+    started = time.monotonic()
+    proc = subprocess.run(
+        command,
+        shell=True,
+        input=json.dumps(payload),
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+    elapsed_ms = (time.monotonic() - started) * 1000.0
+
+    if debug_log is not None:
+        debug_log.parent.mkdir(parents=True, exist_ok=True)
+        event = {
+            "stage": stage,
+            "case_id": case_id,
+            "turn": turn,
+            "elapsed_ms": round(elapsed_ms, 3),
+            "returncode": proc.returncode,
+            "stdout": proc.stdout,
+            "stderr": proc.stderr,
+            "command": shlex.join(command.split()),
+        }
+        with debug_log.open("a", encoding="utf-8") as fh:
+            fh.write(json.dumps(event, separators=(",", ":")) + "\n")
+
     if proc.returncode != 0:
-        raise SystemExit(f"adapter failed: {proc.stderr.strip()}")
+        detail = proc.stderr.strip() or proc.stdout.strip() or "no subprocess output"
+        raise SystemExit(
+            f"adapter failed: stage={stage} case={case_id} turn={turn} "
+            f"returncode={proc.returncode} elapsed_ms={elapsed_ms:.1f}: {detail}"
+        )
     try:
         return json.loads(proc.stdout)
     except json.JSONDecodeError as exc:
-        raise SystemExit(f"adapter emitted invalid JSON: {exc}") from exc
+        raise SystemExit(
+            f"adapter emitted invalid JSON: stage={stage} case={case_id} "
+            f"turn={turn} elapsed_ms={elapsed_ms:.1f}: {exc}; "
+            f"stdout={proc.stdout[:2000]!r}"
+        ) from exc
 
 
 def main() -> int:
@@ -32,12 +80,22 @@ def main() -> int:
     ap.add_argument("--gateway-command", required=True)
     ap.add_argument("--output", required=True)
     ap.add_argument("--max-turns", type=int, default=3)
+    ap.add_argument(
+        "--debug-log",
+        default=None,
+        help="Optional JSONL diagnostic log for provider/gateway subprocesses.",
+    )
     args = ap.parse_args()
 
     payload = json.loads(Path(args.cases).read_text(encoding="utf-8"))
     cases = payload.get("cases", [])
     if not isinstance(cases, list):
         raise SystemExit("cases file must contain a cases array")
+
+    debug_log = Path(args.debug_log) if args.debug_log else None
+    if debug_log is not None:
+        debug_log.parent.mkdir(parents=True, exist_ok=True)
+        debug_log.write_text("", encoding="utf-8")
 
     rows: list[dict[str, Any]] = []
     for case in cases:
@@ -47,7 +105,14 @@ def main() -> int:
             request = dict(case)
             if messages is not None:
                 request["messages"] = messages
-            model = call_command(args.provider_command, request)
+            model = call_command(
+                args.provider_command,
+                request,
+                stage="provider",
+                case_id=case["id"],
+                turn=turn,
+                debug_log=debug_log,
+            )
             call = model.get("tool_call")
             turn_row: dict[str, Any] = {
                 "turn": turn,
@@ -91,6 +156,10 @@ def main() -> int:
             gateway = call_command(
                 args.gateway_command,
                 gateway_request,
+                stage="gateway",
+                case_id=case["id"],
+                turn=turn,
+                debug_log=debug_log,
             )
 
             turn_row["gateway"] = gateway
@@ -152,6 +221,8 @@ def main() -> int:
     print(f"gateway_denials: {denied}")
     print(f"gateway_allows: {allowed}")
     print(f"wrote: {out}")
+    if debug_log is not None:
+        print(f"debug_log: {debug_log}")
     return 0
 
 
