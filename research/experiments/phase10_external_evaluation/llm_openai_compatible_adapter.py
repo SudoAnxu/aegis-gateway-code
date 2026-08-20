@@ -119,13 +119,7 @@ def make_messages(case: dict[str, Any]) -> list[dict[str, Any]]:
 
 
 def retry_delay_seconds(exc: urllib.error.HTTPError, attempt: int) -> float:
-    """Return a bounded delay for a retryable 429 response.
-
-    Prefer an explicit Retry-After header when supplied by the provider.
-    Otherwise use exponential backoff with small jitter. The delay is outside
-    the gateway measurement path and therefore does not alter authorization
-    decisions or gateway latency metrics.
-    """
+    """Return a bounded delay for a retryable 429 response."""
     retry_after = exc.headers.get("Retry-After") if exc.headers else None
     if retry_after:
         try:
@@ -153,22 +147,12 @@ def request_api(messages: list[dict[str, Any]]) -> dict[str, Any]:
         "messages": messages,
         "tools": [tool_schema()],
         "tool_choice": "required",
-        "temperature": float(
-            os.environ.get("LLM_TEMPERATURE", "0")
-        ),
-        "max_tokens": int(
-            os.environ.get("LLM_MAX_TOKENS", "256")
-        ),
+        "temperature": float(os.environ.get("LLM_TEMPERATURE", "0")),
+        "max_tokens": int(os.environ.get("LLM_MAX_TOKENS", "256")),
     }
 
-    data = json.dumps(
-        body,
-        separators=(",", ":"),
-    ).encode("utf-8")
-
-    timeout = float(
-        os.environ.get("LLM_REQUEST_TIMEOUT", "120")
-    )
+    data = json.dumps(body, separators=(",", ":")).encode("utf-8")
+    timeout = float(os.environ.get("LLM_REQUEST_TIMEOUT", "120"))
     max_retries = int(os.environ.get("LLM_MAX_RETRIES", "5"))
     retries = 0
 
@@ -188,18 +172,13 @@ def request_api(messages: list[dict[str, Any]]) -> dict[str, Any]:
         if provider == "openrouter":
             referer = os.environ.get("OPENROUTER_HTTP_REFERER")
             title = os.environ.get("OPENROUTER_X_TITLE")
-
             if referer:
                 req.add_header("HTTP-Referer", referer)
-
             if title:
                 req.add_header("X-Title", title)
 
         try:
-            with urllib.request.urlopen(
-                req,
-                timeout=timeout,
-            ) as response:
+            with urllib.request.urlopen(req, timeout=timeout) as response:
                 raw = response.read().decode("utf-8")
                 payload = json.loads(raw)
                 if retries:
@@ -207,11 +186,7 @@ def request_api(messages: list[dict[str, Any]]) -> dict[str, Any]:
                 return payload
 
         except urllib.error.HTTPError as exc:
-            detail = exc.read().decode(
-                "utf-8",
-                errors="replace",
-            )
-
+            detail = exc.read().decode("utf-8", errors="replace")
             try:
                 error_payload = json.loads(detail)
             except json.JSONDecodeError:
@@ -221,9 +196,6 @@ def request_api(messages: list[dict[str, Any]]) -> dict[str, Any]:
             error_code = error.get("code")
             failed_generation = error.get("failed_generation")
 
-            # Groq returns HTTP 400 with tool_use_failed when the model
-            # refuses to generate a required tool call. This is a valid
-            # experimental outcome, not an infrastructure failure.
             if (
                 exc.code == 400
                 and error_code == "tool_use_failed"
@@ -239,9 +211,6 @@ def request_api(messages: list[dict[str, Any]]) -> dict[str, Any]:
                     "_rate_limit_retries": retries,
                 }
 
-            # Rate limiting is transient infrastructure state. Retry the
-            # exact same request without changing the case, prompt, tool
-            # schema, model, or sampling parameters.
             if exc.code == 429 and retries < max_retries:
                 delay = retry_delay_seconds(exc, retries)
                 retries += 1
@@ -258,120 +227,71 @@ def request_api(messages: list[dict[str, Any]]) -> dict[str, Any]:
             ) from exc
 
         except urllib.error.URLError as exc:
-            raise SystemExit(
-                f"LLM API connection failed: {exc}"
-            ) from exc
+            raise SystemExit(f"LLM API connection failed: {exc}") from exc
 
 
-def emit_refusal(payload: dict[str, Any]) -> int:
-    print(
-        json.dumps(
-            {
-                "tool_call": None,
-                "refused": True,
-                "text": payload.get("text"),
-                "finish_reason": "tool_use_failed",
-                "metadata": {
-                    "provider": payload.get("provider"),
-                    "model": payload.get("model"),
-                    "response_model": payload.get(
-                        "response_model"
-                    ),
-                    "provider_error": payload.get(
-                        "provider_error"
-                    ),
-                    "rate_limit_retries": payload.get(
-                        "_rate_limit_retries", 0
-                    ),
-                },
-            },
-            separators=(",", ":"),
-        )
-    )
-
+def emit_refusal(payload: dict[str, Any], messages: list[dict[str, Any]]) -> int:
+    print(json.dumps({
+        "tool_call": None,
+        "refused": True,
+        "text": payload.get("text"),
+        "finish_reason": "tool_use_failed",
+        "conversation_messages": messages,
+        "metadata": {
+            "provider": payload.get("provider"),
+            "model": payload.get("model"),
+            "response_model": payload.get("response_model"),
+            "provider_error": payload.get("provider_error"),
+            "rate_limit_retries": payload.get("_rate_limit_retries", 0),
+        },
+    }, separators=(",", ":")))
     return 0
 
 
 def main() -> int:
     case = json.load(sys.stdin)
-
-    messages = (
-        case.get("messages")
-        or make_messages(case)
-    )
-
+    messages = case.get("messages") or make_messages(case)
     payload = request_api(messages)
 
     if payload.get("_provider_refusal"):
-        return emit_refusal(payload)
+        return emit_refusal(payload, messages)
 
     choices = payload.get("choices", [{}])
-
     if not choices:
-        raise SystemExit(
-            "LLM response contained no choices"
-        )
+        raise SystemExit("LLM response contained no choices")
 
     choice = choices[0]
     message = choice.get("message", {})
     calls = message.get("tool_calls") or []
-
     call = None
 
     if calls:
         raw = calls[0]
         function = raw.get("function", {})
-
-        raw_arguments = function.get(
-            "arguments",
-            "{}",
-        )
-
+        raw_arguments = function.get("arguments", "{}")
         try:
             arguments = json.loads(raw_arguments)
         except json.JSONDecodeError:
-            arguments = {
-                "_malformed_arguments": raw_arguments
-            }
-
+            arguments = {"_malformed_arguments": raw_arguments}
         call = {
-            "id": (
-                raw.get("id")
-                or f"call-{uuid.uuid4().hex[:12]}"
-            ),
+            "id": raw.get("id") or f"call-{uuid.uuid4().hex[:12]}",
             "name": function.get("name"),
             "arguments": arguments,
         }
 
-    print(
-        json.dumps(
-            {
-                "tool_call": call,
-                "refused": not bool(call),
-                "text": message.get("content"),
-                "finish_reason": choice.get(
-                    "finish_reason"
-                ),
-                "metadata": {
-                    "provider": os.environ.get(
-                        "LLM_PROVIDER",
-                        "groq",
-                    ),
-                    "model": os.environ.get(
-                        "LLM_MODEL"
-                    ),
-                    "response_model": payload.get(
-                        "model"
-                    ),
-                    "rate_limit_retries": payload.get(
-                        "_rate_limit_retries", 0
-                    ),
-                },
-            },
-            separators=(",", ":"),
-        )
-    )
-
+    print(json.dumps({
+        "tool_call": call,
+        "refused": not bool(call),
+        "text": message.get("content"),
+        "finish_reason": choice.get("finish_reason"),
+        "conversation_messages": messages,
+        "metadata": {
+            "provider": os.environ.get("LLM_PROVIDER", "groq"),
+            "model": os.environ.get("LLM_MODEL"),
+            "response_model": payload.get("model"),
+            "rate_limit_retries": payload.get("_rate_limit_retries", 0),
+        },
+    }, separators=(",", ":")))
     return 0
 
 
