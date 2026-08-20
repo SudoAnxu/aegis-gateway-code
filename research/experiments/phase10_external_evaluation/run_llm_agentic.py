@@ -2,14 +2,9 @@
 """Run multi-turn LLM-generated tool-call episodes through Aegis.
 
 The provider adapter and gateway adapter are intentionally separate processes.
-This runner records whether the model refused, generated one or more tool calls,
+The runner records whether the model refused, generated one or more tool calls,
 and whether Aegis allowed or denied each call. No tool call is executed outside
 of the configured gateway adapter.
-
-Optional diagnostic logging records subprocess return codes, elapsed time, and
-captured stdout/stderr without changing the benchmark inputs or request
-parameters. The diagnostic log is JSONL so a failed run remains inspectable even
-when the final result artifact is never written.
 """
 from __future__ import annotations
 
@@ -22,51 +17,28 @@ from pathlib import Path
 from typing import Any
 
 
-def call_command(
-    command: str,
-    payload: dict[str, Any],
-    *,
-    stage: str,
-    case_id: str,
-    turn: int,
-    debug_log: Path | None,
-    timeout_seconds: float,
-) -> dict[str, Any]:
+def call_command(command: str, payload: dict[str, Any], *, stage: str, case_id: str,
+                 turn: int, debug_log: Path | None, timeout_seconds: float) -> dict[str, Any]:
     started = time.monotonic()
     try:
-        proc = subprocess.run(
-            command,
-            shell=True,
-            input=json.dumps(payload),
-            text=True,
-            capture_output=True,
-            check=False,
-            timeout=timeout_seconds,
-        )
+        proc = subprocess.run(command, shell=True, input=json.dumps(payload), text=True,
+                              capture_output=True, check=False, timeout=timeout_seconds)
     except subprocess.TimeoutExpired as exc:
         elapsed_ms = (time.monotonic() - started) * 1000.0
         stdout = exc.stdout or ""
         stderr = exc.stderr or ""
-        if isinstance(stdout, bytes):
-            stdout = stdout.decode("utf-8", errors="replace")
-        if isinstance(stderr, bytes):
-            stderr = stderr.decode("utf-8", errors="replace")
+        if isinstance(stdout, bytes): stdout = stdout.decode("utf-8", errors="replace")
+        if isinstance(stderr, bytes): stderr = stderr.decode("utf-8", errors="replace")
         if debug_log is not None:
             debug_log.parent.mkdir(parents=True, exist_ok=True)
-            event = {
-                "stage": stage,
-                "case_id": case_id,
-                "turn": turn,
-                "elapsed_ms": round(elapsed_ms, 3),
-                "returncode": None,
-                "timed_out": True,
-                "timeout_seconds": timeout_seconds,
-                "stdout": stdout,
-                "stderr": stderr,
-                "command": shlex.join(command.split()),
-            }
             with debug_log.open("a", encoding="utf-8") as fh:
-                fh.write(json.dumps(event, separators=(",", ":")) + "\n")
+                fh.write(json.dumps({
+                    "stage": stage, "case_id": case_id, "turn": turn,
+                    "elapsed_ms": round(elapsed_ms, 3), "returncode": None,
+                    "timed_out": True, "timeout_seconds": timeout_seconds,
+                    "stdout": stdout, "stderr": stderr,
+                    "command": shlex.join(command.split()),
+                }, separators=(",", ":")) + "\n")
         raise SystemExit(
             f"adapter timeout: stage={stage} case={case_id} turn={turn} "
             f"timeout_seconds={timeout_seconds:.1f} elapsed_ms={elapsed_ms:.1f}; "
@@ -74,23 +46,16 @@ def call_command(
         ) from exc
 
     elapsed_ms = (time.monotonic() - started) * 1000.0
-
     if debug_log is not None:
         debug_log.parent.mkdir(parents=True, exist_ok=True)
-        event = {
-            "stage": stage,
-            "case_id": case_id,
-            "turn": turn,
-            "elapsed_ms": round(elapsed_ms, 3),
-            "returncode": proc.returncode,
-            "timed_out": False,
-            "timeout_seconds": timeout_seconds,
-            "stdout": proc.stdout,
-            "stderr": proc.stderr,
-            "command": shlex.join(command.split()),
-        }
         with debug_log.open("a", encoding="utf-8") as fh:
-            fh.write(json.dumps(event, separators=(",", ":")) + "\n")
+            fh.write(json.dumps({
+                "stage": stage, "case_id": case_id, "turn": turn,
+                "elapsed_ms": round(elapsed_ms, 3), "returncode": proc.returncode,
+                "timed_out": False, "timeout_seconds": timeout_seconds,
+                "stdout": proc.stdout, "stderr": proc.stderr,
+                "command": shlex.join(command.split()),
+            }, separators=(",", ":")) + "\n")
 
     if proc.returncode != 0:
         detail = proc.stderr.strip() or proc.stdout.strip() or "no subprocess output"
@@ -103,8 +68,7 @@ def call_command(
     except json.JSONDecodeError as exc:
         raise SystemExit(
             f"adapter emitted invalid JSON: stage={stage} case={case_id} "
-            f"turn={turn} elapsed_ms={elapsed_ms:.1f}: {exc}; "
-            f"stdout={proc.stdout[:2000]!r}"
+            f"turn={turn} elapsed_ms={elapsed_ms:.1f}: {exc}; stdout={proc.stdout[:2000]!r}"
         ) from exc
 
 
@@ -115,17 +79,8 @@ def main() -> int:
     ap.add_argument("--gateway-command", required=True)
     ap.add_argument("--output", required=True)
     ap.add_argument("--max-turns", type=int, default=3)
-    ap.add_argument(
-        "--debug-log",
-        default=None,
-        help="Optional JSONL diagnostic log for provider/gateway subprocesses.",
-    )
-    ap.add_argument(
-        "--adapter-timeout",
-        type=float,
-        default=150.0,
-        help="Maximum wall-clock seconds allowed for each provider/gateway subprocess.",
-    )
+    ap.add_argument("--debug-log", default=None)
+    ap.add_argument("--adapter-timeout", type=float, default=150.0)
     args = ap.parse_args()
     if args.adapter_timeout <= 0:
         raise SystemExit("--adapter-timeout must be positive")
@@ -148,23 +103,14 @@ def main() -> int:
             request = dict(case)
             if messages is not None:
                 request["messages"] = messages
-            model = call_command(
-                args.provider_command,
-                request,
-                stage="provider",
-                case_id=case["id"],
-                turn=turn,
-                debug_log=debug_log,
-                timeout_seconds=args.adapter_timeout,
-            )
+            model = call_command(args.provider_command, request, stage="provider",
+                                 case_id=case["id"], turn=turn, debug_log=debug_log,
+                                 timeout_seconds=args.adapter_timeout)
             call = model.get("tool_call")
             turn_row: dict[str, Any] = {
-                "turn": turn,
-                "refused": bool(model.get("refused")) or call is None,
-                "text": model.get("text"),
-                "finish_reason": model.get("finish_reason"),
-                "tool_call": call,
-                "metadata": model.get("metadata", {}),
+                "turn": turn, "refused": bool(model.get("refused")) or call is None,
+                "text": model.get("text"), "finish_reason": model.get("finish_reason"),
+                "tool_call": call, "metadata": model.get("metadata", {}),
             }
             if call is None:
                 turns.append(turn_row)
@@ -174,9 +120,7 @@ def main() -> int:
             required_fields = {"agent", "tool", "action", "parameters"}
             missing = required_fields - generated_arguments.keys()
             if missing:
-                raise SystemExit(
-                    f"LLM tool call missing required fields: {sorted(missing)}"
-                )
+                raise SystemExit(f"LLM tool call missing required fields: {sorted(missing)}")
 
             gateway_request = {
                 "agent": generated_arguments["agent"],
@@ -185,17 +129,9 @@ def main() -> int:
                 "parameters": generated_arguments["parameters"],
                 "history": case.get("history", []),
             }
-
-            gateway = call_command(
-                args.gateway_command,
-                gateway_request,
-                stage="gateway",
-                case_id=case["id"],
-                turn=turn,
-                debug_log=debug_log,
-                timeout_seconds=args.adapter_timeout,
-            )
-
+            gateway = call_command(args.gateway_command, gateway_request, stage="gateway",
+                                   case_id=case["id"], turn=turn, debug_log=debug_log,
+                                   timeout_seconds=args.adapter_timeout)
             turn_row["gateway"] = gateway
             turn_row["gateway_context"] = {
                 "history_supplied": bool(case.get("history")),
@@ -203,8 +139,20 @@ def main() -> int:
             }
             turns.append(turn_row)
 
+            # Critical agentic-state fix: preserve the adapter's complete initial
+            # system/user conversation. The previous runner reconstructed the next
+            # turn from only assistant+tool messages, silently dropping the original
+            # task and policy context after turn 1.
+            conversation = model.get("conversation_messages")
+            if messages is None:
+                if not isinstance(conversation, list) or not conversation:
+                    raise SystemExit(
+                        f"provider omitted conversation state: case={case['id']} turn={turn}"
+                    )
+                messages = conversation
+
             fn_args = json.dumps(call.get("arguments", {}), separators=(",", ":"))
-            messages = (messages or []) + [
+            messages = messages + [
                 {
                     "role": "assistant",
                     "content": model.get("text"),
@@ -226,10 +174,8 @@ def main() -> int:
             ]
 
         rows.append({
-            "case_id": case["id"],
-            "objective": case.get("objective"),
-            "agent": case.get("agent"),
-            "turn_count": len(turns),
+            "case_id": case["id"], "objective": case.get("objective"),
+            "agent": case.get("agent"), "turn_count": len(turns),
             "model_generated_tool_call": any(t.get("tool_call") is not None for t in turns),
             "gateway_denials": sum(1 for t in turns if t.get("gateway", {}).get("decision") == "DENY"),
             "gateway_allows": sum(1 for t in turns if t.get("gateway", {}).get("decision") == "ALLOW"),
@@ -237,12 +183,10 @@ def main() -> int:
         })
 
     report = {
-        "protocol": "phase10-llm-agentic-v2",
-        "case_count": len(cases),
-        "max_turns": args.max_turns,
-        "adapter_timeout_seconds": args.adapter_timeout,
-        "rows": rows,
-        "note": "Model/provider identity is recorded from adapter metadata; this artifact contains no API credentials.",
+        "protocol": "phase10-llm-agentic-v3",
+        "case_count": len(cases), "max_turns": args.max_turns,
+        "adapter_timeout_seconds": args.adapter_timeout, "rows": rows,
+        "note": "Provider conversation state is preserved across turns; API credentials are not stored.",
     }
     out = Path(args.output)
     out.parent.mkdir(parents=True, exist_ok=True)
