@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/http/pprof"
 	"os"
 	"strings"
 	"time"
@@ -63,4 +64,4 @@ func (g *Gateway) reservePaymentState(action string,params map[string]interface{
 func (g *Gateway) commitPaymentState(action string,params map[string]interface{})string{id:=transactionID(params);switch action{case "create":if err:=g.state.CommitCreate(id);err!=nil{return err.Error()};case "refund":if err:=g.state.CommitRefund(id);err!=nil{return err.Error()}};return ""}
 func (g *Gateway) abortPaymentState(action string,params map[string]interface{}){id:=transactionID(params);switch action{case "create":g.state.AbortCreate(id);case "refund":g.state.AbortRefund(id)}}
 func (g *Gateway) forwardRequest(ctx context.Context,baseURL,action string,body []byte,w http.ResponseWriter)(int,error){url:=fmt.Sprintf("%s/%s",baseURL,action);req,err:=http.NewRequestWithContext(ctx,http.MethodPost,url,bytes.NewReader(body));if err!=nil{return 0,err};req.Header.Set("Content-Type","application/json");resp,err:=g.client.Do(req);if err!=nil{return 0,err};defer resp.Body.Close();for key,values:=range resp.Header{for _,value:=range values{w.Header().Add(key,value)}};w.WriteHeader(resp.StatusCode);_,copyErr:=io.Copy(w,resp.Body);return resp.StatusCode,copyErr}
-func (g *Gateway) StartServer(port string)error{mux:=http.NewServeMux();mux.HandleFunc("/tools/",g.HandleRequest);mux.HandleFunc("/__evaluation__/state",g.handleEvaluationState);addr:=":"+port;fmt.Printf("Aegis Gateway listening on %s\n",addr);return http.ListenAndServe(addr,mux)}
+func (g *Gateway) StartServer(port string)error{mux:=http.NewServeMux();mux.HandleFunc("/tools/",g.HandleRequest);mux.HandleFunc("/__evaluation__/state",g.handleEvaluationState);if os.Getenv("AEGIS_EVALUATION_MODE")=="1"{mux.HandleFunc("/debug/pprof/",pprof.Index);mux.HandleFunc("/debug/pprof/cmdline",pprof.Cmdline);mux.HandleFunc("/debug/pprof/profile",pprof.Profile);mux.HandleFunc("/debug/pprof/symbol",pprof.Symbol);mux.HandleFunc("/debug/pprof/trace",pprof.Trace);mux.Handle("/debug/pprof/goroutine",pprof.Handler("goroutine"));mux.Handle("/debug/pprof/heap",pprof.Handler("heap"));mux.Handle("/debug/pprof/threadcreate",pprof.Handler("threadcreate"));mux.Handle("/debug/pprof/block",pprof.Handler("block"));mux.Handle("/debug/pprof/mutex",pprof.Handler("mutex"))};addr:=":"+port;fmt.Printf("Aegis Gateway listening on %s\n",addr);return http.ListenAndServe(addr,mux)}
