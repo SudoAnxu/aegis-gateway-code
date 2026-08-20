@@ -16,8 +16,47 @@ const (
 	Refunding Status = "REFUNDING"
 )
 
+type HistoryEvent struct {
+	Event string `json:"event"`
+	ID    string `json:"id"`
+}
+
 type Store struct { mu sync.Mutex; transactions map[string]Status }
 func NewStore()*Store{return &Store{transactions:make(map[string]Status)}}
+
+// SeedHistory replaces the in-memory transaction state with the authoritative
+// benchmark history. It is used only by the evaluation-only gateway endpoint.
+// The history is replayed without forwarding any downstream tool requests.
+func (s *Store) SeedHistory(history []HistoryEvent) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.transactions = make(map[string]Status)
+	for _, event := range history {
+		if event.ID == "" {
+			return fmt.Errorf("state_missing_transaction")
+		}
+		switch event.Event {
+		case "payment_created":
+			if _, exists := s.transactions[event.ID]; exists {
+				return fmt.Errorf("state_invalid_transition")
+			}
+			s.transactions[event.ID] = Created
+		case "payment_refunded":
+			status, exists := s.transactions[event.ID]
+			if !exists {
+				return fmt.Errorf("state_precondition")
+			}
+			if status != Created {
+				return fmt.Errorf("state_invalid_transition")
+			}
+			s.transactions[event.ID] = Refunded
+		default:
+			return fmt.Errorf("state_unknown_event")
+		}
+	}
+	return nil
+}
+
 func (s *Store) CheckCreate(id string) error { if id==""{return fmt.Errorf("state_missing_transaction")}; if mutation.SkipDuplicateCreate(){return nil}; s.mu.Lock();defer s.mu.Unlock();if _,exists:=s.transactions[id];exists{return fmt.Errorf("state_invalid_transition")};return nil }
 func (s *Store) ReserveCreate(id string) error { if id==""{return fmt.Errorf("state_missing_transaction")};s.mu.Lock();defer s.mu.Unlock();if !mutation.SkipDuplicateCreate(){if _,exists:=s.transactions[id];exists{return fmt.Errorf("state_invalid_transition")}};s.transactions[id]=Creating;return nil }
 func (s *Store) CommitCreate(id string) error {s.mu.Lock();defer s.mu.Unlock();if s.transactions[id]!=Creating{return fmt.Errorf("state_invalid_transition")};s.transactions[id]=Created;return nil}
