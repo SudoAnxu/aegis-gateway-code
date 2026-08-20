@@ -75,7 +75,9 @@ def main() -> int:
             "error": "evaluation state seeding failed",
             "status_code": seed_status,
             "body": seed_body,
+            "history_supplied": True,
             "history_event_count": len(history),
+            "history_payload": history,
         }, separators=(",", ":")))
         return 2
 
@@ -93,6 +95,7 @@ def main() -> int:
                 "downstream_executed": response.status < 300,
                 "history_supplied": True,
                 "history_event_count": len(history),
+                "seed_response": seed_body,
             }, separators=(",", ":")))
             return 0
     except urllib.error.HTTPError as exc:
@@ -104,10 +107,17 @@ def main() -> int:
             "downstream_executed": False,
             "history_supplied": True,
             "history_event_count": len(history),
+            "seed_response": seed_body,
         }, separators=(",", ":")))
         return 0
     except urllib.error.URLError as exc:
-        print(json.dumps({"decision": "ERROR", "error": str(exc)}))
+        print(json.dumps({
+            "decision": "ERROR",
+            "error": str(exc),
+            "history_supplied": True,
+            "history_event_count": len(history),
+            "seed_response": seed_body,
+        }))
         return 2
 
 
