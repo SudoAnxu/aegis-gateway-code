@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -41,10 +42,23 @@ func (g *Gateway) HandleRequest(w http.ResponseWriter,r *http.Request){
 	if mutation.WeakenStateReservation()&&tool=="payments"&&transactionID(params)!=""&&statusCode>=200&&statusCode<300{if action=="create"{_ = g.state.RecordCreate(transactionID(params))};if action=="refund"{_ = g.state.RecordRefund(transactionID(params))}}
 	if stateReserved{if statusCode>=200&&statusCode<300{if stateReason:=g.commitPaymentState(action,params);stateReason!=""{return}}else{g.abortPaymentState(action,params)}}
 }
+
+// handleEvaluationState seeds benchmark-controlled transaction history without
+// forwarding a tool request. It is exposed only when explicitly enabled for
+// the isolated evaluation environment.
+func (g *Gateway) handleEvaluationState(w http.ResponseWriter,r *http.Request){
+	if os.Getenv("AEGIS_EVALUATION_MODE") != "1" { http.NotFound(w,r); return }
+	if r.Method != http.MethodPost { http.Error(w,"Method not allowed",http.StatusMethodNotAllowed); return }
+	var request struct { History []state.HistoryEvent `json:"history"` }
+	if err:=json.NewDecoder(r.Body).Decode(&request); err!=nil { http.Error(w,"Invalid evaluation state JSON",http.StatusBadRequest); return }
+	if err:=g.state.SeedHistory(request.History);err!=nil { w.Header().Set("Content-Type","application/json");w.WriteHeader(http.StatusBadRequest);json.NewEncoder(w).Encode(map[string]string{"error":"InvalidEvaluationHistory","reason":err.Error()});return }
+	w.Header().Set("Content-Type","application/json");json.NewEncoder(w).Encode(map[string]interface{}{"seeded":true,"history_event_count":len(request.History)})
+}
+
 func transactionID(params map[string]interface{})string{if mutation.GlobalTransactionIdentity(){return "__global_transaction__"};for _,key:=range []string{"transaction_id","payment_id"}{if value,ok:=params[key].(string);ok&&strings.TrimSpace(value)!=""{return value}};return ""}
 func (g *Gateway) checkPaymentState(action string,params map[string]interface{})string{id:=transactionID(params);switch action{case "create":if err:=g.state.CheckCreate(id);err!=nil{return err.Error()};case "refund":if err:=g.state.CheckRefund(id);err!=nil{return err.Error()}};return ""}
 func (g *Gateway) reservePaymentState(action string,params map[string]interface{})string{id:=transactionID(params);switch action{case "create":if err:=g.state.ReserveCreate(id);err!=nil{return err.Error()};case "refund":if err:=g.state.ReserveRefund(id);err!=nil{return err.Error()}};return ""}
 func (g *Gateway) commitPaymentState(action string,params map[string]interface{})string{id:=transactionID(params);switch action{case "create":if err:=g.state.CommitCreate(id);err!=nil{return err.Error()};case "refund":if err:=g.state.CommitRefund(id);err!=nil{return err.Error()}};return ""}
 func (g *Gateway) abortPaymentState(action string,params map[string]interface{}){id:=transactionID(params);switch action{case "create":g.state.AbortCreate(id);case "refund":g.state.AbortRefund(id)}}
 func (g *Gateway) forwardRequest(ctx context.Context,baseURL,action string,body []byte,w http.ResponseWriter)(int,error){url:=fmt.Sprintf("%s/%s",baseURL,action);req,err:=http.NewRequestWithContext(ctx,http.MethodPost,url,bytes.NewReader(body));if err!=nil{return 0,err};req.Header.Set("Content-Type","application/json");resp,err:=g.client.Do(req);if err!=nil{return 0,err};defer resp.Body.Close();for key,values:=range resp.Header{for _,value:=range values{w.Header().Add(key,value)}};w.WriteHeader(resp.StatusCode);_,copyErr:=io.Copy(w,resp.Body);return resp.StatusCode,copyErr}
-func (g *Gateway) StartServer(port string)error{mux:=http.NewServeMux();mux.HandleFunc("/tools/",g.HandleRequest);addr:=":"+port;fmt.Printf("Aegis Gateway listening on %s\n",addr);return http.ListenAndServe(addr,mux)}
+func (g *Gateway) StartServer(port string)error{mux:=http.NewServeMux();mux.HandleFunc("/tools/",g.HandleRequest);mux.HandleFunc("/__evaluation__/state",g.handleEvaluationState);addr:=":"+port;fmt.Printf("Aegis Gateway listening on %s\n",addr);return http.ListenAndServe(addr,mux)}
