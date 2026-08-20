@@ -4,6 +4,7 @@ python research/fixtures/tool_services.py files --port 8082
 
 python research/fixtures/tool_services.py rbac --port 8090
 
+export AEGIS_EVALUATION_MODE=1
 go run ./cmd/aegis
 
 python research/aegisbench/fixtures/unknown_tool.py
