@@ -57,10 +57,37 @@ func TestSeedHistory(t *testing.T) {
 		t.Fatalf("seeded refund replay check: got %v", err)
 	}
 
-	if err := s.SeedHistory([]HistoryEvent{{Event: "payment_refunded", ID: "missing"}}); err == nil || err.Error() != "state_precondition" {
-		t.Fatalf("refund without create history: got %v", err)
+	cases := []struct {
+		name   string
+		history []HistoryEvent
+		reason string
+	}{
+		{
+			name: "refund without create",
+			history: []HistoryEvent{{Event: "payment_refunded", ID: "missing"}},
+			reason: "state_precondition",
+		},
+		{
+			name: "unknown event",
+			history: []HistoryEvent{{Event: "unknown", ID: "tx-unknown"}},
+			reason: "state_unknown_event",
+		},
+		{
+			name: "duplicate creation",
+			history: []HistoryEvent{
+				{Event: "payment_created", ID: "tx-duplicate"},
+				{Event: "payment_created", ID: "tx-duplicate"},
+			},
+			reason: "state_invalid_transition",
+		},
 	}
-	if err := s.SeedHistory([]HistoryEvent{{Event: "unknown", ID: "tx-unknown"}}); err == nil || err.Error() != "state_unknown_event" {
-		t.Fatalf("unknown history event: got %v", err)
+
+	for _, tc := range cases {
+		if err := s.SeedHistory(tc.history); err != nil {
+			t.Fatalf("%s seed: %v", tc.name, err)
+		}
+		if err := s.CheckCreate(tc.history[0].ID); err == nil || err.Error() != tc.reason {
+			t.Errorf("%s: got %v, want %s", tc.name, err, tc.reason)
+		}
 	}
 }
