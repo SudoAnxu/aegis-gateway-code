@@ -37,3 +37,30 @@ func TestStoreRejectsMissingIDs(t *testing.T) {
 		}
 	}
 }
+
+func TestSeedHistory(t *testing.T) {
+	s := NewStore()
+	if err := s.SeedHistory([]HistoryEvent{{Event: "payment_created", ID: "tx-seeded"}}); err != nil {
+		t.Fatalf("seed create: %v", err)
+	}
+	if err := s.CheckCreate("tx-seeded"); err == nil || err.Error() != "state_invalid_transition" {
+		t.Fatalf("seeded duplicate create check: got %v", err)
+	}
+
+	if err := s.SeedHistory([]HistoryEvent{
+		{Event: "payment_created", ID: "tx-refund"},
+		{Event: "payment_refunded", ID: "tx-refund"},
+	}); err != nil {
+		t.Fatalf("seed refund history: %v", err)
+	}
+	if err := s.CheckRefund("tx-refund"); err == nil || err.Error() != "state_replay" {
+		t.Fatalf("seeded refund replay check: got %v", err)
+	}
+
+	if err := s.SeedHistory([]HistoryEvent{{Event: "payment_refunded", ID: "missing"}}); err == nil || err.Error() != "state_precondition" {
+		t.Fatalf("refund without create history: got %v", err)
+	}
+	if err := s.SeedHistory([]HistoryEvent{{Event: "unknown", ID: "tx-unknown"}}); err == nil || err.Error() != "state_unknown_event" {
+		t.Fatalf("unknown history event: got %v", err)
+	}
+}
