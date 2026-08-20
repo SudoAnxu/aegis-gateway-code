@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/http/pprof"
 	"os"
@@ -20,8 +21,31 @@ import (
 
 const gatewayDecisionHeader = "X-Aegis-Gateway-Decision"
 
+// newDownstreamClient creates one long-lived HTTP client/transport for all
+// gateway instances. Reusing the transport lets net/http keep connections
+// alive and avoids a new TCP connection for every tool invocation. The
+// security pipeline remains entirely before forwardRequest: this only changes
+// how an already-authorized request is transported downstream.
+func newDownstreamClient() *http.Client {
+	transport := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout:   5 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).DialContext,
+		MaxIdleConns:        1024,
+		MaxIdleConnsPerHost: 512,
+		MaxConnsPerHost:     512,
+		IdleConnTimeout:     90 * time.Second,
+		TLSHandshakeTimeout: 5 * time.Second,
+		ResponseHeaderTimeout: 30 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
+	return &http.Client{Transport: transport, Timeout: 30 * time.Second}
+}
+
 type Gateway struct { policyEngine *policy.PolicyEngine; telemetry *telemetry.Telemetry; client *http.Client; toolURLs map[string]string; state *state.Store }
-func NewGateway(policyEngine *policy.PolicyEngine, telemetry *telemetry.Telemetry)*Gateway{return &Gateway{policyEngine:policyEngine,telemetry:telemetry,client:&http.Client{Timeout:30*time.Second},toolURLs:map[string]string{"payments":"http://localhost:8081","files":"http://localhost:8082"},state:state.NewStore()}}
+func NewGateway(policyEngine *policy.PolicyEngine, telemetry *telemetry.Telemetry)*Gateway{return &Gateway{policyEngine:policyEngine,telemetry:telemetry,client:newDownstreamClient(),toolURLs:map[string]string{"payments":"http://localhost:8081","files":"http://localhost:8082"},state:state.NewStore()}}
 
 func (g *Gateway) HandleRequest(w http.ResponseWriter,r *http.Request){
 	startTime:=time.Now(); pathParts:=strings.Split(strings.TrimPrefix(r.URL.Path,"/"),"/");if len(pathParts)<3||pathParts[0]!="tools"{http.Error(w,"Invalid path. Expected: /tools/:tool/:action",http.StatusBadRequest);return};tool:=pathParts[1];action:=pathParts[2]
