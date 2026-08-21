@@ -1,0 +1,61 @@
+{
+  "frozen_at": "2026-08-21T07:29:47Z",
+  "git": {
+    "sha": "efa3b995f177a9a812e0f6602a3443b5bb19e58c",
+    "tag": "phase10-evaluation-v1",
+    "branch": "research/phase9-independent-validation",
+    "remote": "https://github.com/SudoAnxu/aegis-gateway-code.git"
+  },
+  "environment": {
+    "os": "MINGW64_NT-10.0-19045 DESKTOP-3L7J4MF 3.6.9-b4195d69.x86_64 2026-06-06 17:49 UTC x86_64 Msys",
+    "arch": "x86_64",
+    "hostname": "DESKTOP-3L7J4MF",
+    "go": "go version go1.22.5 windows/amd64",
+    "cpu_info": "model name	: Intel(R) Core(TM) i3-5005U CPU @ 2.00GHz",
+    "memory": "MemTotal:        6199676 kB"
+  },
+  "experiment_parameters": {
+    "modes": ["disabled", "local", "otlp"],
+    "concurrency_levels": [100, 500, 1000],
+    "requests_per_trial": 5000,
+    "repetitions": 5,
+    "total_trials": 45,
+    "total_requests": 225000,
+    "transport_pool": {
+      "max_idle_conns": 2048,
+      "max_idle_conns_per_host": 2048,
+      "max_conns_per_host": 2048
+    },
+    "downstream_mock": {
+      "type": "deterministic_json_responder",
+      "ports": [8081, 8082],
+      "duplicate_detection": true,
+      "fixed_response": true
+    },
+    "otlp_collector": {
+      "type": "mock_trace_receiver",
+      "port": 4318,
+      "endpoint": "/v1/traces",
+      "action": "accept_and_discard"
+    }
+  },
+  "results_summary": {
+    "unique_workload": {
+      "trial_files": 9,
+      "modes_tested": 3,
+      "concurrency_levels_tested": 3,
+      "zero_client_errors": true,
+      "zero_duplicate_downstream_executions": true
+    },
+    "duplicate_race_workload": {
+      "race_files": 9,
+      "security_invariant_held": true,
+      "total_configurations_tested": 9,
+      "duplicate_executions_observed": 0
+    }
+  },
+  "notes": {
+    "platform_limitations": "go test -race requires GCC/cgo not available on this Windows host. Pre-existing policy test failures are Windows-specific (filepath.IsAbs returns false for POSIX paths on Windows). Both should be verified on Linux CI.",
+    "freeze_policy": "This manifest is a documentation commit after the frozen tag phase10-evaluation-v1. The evidence SHA efa3b995f177a9a812e0f6602a3443b5bb19e58c is immutable."
+  }
+}
