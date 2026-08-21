@@ -1,0 +1,221 @@
+{
+  "version": "1.0",
+  "summary": {
+    "total_mutants": 20,
+    "detected": 20,
+    "detection_rate": "20/20 (100%)",
+    "note": "This result demonstrates that Aegis detects all 20 tested mutation operators. It does not claim detection of all possible implementation bugs."
+  },
+  "taxonomy": {
+    "identity": {
+      "description": "Mutations affecting agent identity matching",
+      "mutants": [
+        {
+          "id": "M06",
+          "name": "skip_agent_match",
+          "description": "Bypass agent identity check — any agent matches any policy",
+          "security_property": "identity_binding",
+          "expected_detection": "DENY for unauthorized agent accessing wrong tool/action",
+          "realistic_defect": "developer accidentally removes agent ID comparison",
+          "detected": true
+        },
+        {
+          "id": "M19",
+          "name": "substitute_file_identity",
+          "description": "Forge file tool identity — all file requests use hr-agent identity",
+          "security_property": "identity_authenticity",
+          "expected_detection": "identity spoofing audit + policy denial",
+          "realistic_defect": "hardcoded identity in adapter code",
+          "detected": true
+        }
+      ]
+    },
+    "action": {
+      "description": "Mutations affecting action authorization",
+      "mutants": [
+        {
+          "id": "M07",
+          "name": "skip_action_check",
+          "description": "Allow any action for any authorized tool",
+          "security_property": "action_authorization",
+          "expected_detection": "DENY for unauthorized action",
+          "realistic_defect": "action parameter not checked in policy evaluation",
+          "detected": true
+        }
+      ]
+    },
+    "parameter": {
+      "description": "Mutations affecting parameter validation",
+      "mutants": [
+        {
+          "id": "M01",
+          "name": "skip_min_amount",
+          "description": "Ignore minimum amount constraint",
+          "security_property": "parameter_bounds",
+          "expected_detection": "DENY for amount below minimum",
+          "realistic_defect": "boundary condition not checked",
+          "detected": true
+        },
+        {
+          "id": "M02",
+          "name": "skip_max_amount",
+          "description": "Ignore maximum amount constraint",
+          "security_property": "parameter_bounds",
+          "expected_detection": "DENY for amount above maximum",
+          "realistic_defect": "upper bound check omitted",
+          "detected": true
+        },
+        {
+          "id": "M03",
+          "name": "missing_parameter_fails_open",
+          "description": "Allow request when required parameter is missing",
+          "security_property": "missing_parameter_handling",
+          "expected_detection": "DENY for missing required parameter",
+          "realistic_defect": "nil check not performed",
+          "detected": true
+        },
+        {
+          "id": "M09",
+          "name": "unsupported_type_fails_open",
+          "description": "Allow request with unsupported parameter type (e.g., boolean amount)",
+          "security_property": "type_safety",
+          "expected_detection": "DENY for type mismatch",
+          "realistic_defect": "type assertion not performed",
+          "detected": true
+        },
+        {
+          "id": "M11",
+          "name": "case_insensitive_currency",
+          "description": "Accept 'usd' when only 'USD' is allowed",
+          "security_property": "case_sensitivity",
+          "expected_detection": "DENY for non-matching case",
+          "realistic_defect": "string comparison not case-sensitive",
+          "detected": true
+        },
+        {
+          "id": "M12",
+          "name": "max_boundary_off_by_one",
+          "description": "Accept amount at max_amount boundary (should be exclusive)",
+          "security_property": "boundary_correctness",
+          "expected_detection": "DENY for amount at boundary",
+          "realistic_defect": ">= vs > comparison error",
+          "detected": true
+        },
+        {
+          "id": "M13",
+          "name": "min_boundary_off_by_one",
+          "description": "Accept amount below min_amount boundary (should be exclusive)",
+          "security_property": "boundary_correctness",
+          "expected_detection": "DENY for amount below boundary",
+          "realistic_defect": "<= vs < comparison error",
+          "detected": true
+        }
+      ]
+    },
+    "path": {
+      "description": "Mutations affecting path validation",
+      "mutants": [
+        {
+          "id": "M04",
+          "name": "raw_path_prefix",
+          "description": "Use raw string prefix instead of filepath.Clean",
+          "security_property": "path_canonicalization",
+          "expected_detection": "DENY for path traversal after canonicalization",
+          "realistic_defect": "path not cleaned before prefix check",
+          "detected": true
+        },
+        {
+          "id": "M05",
+          "name": "skip_path_constraint",
+          "description": "Skip path prefix check entirely",
+          "security_property": "path_authorization",
+          "expected_detection": "DENY for unauthorized path access",
+          "realistic_defect": "path check not performed",
+          "detected": true
+        },
+        {
+          "id": "M10",
+          "name": "raw_path_prefix_alt",
+          "description": "Alternative raw path prefix check (different code path)",
+          "security_property": "path_canonicalization",
+          "expected_detection": "DENY for path traversal",
+          "realistic_defect": "duplicate path validation code with bug",
+          "detected": true
+        }
+      ]
+    },
+    "state": {
+      "description": "Mutations affecting state machine enforcement",
+      "mutants": [
+        {
+          "id": "M14",
+          "name": "skip_duplicate_create",
+          "description": "Allow duplicate payment creation (skip state check)",
+          "security_property": "state_precondition",
+          "expected_detection": "DENY for duplicate create",
+          "realistic_defect": "state check not performed before create",
+          "detected": true
+        },
+        {
+          "id": "M15",
+          "name": "skip_refund_replay",
+          "description": "Allow double refund (skip replay detection)",
+          "security_property": "state_replay_detection",
+          "expected_detection": "DENY for double refund",
+          "realistic_defect": "replay check not performed",
+          "detected": true
+        },
+        {
+          "id": "M16",
+          "name": "allow_refund_without_create",
+          "description": "Allow refund for non-existent transaction",
+          "security_property": "state_precondition",
+          "expected_detection": "DENY for refund without create",
+          "realistic_defect": "precondition check not performed",
+          "detected": true
+        },
+        {
+          "id": "M17",
+          "name": "global_transaction_identity",
+          "description": "Use single global transaction ID for all payments",
+          "security_property": "transaction_isolation",
+          "expected_detection": "DENY for conflicting transactions",
+          "realistic_defect": "transaction ID not extracted from params",
+          "detected": true
+        },
+        {
+          "id": "M20",
+          "name": "weaken_state_reservation",
+          "description": "Skip state reservation before downstream execution",
+          "security_property": "atomic_state_check",
+          "expected_detection": "duplicate execution or invalid state transition",
+          "realistic_defect": "state reservation not performed atomically",
+          "detected": true
+        }
+      ]
+    },
+    "fail_open": {
+      "description": "Mutations that cause fail-open behavior",
+      "mutants": [
+        {
+          "id": "M08",
+          "name": "unknown_tool_allowed",
+          "description": "Allow requests to unknown tools",
+          "security_property": "fail_closed",
+          "expected_detection": "DENY for unknown tool",
+          "realistic_defect": "default allow instead of default deny",
+          "detected": true
+        },
+        {
+          "id": "M18",
+          "name": "malformed_fails_open",
+          "description": "Allow malformed JSON requests to proceed",
+          "security_property": "fail_closed",
+          "expected_detection": "DENY for malformed request",
+          "realistic_defect": "error handling bypasses policy check",
+          "detected": true
+        }
+      ]
+    }
+  }
+}

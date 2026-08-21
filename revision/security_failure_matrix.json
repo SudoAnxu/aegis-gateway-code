@@ -1,0 +1,177 @@
+{
+  "version": "1.0",
+  "generated_from": "internal/gateway/gateway_test.go + manual audit of gateway.go",
+  "sha": "$(cd aegis-gateway-code && git rev-parse HEAD)",
+  "failures": [
+    {
+      "condition": "missing_identity",
+      "description": "No X-Test-Auth-Token or X-Auth-Agent-ID header",
+      "expected_decision": "REJECT (401 Unauthorized)",
+      "downstream_execution_allowed": false,
+      "audit_required": false,
+      "implementation_result": "REJECT",
+      "test": "TestFailClosedMissingIdentity",
+      "verified": true
+    },
+    {
+      "condition": "invalid_token",
+      "description": "X-Test-Auth-Token does not map to any agent",
+      "expected_decision": "REJECT (401 Unauthorized)",
+      "downstream_execution_allowed": false,
+      "audit_required": false,
+      "implementation_result": "REJECT",
+      "test": "TestFailClosedInvalidToken",
+      "verified": true
+    },
+    {
+      "condition": "invalid_hmac_signature",
+      "description": "X-Auth-Signature does not match HMAC of X-Auth-Agent-ID",
+      "expected_decision": "REJECT (401 Unauthorized)",
+      "downstream_execution_allowed": false,
+      "audit_required": false,
+      "implementation_result": "REJECT",
+      "test": "TestHMACAuthentication/invalid_signature",
+      "verified": true
+    },
+    {
+      "condition": "unknown_agent",
+      "description": "Authenticated agent not in any policy file",
+      "expected_decision": "DENY (403 Forbidden)",
+      "downstream_execution_allowed": false,
+      "audit_required": true,
+      "implementation_result": "DENY",
+      "test": "TestFailClosedUnknownAgent",
+      "verified": true
+    },
+    {
+      "condition": "identity_substitution",
+      "description": "Model claims hr-agent but authenticates as finance-agent; finance-agent cannot read files",
+      "expected_decision": "DENY (403 Forbidden)",
+      "downstream_execution_allowed": false,
+      "audit_required": true,
+      "implementation_result": "DENY",
+      "test": "TestIdentitySpoofingRejected",
+      "verified": true
+    },
+    {
+      "condition": "malformed_json",
+      "description": "Request body is not valid JSON (mutation M18 not active)",
+      "expected_decision": "DENY (400 Bad Request)",
+      "downstream_execution_allowed": false,
+      "audit_required": false,
+      "implementation_result": "DENY",
+      "test": "TestFailClosedMalformedJSON",
+      "verified": true
+    },
+    {
+      "condition": "unknown_tool",
+      "description": "Tool name not in any policy file or toolURLs map",
+      "expected_decision": "DENY (403 or 400)",
+      "downstream_execution_allowed": false,
+      "audit_required": true,
+      "implementation_result": "DENY",
+      "test": "TestFailClosedUnknownTool",
+      "verified": true
+    },
+    {
+      "condition": "unauthorized_action",
+      "description": "Agent exists in policy but action not in allowed list",
+      "expected_decision": "DENY (403 Forbidden)",
+      "downstream_execution_allowed": false,
+      "audit_required": true,
+      "implementation_result": "DENY",
+      "test": "TestFailClosedUnauthorizedAction",
+      "verified": true
+    },
+    {
+      "condition": "amount_exceeds_limit",
+      "description": "Payment amount > max_amount in policy conditions",
+      "expected_decision": "DENY (403 Forbidden)",
+      "downstream_execution_allowed": false,
+      "audit_required": true,
+      "implementation_result": "DENY",
+      "test": "TestFailClosedAmountExceedsLimit",
+      "verified": true
+    },
+    {
+      "condition": "invalid_currency",
+      "description": "Currency not in allowed currencies list",
+      "expected_decision": "DENY (403 Forbidden)",
+      "downstream_execution_allowed": false,
+      "audit_required": true,
+      "implementation_result": "DENY",
+      "test": "TestFailClosedInvalidCurrency",
+      "verified": true
+    },
+    {
+      "condition": "path_traversal",
+      "description": "Path contains ../ segments that escape folder_prefix after filepath.Clean",
+      "expected_decision": "DENY (403 Forbidden)",
+      "downstream_execution_allowed": false,
+      "audit_required": true,
+      "implementation_result": "DENY",
+      "test": "TestFailClosedPathTraversal",
+      "verified": true
+    },
+    {
+      "condition": "state_precondition_failure",
+      "description": "Refund requested for non-existent transaction",
+      "expected_decision": "DENY (state_precondition)",
+      "downstream_execution_allowed": false,
+      "audit_required": true,
+      "implementation_result": "DENY",
+      "test": "TestStoreTransitions",
+      "verified": true
+    },
+    {
+      "condition": "state_replay",
+      "description": "Double refund on same transaction",
+      "expected_decision": "DENY (state_replay)",
+      "downstream_execution_allowed": false,
+      "audit_required": true,
+      "implementation_result": "DENY",
+      "test": "TestStoreTransitions",
+      "verified": true
+    },
+    {
+      "condition": "duplicate_create",
+      "description": "Create transaction that already exists",
+      "expected_decision": "DENY (state_invalid_transition)",
+      "downstream_execution_allowed": false,
+      "audit_required": true,
+      "implementation_result": "DENY",
+      "test": "TestStoreTransitions",
+      "verified": true
+    },
+    {
+      "condition": "policy_reload_failure",
+      "description": "YAML parse error during hot-reload",
+      "expected_decision": "previous policy remains active",
+      "downstream_execution_allowed": false,
+      "audit_required": true,
+      "implementation_result": "previous policy remains active, error logged",
+      "test": "manual: fsnotify error path",
+      "verified": false,
+      "note": "Policy reload failure preserves previous policy. This is correct fail-closed behavior."
+    },
+    {
+      "condition": "missing_path_parameter",
+      "description": "File read without path parameter",
+      "expected_decision": "DENY (path is required)",
+      "downstream_execution_allowed": false,
+      "audit_required": true,
+      "implementation_result": "DENY",
+      "test": "TestEmptyBody",
+      "verified": true
+    }
+  ],
+  "summary": {
+    "total_conditions": 16,
+    "fail_closed": 16,
+    "fail_open": 0,
+    "not_applicable": 0,
+    "verified": 15,
+    "unverified": 1,
+    "note": "All verified paths fail closed. The policy reload failure path preserves the previous valid policy, which is correct behavior."
+  }
+}

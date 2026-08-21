@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"aegis-gateway/internal/gateway"
+	"aegis-gateway/internal/identity"
 	"aegis-gateway/internal/policy"
 	"aegis-gateway/pkg/telemetry"
 )
@@ -45,7 +46,22 @@ func main() {
 		}
 	}()
 
-	g := gateway.NewGateway(policyEngine, telemetryClient)
+	// Identity binding: test-mode uses static token map, production uses HMAC.
+	// The gateway NEVER trusts the model-claimed identity for authorization.
+	var auth *identity.Authenticator
+	if os.Getenv("AEGIS_EVALUATION_MODE") == "1" {
+		auth = identity.NewTestAuthenticator(identity.StandardTestAgents())
+		fmt.Println("Identity binding: test mode (X-Test-Auth-Token)")
+	} else if hmacSecret := os.Getenv("AEGIS_HMAC_SECRET"); hmacSecret != "" {
+		auth = identity.NewAuthenticator([]byte(hmacSecret))
+		fmt.Println("Identity binding: HMAC mode")
+	} else {
+		// Production default: fail closed on missing authentication
+		auth = identity.NewAuthenticator([]byte{})
+		fmt.Println("Identity binding: HMAC mode (no secret configured — all unauthenticated requests will be rejected)")
+	}
+
+	g := gateway.NewGatewayWithAuth(policyEngine, telemetryClient, auth)
 
 	fmt.Printf("Aegis Gateway starting on :%s (policies=%s)\n", *gatewayPort, *policiesDir)
 	if err := g.StartServer(*gatewayPort); err != nil {

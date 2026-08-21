@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"aegis-gateway/internal/identity"
 	"aegis-gateway/internal/mutation"
 	"aegis-gateway/internal/policy"
 	"aegis-gateway/internal/state"
@@ -44,19 +45,41 @@ func newDownstreamClient() *http.Client {
 	return &http.Client{Transport: transport, Timeout: 30 * time.Second}
 }
 
-type Gateway struct { policyEngine *policy.PolicyEngine; telemetry *telemetry.Telemetry; client *http.Client; toolURLs map[string]string; state *state.Store }
-func NewGateway(policyEngine *policy.PolicyEngine, telemetry *telemetry.Telemetry)*Gateway{return &Gateway{policyEngine:policyEngine,telemetry:telemetry,client:newDownstreamClient(),toolURLs:map[string]string{"payments":"http://localhost:8081","files":"http://localhost:8082"},state:state.NewStore()}}
+type Gateway struct { policyEngine *policy.PolicyEngine; telemetry *telemetry.Telemetry; client *http.Client; toolURLs map[string]string; state *state.Store; auth *identity.Authenticator }
+func NewGateway(policyEngine *policy.PolicyEngine, telemetry *telemetry.Telemetry)*Gateway{
+	return NewGatewayWithAuth(policyEngine, telemetry, identity.NewTestAuthenticator(identity.StandardTestAgents()))
+}
+func NewGatewayWithAuth(policyEngine *policy.PolicyEngine, telemetry *telemetry.Telemetry, auth *identity.Authenticator)*Gateway{return &Gateway{policyEngine:policyEngine,telemetry:telemetry,client:newDownstreamClient(),toolURLs:map[string]string{"payments":"http://localhost:8081","files":"http://localhost:8082"},state:state.NewStore(),auth:auth}}
 
 func (g *Gateway) HandleRequest(w http.ResponseWriter,r *http.Request){
 	startTime:=time.Now(); pathParts:=strings.Split(strings.TrimPrefix(r.URL.Path,"/"),"/");if len(pathParts)<3||pathParts[0]!="tools"{http.Error(w,"Invalid path. Expected: /tools/:tool/:action",http.StatusBadRequest);return};tool:=pathParts[1];action:=pathParts[2]
 	mutation.Set(r.Header.Get("X-Aegis-Mutant-ID"))
-	agentID:=r.Header.Get("X-Agent-ID");if agentID==""{http.Error(w,"Missing X-Agent-ID header",http.StatusBadRequest);return};if mutation.SubstituteFileIdentity()&&tool=="files"{agentID="hr-agent"}
+
+	// ── PHASE 1: Identity binding ──────────────────────────────────────
+	// Authenticate the identity BEFORE any authorization logic.
+	// The model-claimed identity (X-Agent-ID) is NEVER used for authorization.
+	id := g.auth.Authenticate(r)
+	if !id.Verified {
+		// Fail closed: unauthenticated requests are rejected.
+		http.Error(w, "Identity verification failed", http.StatusUnauthorized)
+		return
+	}
+	agentID := id.AuthenticatedID
+	if mutation.SubstituteFileIdentity()&&tool=="files"{agentID="hr-agent"}
+	// ── END PHASE 1 ──────────────────────────────────────────────────
+
 	bodyBytes,err:=io.ReadAll(r.Body);if err!=nil{http.Error(w,fmt.Sprintf("Failed to read request body: %v",err),http.StatusBadRequest);return}
 	var params map[string]interface{};malformedOpen:=false
 	if len(bodyBytes)>0{if err:=json.Unmarshal(bodyBytes,&params);err!=nil{if !mutation.MalformedFailsOpen(){http.Error(w,fmt.Sprintf("Invalid JSON: %v",err),http.StatusBadRequest);return};params=make(map[string]interface{});malformedOpen=true}}else{params=make(map[string]interface{})}
 	paramsHash:=telemetry.HashParams(params)
 	allowed,reason:=g.policyEngine.Evaluate(agentID,tool,action,params);if malformedOpen{allowed=true;reason="malformed_bypass"}
 	if allowed&&tool=="payments"&&transactionID(params)!=""&&!mutation.WeakenStateReservation(){if stateReason:=g.checkPaymentState(action,params);stateReason!=""{allowed=false;reason=stateReason}}
+
+	// Log identity conflict as audit event (does not affect authorization)
+	if id.HasConflict() {
+		fmt.Printf("AUDIT: identity spoofing attempt: %s\n", id.ConflictDescription())
+	}
+
 	latencyMS:=time.Since(startTime).Milliseconds();ctx,span:=g.telemetry.LogDecision(context.Background(),agentID,tool,action,allowed,reason,paramsHash,latencyMS);defer span.End()
 	if !allowed{w.Header().Set(gatewayDecisionHeader,"DENY");w.Header().Set("Content-Type","application/json");w.WriteHeader(http.StatusForbidden);json.NewEncoder(w).Encode(map[string]string{"error":"PolicyViolation","reason":reason});return}
 	toolURL,exists:=g.toolURLs[tool];if !exists{if mutation.UnknownToolAllowed(){w.Header().Set(gatewayDecisionHeader,"ALLOW");w.Header().Set("Content-Type","application/json");w.WriteHeader(http.StatusOK);json.NewEncoder(w).Encode(map[string]string{"decision":"ALLOW","tool":tool,"action":action});return};http.Error(w,fmt.Sprintf("Unknown tool: %s",tool),http.StatusBadRequest);return}
