@@ -1,0 +1,10 @@
+{
+  "agent": "finance-agent",
+  "tool": "payments",
+  "action": "refund",
+  "parameters": {
+    "amount": 99999,
+    "currency": "USD",
+    "transaction_id": "txn-001"
+  }
+}

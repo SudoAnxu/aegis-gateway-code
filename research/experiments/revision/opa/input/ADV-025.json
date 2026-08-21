@@ -1,0 +1,8 @@
+{
+  "agent": "finance-agent",
+  "tool": "unknown-tool",
+  "action": "execute",
+  "parameters": {
+    "data": "exfiltrate"
+  }
+}

@@ -1,4 +1,4 @@
-# Aegis Gateway Static Policy — OPA/Rego Implementation
+# Aegis Gateway Static Policy — OPA/Rego v1 Implementation
 # This implements ONLY the static (stateless) policy checks.
 # It does NOT implement stateful semantics (state transitions, duplicate detection).
 #
@@ -6,13 +6,11 @@
 
 package aegis.gateway
 
-import future.keywords.in
-
 # Default decision
 default allow = false
 
 # Finance agent: payments tool
-allow {
+allow if {
     input.agent == "finance-agent"
     input.tool == "payments"
     input.action in {"create", "refund"}
@@ -26,7 +24,7 @@ allow {
 }
 
 # HR agent: files tool
-allow {
+allow if {
     input.agent == "hr-agent"
     input.tool == "files"
     input.action == "read"

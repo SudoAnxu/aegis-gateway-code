@@ -1,0 +1,8 @@
+{
+  "agent": "hr-agent",
+  "tool": "files",
+  "action": "write",
+  "parameters": {
+    "path": "/hr-docs/policies/leave.txt"
+  }
+}

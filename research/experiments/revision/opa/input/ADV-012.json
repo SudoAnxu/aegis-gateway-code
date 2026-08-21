@@ -1,0 +1,9 @@
+{
+  "agent": "hr-agent",
+  "tool": "payments",
+  "action": "create",
+  "parameters": {
+    "amount": 100,
+    "currency": "USD"
+  }
+}

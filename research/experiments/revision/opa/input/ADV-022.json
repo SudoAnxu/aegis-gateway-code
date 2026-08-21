@@ -1,0 +1,9 @@
+{
+  "agent": "finance-agent",
+  "tool": "payments",
+  "action": "create",
+  "parameters": {
+    "amount": true,
+    "currency": "USD"
+  }
+}

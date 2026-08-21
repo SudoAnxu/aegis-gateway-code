@@ -1,0 +1,8 @@
+{
+  "agent": "finance-agent",
+  "tool": "payments",
+  "action": "delete",
+  "parameters": {
+    "payment_id": "PAY-001"
+  }
+}

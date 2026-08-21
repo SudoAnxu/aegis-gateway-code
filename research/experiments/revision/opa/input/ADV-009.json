@@ -1,0 +1,8 @@
+{
+  "agent": "hr-agent",
+  "tool": "files",
+  "action": "read",
+  "parameters": {
+    "path": "/hr-docs/%2e%2e/finance/secret.csv"
+  }
+}

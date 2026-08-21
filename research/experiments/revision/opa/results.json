@@ -1,15 +1,37 @@
 {
-  "comparison_version": "1.0",
-  "policy_type": "static (pure-Python Rego equivalent)",
+  "comparison_version": "1.1",
+  "policy_type": "static (OPA CLI v1.4.2, Rego v1)",
+  "opa_version": "1.4.2",
+  "opa_build": "5e4582bb951f70641fe9ee85cc46245d079e5037",
+  "rego_version": "v1",
   "summary": {
     "sample_size": 23,
     "evaluated": 23,
-    "agreement_count": 19,
-    "disagreement_count": 4,
-    "agreement_rate": 0.826087,
-    "cohen_kappa": 0.826087,
+    "errors": 0,
+    "agreement_count": 20,
+    "disagreement_count": 3,
+    "agreement_rate": 0.869565,
+    "cohen_kappa": 0.869565,
     "stateful_cases_excluded": 7,
-    "note": "Static policy comparison only. OPA/Python does not implement stateful semantics."
+    "note": "Static policy comparison only. OPA CLI v1.4.2. All 3 disagreements: OPA=ALLOW, Aegis=DENY (Aegis more restrictive).",
+    "difference_from_python": "Pure-Python had 4 disagreements (ADV-022 false positive due to isinstance(True,int)==True). OPA CLI correctly rejects boolean amounts.",
+    "disagreement_analysis": [
+      {
+        "case_id": "ADV-006",
+        "category": "path_traversal",
+        "description": "Directory traversal /hr-docs/../finance/payroll.csv. Aegis: filepath.Clean+prefix. OPA: raw startswith."
+      },
+      {
+        "case_id": "ADV-009",
+        "category": "path_traversal",
+        "description": "URL-encoded traversal /hr-docs/%2e%2e/finance/secret.csv. Aegis: URL decode+Clean. OPA: raw startswith."
+      },
+      {
+        "case_id": "ADV-010",
+        "category": "path_traversal",
+        "description": "Null byte injection /hr-docs/legitimate.txt%00.csv. Aegis: null byte handling. OPA: raw startswith."
+      }
+    ]
   },
   "cases": [
     {
@@ -17,7 +39,6 @@
       "category": "parameter_manipulation",
       "aegis_expected": "DENY",
       "opa_allowed": false,
-      "opa_reason": "parameter_constraint",
       "agreement": true
     },
     {
@@ -25,7 +46,6 @@
       "category": "parameter_manipulation",
       "aegis_expected": "DENY",
       "opa_allowed": false,
-      "opa_reason": "parameter_constraint",
       "agreement": true
     },
     {
@@ -33,7 +53,6 @@
       "category": "parameter_manipulation",
       "aegis_expected": "DENY",
       "opa_allowed": false,
-      "opa_reason": "parameter_constraint",
       "agreement": true
     },
     {
@@ -41,7 +60,6 @@
       "category": "parameter_manipulation",
       "aegis_expected": "DENY",
       "opa_allowed": false,
-      "opa_reason": "parameter_constraint",
       "agreement": true
     },
     {
@@ -49,7 +67,6 @@
       "category": "parameter_manipulation",
       "aegis_expected": "DENY",
       "opa_allowed": false,
-      "opa_reason": "parameter_constraint",
       "agreement": true
     },
     {
@@ -57,7 +74,6 @@
       "category": "path_traversal",
       "aegis_expected": "DENY",
       "opa_allowed": true,
-      "opa_reason": "authorized",
       "agreement": false
     },
     {
@@ -65,7 +81,6 @@
       "category": "path_traversal",
       "aegis_expected": "DENY",
       "opa_allowed": false,
-      "opa_reason": "path_constraint",
       "agreement": true
     },
     {
@@ -73,7 +88,6 @@
       "category": "path_traversal",
       "aegis_expected": "DENY",
       "opa_allowed": false,
-      "opa_reason": "path_constraint",
       "agreement": true
     },
     {
@@ -81,7 +95,6 @@
       "category": "path_traversal",
       "aegis_expected": "DENY",
       "opa_allowed": true,
-      "opa_reason": "authorized",
       "agreement": false
     },
     {
@@ -89,7 +102,6 @@
       "category": "path_traversal",
       "aegis_expected": "DENY",
       "opa_allowed": true,
-      "opa_reason": "authorized",
       "agreement": false
     },
     {
@@ -97,7 +109,6 @@
       "category": "identity_action_violation",
       "aegis_expected": "DENY",
       "opa_allowed": false,
-      "opa_reason": "identity_mismatch",
       "agreement": true
     },
     {
@@ -105,7 +116,6 @@
       "category": "identity_action_violation",
       "aegis_expected": "DENY",
       "opa_allowed": false,
-      "opa_reason": "identity_mismatch",
       "agreement": true
     },
     {
@@ -113,7 +123,6 @@
       "category": "identity_action_violation",
       "aegis_expected": "DENY",
       "opa_allowed": false,
-      "opa_reason": "action_not_allowed",
       "agreement": true
     },
     {
@@ -121,7 +130,6 @@
       "category": "identity_action_violation",
       "aegis_expected": "DENY",
       "opa_allowed": false,
-      "opa_reason": "action_not_allowed",
       "agreement": true
     },
     {
@@ -129,7 +137,6 @@
       "category": "identity_action_violation",
       "aegis_expected": "DENY",
       "opa_allowed": false,
-      "opa_reason": "identity_mismatch",
       "agreement": true
     },
     {
@@ -137,7 +144,6 @@
       "category": "malformed_requests",
       "aegis_expected": "DENY",
       "opa_allowed": false,
-      "opa_reason": "parameter_missing",
       "agreement": true
     },
     {
@@ -145,7 +151,6 @@
       "category": "malformed_requests",
       "aegis_expected": "DENY",
       "opa_allowed": false,
-      "opa_reason": "parameter_missing",
       "agreement": true
     },
     {
@@ -153,23 +158,20 @@
       "category": "malformed_requests",
       "aegis_expected": "DENY",
       "opa_allowed": false,
-      "opa_reason": "parameter_missing",
       "agreement": true
     },
     {
       "case_id": "ADV-022",
       "category": "type_confusion",
       "aegis_expected": "DENY",
-      "opa_allowed": true,
-      "opa_reason": "authorized",
-      "agreement": false
+      "opa_allowed": false,
+      "agreement": true
     },
     {
       "case_id": "ADV-023",
       "category": "type_confusion",
       "aegis_expected": "DENY",
       "opa_allowed": false,
-      "opa_reason": "parameter_type",
       "agreement": true
     },
     {
@@ -177,7 +179,6 @@
       "category": "type_confusion",
       "aegis_expected": "DENY",
       "opa_allowed": false,
-      "opa_reason": "parameter_missing",
       "agreement": true
     },
     {
@@ -185,7 +186,6 @@
       "category": "unauthorized_tool_action",
       "aegis_expected": "DENY",
       "opa_allowed": false,
-      "opa_reason": "identity_mismatch",
       "agreement": true
     },
     {
@@ -193,7 +193,6 @@
       "category": "unauthorized_tool_action",
       "aegis_expected": "DENY",
       "opa_allowed": false,
-      "opa_reason": "action_not_allowed",
       "agreement": true
     }
   ]

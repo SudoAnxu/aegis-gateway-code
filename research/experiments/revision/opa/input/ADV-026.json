@@ -1,0 +1,6 @@
+{
+  "agent": "finance-agent",
+  "tool": "payments",
+  "action": "view_all_accounts",
+  "parameters": {}
+}
