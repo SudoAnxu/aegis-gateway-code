@@ -2,13 +2,13 @@
 """
 Publication-quality Phase 10 figures from raw trial JSONs.
 
-Figure 1  — End-to-End Latency Under Concurrent Load
+Figure 1 — End-to-End Latency Under Concurrent Load
   (a) Mean latency   (b) P99 latency
-  5 jittered raw observations + median marker + median connecting line.
+  5 raw observations per config + large median marker. No connecting lines.
 
-Figure 2  — Telemetry Latency Delta Relative to Baseline
+Figure 2 — Telemetry Latency Delta Relative to Baseline
   (a) Δ mean latency   (b) Δ P99 latency
-  Per-trial deltas (local/disabled, otlp/disabled) with zero baseline.
+  Per-trial deltas with zero baseline. No connecting lines.
 
 Also prints per-cell summary statistics to stdout.
 
@@ -18,7 +18,6 @@ Usage:
 
 import argparse
 import json
-import math
 import sys
 from pathlib import Path
 
@@ -41,17 +40,20 @@ LABELS = {
     "otlp":     "OTLP export",
 }
 
-# Grayscale-safe markers
 MARKERS = {"disabled": "o", "local": "s", "otlp": "^"}
 
-# Publication palette (distinguishable in grayscale)
+# Publication palette — distinguishable in grayscale
 COLORS = {
-    "disabled": "#1a1a1a",   # near-black
-    "local":    "#666666",   # mid-gray
-    "otlp":     "#999999",   # light gray
+    "disabled": "#1a1a1a",
+    "local":    "#666666",
+    "otlp":     "#999999",
 }
 
-JITTER_WIDTH = 35  # horizontal jitter半宽 (data units)
+# Sizing: raw dots small/light, median large/dark
+RAW_SIZE     = 28
+RAW_ALPHA    = 0.40
+MED_SIZE     = 110
+JITTER_WIDTH = 35
 
 
 # ============================================================
@@ -74,7 +76,6 @@ def load_trials(data_dir):
 
 
 def verify_and_print_stats(raw):
-    """Print per-cell summary statistics."""
     print("\n" + "=" * 78)
     print(f"{'Mode':10s} {'c=':>5s} {'n':>2s}  {'Median':>8s} {'Mean':>8s} "
           f"{'Std':>7s} {'Min':>8s} {'Max':>8s} {'IQR':>8s} {'CV%':>6s}")
@@ -99,7 +100,6 @@ def verify_and_print_stats(raw):
                 tag = "mean" if metric == "mean_ms" else "p99 "
                 print(f"{mode:10s} {c:5d} {n:2d}  {med:8.1f} {mn:8.1f} "
                       f"{sd:7.1f} {lo:8.1f} {hi:8.1f} {iqr:8.1f} {cv:5.1f}  [{tag}]")
-
             print()
 
     print("-" * 78)
@@ -115,7 +115,6 @@ def verify_and_print_stats(raw):
 # ============================================================
 
 def _jitter_xs(c, n, rng):
-    """Return n horizontally-jittered x positions around concurrency c."""
     offsets = rng.uniform(-JITTER_WIDTH, JITTER_WIDTH, n)
     return [c + o for o in offsets]
 
@@ -126,9 +125,9 @@ def plot_performance(raw, agg, out):
     for mode in MODES:
         color = COLORS[mode]
         marker = MARKERS[mode]
-
-        med_means, med_p99s = [], []
         rng = np.random.RandomState(hash(mode) % 2**31)
+
+        med_xs, med_ys_m, med_ys_p = [], [], []
 
         for c in CONCURRENCIES:
             trials = raw.get(mode, {}).get(c, [])
@@ -138,30 +137,25 @@ def plot_performance(raw, agg, out):
 
             xs = _jitter_xs(c, n, rng)
 
-            # Raw observations
+            # Raw observations — small, semi-transparent
             ax_m.scatter(xs, [t["mean_ms"] for t in trials],
-                         s=18, marker=marker, color=color, alpha=0.50,
-                         edgecolors="none", zorder=2)
+                         s=RAW_SIZE, marker=marker, color=color,
+                         alpha=RAW_ALPHA, edgecolors="none", zorder=2)
             ax_p.scatter(xs, [t["p99_ms"] for t in trials],
-                         s=18, marker=marker, color=color, alpha=0.50,
-                         edgecolors="none", zorder=2)
+                         s=RAW_SIZE, marker=marker, color=color,
+                         alpha=RAW_ALPHA, edgecolors="none", zorder=2)
 
-            med_m = agg[mode][c].get("median_mean_ms", 0)
-            med_p = agg[mode][c].get("median_p99_ms", 0)
-            med_means.append((c, med_m))
-            med_p99s.append((c, med_p))
+            # Collect median positions
+            med_xs.append(c)
+            med_ys_m.append(agg[mode][c].get("median_mean_ms", 0))
+            med_ys_p.append(agg[mode][c].get("median_p99_ms", 0))
 
-        # Median markers + connecting line
-        if med_means:
-            mx, my = zip(*med_means)
-            ax_m.plot(mx, my, "-", color=color, linewidth=0.8, alpha=0.6, zorder=3)
-            ax_m.scatter(mx, my, s=60, marker=marker, color=color,
+        # Median markers — large, opaque, black edge
+        if med_xs:
+            ax_m.scatter(med_xs, med_ys_m, s=MED_SIZE, marker=marker, color=color,
                          edgecolors="black", linewidths=0.7, zorder=4,
                          label=LABELS[mode])
-        if med_p99s:
-            px, py = zip(*med_p99s)
-            ax_p.plot(px, py, "-", color=color, linewidth=0.8, alpha=0.6, zorder=3)
-            ax_p.scatter(px, py, s=60, marker=marker, color=color,
+            ax_p.scatter(med_xs, med_ys_p, s=MED_SIZE, marker=marker, color=color,
                          edgecolors="black", linewidths=0.7, zorder=4,
                          label=LABELS[mode])
 
@@ -214,30 +208,29 @@ def plot_overhead(raw, agg, out):
             dp = [var[i]["p99_ms"]  - base[i]["p99_ms"]  for i in range(n)]
 
             xs = _jitter_xs(c, n, rng)
-            ax_m.scatter(xs, dm, s=18, marker=marker, color=color,
-                         alpha=0.50, edgecolors="none", zorder=2)
-            ax_p.scatter(xs, dp, s=18, marker=marker, color=color,
-                         alpha=0.50, edgecolors="none", zorder=2)
+            ax_m.scatter(xs, dm, s=RAW_SIZE, marker=marker, color=color,
+                         alpha=RAW_ALPHA, edgecolors="none", zorder=2)
+            ax_p.scatter(xs, dp, s=RAW_SIZE, marker=marker, color=color,
+                         alpha=RAW_ALPHA, edgecolors="none", zorder=2)
 
             med_dm.append((c, float(np.median(dm))))
             med_dp.append((c, float(np.median(dp))))
 
+        # Median markers — no connecting lines
         if med_dm:
             mx, my = zip(*med_dm)
-            ax_m.plot(mx, my, "-", color=color, linewidth=0.8, alpha=0.6, zorder=3)
-            ax_m.scatter(mx, my, s=60, marker=marker, color=color,
+            ax_m.scatter(mx, my, s=MED_SIZE, marker=marker, color=color,
                          edgecolors="black", linewidths=0.7, zorder=4,
                          label=LABELS[variant])
         if med_dp:
             px, py = zip(*med_dp)
-            ax_p.plot(px, py, "-", color=color, linewidth=0.8, alpha=0.6, zorder=3)
-            ax_p.scatter(px, py, s=60, marker=marker, color=color,
+            ax_p.scatter(px, py, s=MED_SIZE, marker=marker, color=color,
                          edgecolors="black", linewidths=0.7, zorder=4,
                          label=LABELS[variant])
 
-    # Zero baseline
+    # Zero baseline — prominent
     for ax in (ax_m, ax_p):
-        ax.axhline(0, color="black", linewidth=0.5, alpha=0.35, zorder=1)
+        ax.axhline(0, color="black", linewidth=0.6, alpha=0.50, zorder=1)
         ax.set_xticks(CONCURRENCIES)
         ax.set_xticklabels(["100", "500", "1,000"])
         ax.set_xlabel("Concurrency")
