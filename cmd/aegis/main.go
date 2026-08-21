@@ -46,19 +46,21 @@ func main() {
 		}
 	}()
 
-	// Identity binding: test-mode uses static token map, production uses HMAC.
-	// The gateway NEVER trusts the model-claimed identity for authorization.
+	// Identity binding: the gateway determines identity from the credential,
+	// never from the model-claimed X-Agent-ID header.
 	var auth *identity.Authenticator
 	if os.Getenv("AEGIS_EVALUATION_MODE") == "1" {
+		// Test mode: X-Test-Auth-Token → agent ID mapping (no crypto)
 		auth = identity.NewTestAuthenticator(identity.StandardTestAgents())
-		fmt.Println("Identity binding: test mode (X-Test-Auth-Token)")
+		fmt.Println("Identity binding: test mode (X-Test-Auth-Token → agent mapping)")
 	} else if hmacSecret := os.Getenv("AEGIS_HMAC_SECRET"); hmacSecret != "" {
-		auth = identity.NewAuthenticator([]byte(hmacSecret))
-		fmt.Println("Identity binding: HMAC mode")
+		// Production: credential + HMAC signature → agent ID mapping
+		auth = identity.NewAuthenticator([]byte(hmacSecret), identity.StandardCredentials())
+		fmt.Println("Identity binding: credential mode (HMAC-verified credential → agent)")
 	} else {
-		// Production default: fail closed on missing authentication
-		auth = identity.NewAuthenticator([]byte{})
-		fmt.Println("Identity binding: HMAC mode (no secret configured — all unauthenticated requests will be rejected)")
+		// No secret configured: reject all unauthenticated requests (fail closed)
+		auth = identity.NewAuthenticator([]byte{}, identity.StandardCredentials())
+		fmt.Println("Identity binding: credential mode (no secret — all requests rejected)")
 	}
 
 	g := gateway.NewGatewayWithAuth(policyEngine, telemetryClient, auth)

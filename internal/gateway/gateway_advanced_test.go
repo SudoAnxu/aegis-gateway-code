@@ -1,0 +1,372 @@
+package gateway
+
+import (
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"sync"
+	"sync/atomic"
+	"testing"
+	"time"
+
+	"aegis-gateway/internal/identity"
+	"aegis-gateway/internal/policy"
+	"aegis-gateway/pkg/telemetry"
+)
+
+// TestPolicyReloadFailure verifies that when a policy file is replaced with
+// malformed YAML, the previous valid policy remains active and authorization
+// decisions are unaffected.
+func TestPolicyReloadFailure(t *testing.T) {
+	dir := t.TempDir()
+
+	// Step 1: Write valid finance policy
+	financePolicy := []byte(`version: 1
+agents:
+  - id: finance-agent
+    allow:
+      - tool: payments
+        actions: [create, refund]
+        conditions:
+          min_amount: 0
+          max_amount: 5000
+          currencies: [USD, EUR]
+`)
+	policyFile := filepath.Join(dir, "finance-agent.yaml")
+	if err := os.WriteFile(policyFile, financePolicy, 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Step 2: Start gateway with valid policy
+	logDir := t.TempDir()
+	auth := identity.NewTestAuthenticator(identity.StandardTestAgents())
+	pe, err := policy.NewPolicyEngine(dir)
+	if err != nil {
+		t.Fatalf("NewPolicyEngine: %v", err)
+	}
+	defer pe.Close()
+
+	tc, _ := telemetry.NewTelemetry("test-reload", logDir)
+	defer tc.Close()
+
+	g := NewGatewayWithAuth(pe, tc, auth)
+
+	// Step 3: Verify valid request works
+	req := makeRequest("POST", "/tools/payments/create", `{"amount":100,"currency":"USD"}`, "test-finance-token", "finance-agent")
+	w := httptest.NewRecorder()
+	g.HandleRequest(w, req)
+	if w.Code != http.StatusOK {
+		t.Fatalf("initial request: expected 200, got %d", w.Code)
+	}
+
+	// Step 4: Replace policy with malformed YAML
+	malformedPolicy := []byte(`version: 1
+agents:
+  - id: finance-agent
+    allow:
+      - tool: payments
+        INVALID YAML !@#$%:
+`)
+	if err := os.WriteFile(policyFile, malformedPolicy, 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	// Step 5: Wait for hot-reload to process
+	time.Sleep(200 * time.Millisecond)
+
+	// Step 6: Verify previous policy is still active
+	req2 := makeRequest("POST", "/tools/payments/create", `{"amount":100,"currency":"USD"}`, "test-finance-token", "finance-agent")
+	w2 := httptest.NewRecorder()
+	g.HandleRequest(w2, req2)
+	if w2.Code != http.StatusOK {
+		t.Errorf("after malformed reload: expected 200 (previous policy active), got %d", w2.Code)
+	}
+
+	// Step 7: Verify denied request is still denied
+	req3 := makeRequest("POST", "/tools/payments/create", `{"amount":99999,"currency":"USD"}`, "test-finance-token", "finance-agent")
+	w3 := httptest.NewRecorder()
+	g.HandleRequest(w3, req3)
+	if w3.Code != http.StatusForbidden {
+		t.Errorf("after malformed reload: expected 403 for over-limit, got %d", w3.Code)
+	}
+}
+
+// TestConcurrentPolicyReadsDuringReload verifies that concurrent policy
+// evaluations during a hot-reload do not crash or produce inconsistent results.
+func TestConcurrentPolicyReadsDuringReload(t *testing.T) {
+	dir := t.TempDir()
+
+	policyFile := filepath.Join(dir, "finance-agent.yaml")
+	if err := os.WriteFile(policyFile, []byte(`version: 1
+agents:
+  - id: finance-agent
+    allow:
+      - tool: payments
+        actions: [create, refund]
+        conditions:
+          min_amount: 0
+          max_amount: 5000
+          currencies: [USD, EUR]
+`), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	logDir := t.TempDir()
+	auth := identity.NewTestAuthenticator(identity.StandardTestAgents())
+	pe, err := policy.NewPolicyEngine(dir)
+	if err != nil {
+		t.Fatalf("NewPolicyEngine: %v", err)
+	}
+	defer pe.Close()
+
+	tc, _ := telemetry.NewTelemetry("test-concurrent-reload", logDir)
+	defer tc.Close()
+
+	g := NewGatewayWithAuth(pe, tc, auth)
+
+	var allowed int64
+	var denied int64
+
+	// Start concurrent evaluations
+	var done = make(chan struct{})
+	go func() {
+		for {
+			select {
+			case <-done:
+				return
+			default:
+				req := makeRequest("POST", "/tools/payments/create", `{"amount":100,"currency":"USD"}`, "test-finance-token", "finance-agent")
+				w := httptest.NewRecorder()
+				g.HandleRequest(w, req)
+				if w.Code == http.StatusOK {
+					atomic.AddInt64(&allowed, 1)
+				} else {
+					atomic.AddInt64(&denied, 1)
+				}
+			}
+		}
+	}()
+
+	// Trigger multiple reloads while evaluations are running
+	for i := 0; i < 5; i++ {
+		time.Sleep(50 * time.Millisecond)
+		// Write valid policy
+		os.WriteFile(policyFile, []byte(`version: 1
+agents:
+  - id: finance-agent
+    allow:
+      - tool: payments
+        actions: [create, refund]
+        conditions:
+          min_amount: 0
+          max_amount: 5000
+          currencies: [USD, EUR]
+`), 0644)
+	}
+
+	time.Sleep(300 * time.Millisecond)
+	close(done)
+	time.Sleep(100 * time.Millisecond)
+
+	total := atomic.LoadInt64(&allowed) + atomic.LoadInt64(&denied)
+	if total == 0 {
+		t.Error("no requests processed")
+	}
+	// All requests should have been either allowed or denied, never crashed
+	t.Logf("concurrent policy reads: %d allowed, %d denied, %d total", allowed, denied, total)
+}
+
+// testGatewayWithDownstream creates a gateway with a mock downstream server
+// and returns the execution counter.
+func testGatewayWithDownstream(t *testing.T) (*Gateway, *int64) {
+	t.Helper()
+
+	dir := t.TempDir()
+	policyFile := filepath.Join(dir, "finance-agent.yaml")
+	os.WriteFile(policyFile, []byte(`version: 1
+agents:
+  - id: finance-agent
+    allow:
+      - tool: payments
+        actions: [create, refund]
+        conditions:
+          min_amount: 0
+          max_amount: 5000
+          currencies: [USD, EUR]
+`), 0644)
+
+	logDir := t.TempDir()
+	auth := identity.NewTestAuthenticator(identity.StandardTestAgents())
+	pe, _ := policy.NewPolicyEngine(dir)
+	t.Cleanup(func() { pe.Close() })
+
+	tc, _ := telemetry.NewTelemetry("test-downstream", logDir)
+	t.Cleanup(func() { tc.Close() })
+
+	g := NewGatewayWithAuth(pe, tc, auth)
+
+	// Track downstream executions
+	var execCount int64
+	mockDownstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		atomic.AddInt64(&execCount, 1)
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(`{"status":"ok"}`))
+	}))
+	t.Cleanup(func() { mockDownstream.Close() })
+
+	// Override tool URL to point to mock
+	g.toolURLs["payments"] = mockDownstream.URL
+
+	return g, &execCount
+}
+
+// TestDownstreamDenyPolicy verifies zero downstream execution on policy DENY.
+func TestDownstreamDenyPolicy(t *testing.T) {
+	g, execCount := testGatewayWithDownstream(t)
+
+	req := makeRequest("POST", "/tools/payments/create", `{"amount":10000,"currency":"USD"}`, "test-finance-token", "finance-agent")
+	w := httptest.NewRecorder()
+	g.HandleRequest(w, req)
+
+	if w.Code != http.StatusForbidden {
+		t.Errorf("expected 403, got %d", w.Code)
+	}
+	if atomic.LoadInt64(execCount) != 0 {
+		t.Errorf("SECURITY VIOLATION: downstream executed %d times after DENY", atomic.LoadInt64(execCount))
+	}
+}
+
+// TestDownstreamDenyIdentity verifies zero downstream execution on identity DENY.
+func TestDownstreamDenyIdentity(t *testing.T) {
+	g, execCount := testGatewayWithDownstream(t)
+
+	req := makeRequest("POST", "/tools/payments/create", `{"amount":100,"currency":"USD"}`, "test-admin-token", "admin-agent")
+	w := httptest.NewRecorder()
+	g.HandleRequest(w, req)
+
+	if w.Code != http.StatusForbidden {
+		t.Errorf("expected 403, got %d", w.Code)
+	}
+	if atomic.LoadInt64(execCount) != 0 {
+		t.Errorf("SECURITY VIOLATION: downstream executed after identity DENY")
+	}
+}
+
+// TestDownstreamDenyParameter verifies zero downstream execution on parameter DENY.
+func TestDownstreamDenyParameter(t *testing.T) {
+	g, execCount := testGatewayWithDownstream(t)
+
+	req := makeRequest("POST", "/tools/payments/create", `{"amount":100,"currency":"GBP"}`, "test-finance-token", "finance-agent")
+	w := httptest.NewRecorder()
+	g.HandleRequest(w, req)
+
+	if w.Code != http.StatusForbidden {
+		t.Errorf("expected 403, got %d", w.Code)
+	}
+	if atomic.LoadInt64(execCount) != 0 {
+		t.Errorf("SECURITY VIOLATION: downstream executed after parameter DENY")
+	}
+}
+
+// TestDownstreamDenySpoofing verifies zero downstream execution on identity spoofing.
+func TestDownstreamDenySpoofing(t *testing.T) {
+	g, execCount := testGatewayWithDownstream(t)
+
+	req := makeRequest("POST", "/tools/payments/create", `{"amount":100,"currency":"USD"}`, "test-finance-token", "hr-agent")
+	w := httptest.NewRecorder()
+	g.HandleRequest(w, req)
+
+	// Finance agent CAN create payments — this should be ALLOW
+	if w.Code == http.StatusOK {
+		t.Logf("identity spoofing: request allowed (finance-agent is authorized for payments)")
+	}
+
+	// The key property: if denied, downstream must not execute
+	if w.Code == http.StatusForbidden && atomic.LoadInt64(execCount) != 0 {
+		t.Errorf("SECURITY VIOLATION: downstream executed after DENY")
+	}
+}
+
+// TestDownstreamAllowExecutesExactlyOnce verifies that an ALLOWED request
+// results in exactly one downstream execution.
+func TestDownstreamAllowExecutesExactlyOnce(t *testing.T) {
+	g, execCount := testGatewayWithDownstream(t)
+
+	req := makeRequest("POST", "/tools/payments/create", `{"amount":100,"currency":"USD"}`, "test-finance-token", "finance-agent")
+	w := httptest.NewRecorder()
+	g.HandleRequest(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", w.Code)
+	}
+	if atomic.LoadInt64(execCount) != 1 {
+		t.Errorf("expected exactly 1 downstream execution, got %d", atomic.LoadInt64(execCount))
+	}
+}
+
+// TestDownstreamDenyDuplicateRequest verifies zero downstream execution for duplicate requests.
+func TestDownstreamDenyDuplicateRequest(t *testing.T) {
+	g, execCount := testGatewayWithDownstream(t)
+
+	// Seed the state with an existing transaction
+	g.state.ReserveCreate("tx-dup-test")
+	g.state.CommitCreate("tx-dup-test")
+
+	// Try to create same transaction — should be denied
+	body := `{"transaction_id":"tx-dup-test","amount":100,"currency":"USD"}`
+	req := makeRequest("POST", "/tools/payments/create", body, "test-finance-token", "finance-agent")
+	w := httptest.NewRecorder()
+	g.HandleRequest(w, req)
+
+	if w.Code != http.StatusForbidden {
+		t.Errorf("expected 403 for duplicate create, got %d", w.Code)
+	}
+	if atomic.LoadInt64(execCount) != 0 {
+		t.Errorf("SECURITY VIOLATION: downstream executed %d times for duplicate request", atomic.LoadInt64(execCount))
+	}
+}
+
+// TestDownstreamConcurrentDuplicates verifies zero duplicate downstream executions
+// under concurrent load.
+func TestDownstreamConcurrentDuplicates(t *testing.T) {
+	g, execCount := testGatewayWithDownstream(t)
+
+	const N = 50
+	var wg sync.WaitGroup
+	wg.Add(N)
+
+	for i := 0; i < N; i++ {
+		go func() {
+			defer wg.Done()
+			body := `{"transaction_id":"tx-concurrent-dup","amount":100,"currency":"USD"}`
+			req := makeRequest("POST", "/tools/payments/create", body, "test-finance-token", "finance-agent")
+			w := httptest.NewRecorder()
+			g.HandleRequest(w, req)
+		}()
+	}
+
+	wg.Wait()
+
+	// Exactly one downstream execution should have occurred
+	count := atomic.LoadInt64(execCount)
+	if count != 1 {
+		t.Errorf("SECURITY VIOLATION: %d downstream executions for %d concurrent duplicate requests (expected 1)", count, N)
+	}
+}
+
+// TestDownstreamDenyMalformedInput verifies zero downstream execution for malformed input.
+func TestDownstreamDenyMalformedInput(t *testing.T) {
+	g, execCount := testGatewayWithDownstream(t)
+
+	req := makeRequest("POST", "/tools/payments/create", `not-json`, "test-finance-token", "finance-agent")
+	w := httptest.NewRecorder()
+	g.HandleRequest(w, req)
+
+	if w.Code != http.StatusBadRequest {
+		t.Errorf("expected 400, got %d", w.Code)
+	}
+	if atomic.LoadInt64(execCount) != 0 {
+		t.Errorf("SECURITY VIOLATION: downstream executed after malformed input")
+	}
+}

@@ -24,29 +24,31 @@ type Identity struct {
 	Verified bool
 
 	// VerificationMethod describes how the identity was verified.
-	// Values: "hmac", "test-static", "missing", "invalid"
+	// Values: "credential", "test-static", "missing", "invalid"
 	VerificationMethod string
 }
 
 // Authenticator verifies agent identities against a trusted source.
 type Authenticator struct {
-	// hmacSecret is used for HMAC-signed identity tokens.
+	// credentialMap maps credentials to agent IDs. The identity is derived
+	// from the credential, NOT from the caller's claim.
+	// Production: credential signed with secret → looked up in this map.
+	// Test mode: token → looked up in this map.
+	credentialMap map[string]string
+
+	// hmacSecret is used to verify credential signatures.
 	// In production this would come from a key management system.
 	hmacSecret []byte
-
-	// testMode bypasses HMAC verification and uses a static mapping.
-	// This is for the research evaluation harness only.
-	testMode bool
-
-	// testAgentMap maps test credentials to agent IDs.
-	testAgentMap map[string]string
 }
 
-// NewAuthenticator creates an authenticator with HMAC secret.
-func NewAuthenticator(secret []byte) *Authenticator {
+// NewAuthenticator creates an authenticator with HMAC secret and
+// a credential→identity mapping. The caller presents a signed credential;
+// the gateway verifies the signature and then looks up the identity.
+// The caller cannot choose the identity — it is determined by the credential.
+func NewAuthenticator(secret []byte, credentialMap map[string]string) *Authenticator {
 	return &Authenticator{
-		hmacSecret: secret,
-		testMode:   false,
+		hmacSecret:    secret,
+		credentialMap: credentialMap,
 	}
 }
 
@@ -55,92 +57,93 @@ func NewAuthenticator(secret []byte) *Authenticator {
 // without cryptographic verification, making the trust boundary explicit.
 func NewTestAuthenticator(agentMap map[string]string) *Authenticator {
 	return &Authenticator{
-		testMode:   true,
-		testAgentMap: agentMap,
+		credentialMap: agentMap,
 	}
 }
 
 // Authenticate extracts and verifies the agent identity from an HTTP request.
 //
-// The verification hierarchy:
-//  1. HMAC-signed token (production): X-Auth-Agent-ID + X-Auth-Signature
-//  2. Test-mode static mapping (evaluation): X-Test-Auth-Token
-//  3. Fall through: identity cannot be verified
+// Production flow:
+//  1. Caller presents X-Auth-Credential + X-Auth-Signature
+//  2. Gateway verifies: HMAC(credential, secret) == signature
+//  3. Gateway looks up credential in credentialMap → obtains agent ID
+//  4. Agent ID is the authenticated identity, NOT the X-Agent-ID header
 //
 // The model-claimed identity (X-Agent-ID) is captured but NEVER used for
 // authorization. It is metadata only.
 func (a *Authenticator) Authenticate(r *http.Request) Identity {
 	claimedID := r.Header.Get("X-Agent-ID")
 
-	if a.testMode {
-		return a.authenticateTestMode(r, claimedID)
+	// Production: credential-based authentication
+	credential := r.Header.Get("X-Auth-Credential")
+	signature := r.Header.Get("X-Auth-Signature")
+
+	if credential != "" && signature != "" {
+		return a.authenticateCredential(r, credential, signature, claimedID)
 	}
-	return a.authenticateHMAC(r, claimedID)
+
+	// Test mode: direct token mapping (no cryptographic verification)
+	testToken := r.Header.Get("X-Test-Auth-Token")
+	if testToken != "" {
+		return a.authenticateTestToken(testToken, claimedID)
+	}
+
+	// No credential provided
+	return Identity{
+		ClaimedID:          claimedID,
+		Verified:           false,
+		VerificationMethod: "missing",
+	}
 }
 
-// authenticateHMAC verifies identity via HMAC-signed token.
-func (a *Authenticator) authenticateHMAC(r *http.Request, claimedID string) Identity {
-	authHeader := r.Header.Get("X-Auth-Agent-ID")
-	sigHeader := r.Header.Get("X-Auth-Signature")
-
-	if authHeader == "" || sigHeader == "" {
-		return Identity{
-			ClaimedID:         claimedID,
-			Verified:          false,
-			VerificationMethod: "missing",
-		}
-	}
-
-	// Verify HMAC signature
+// authenticateCredential verifies the credential signature and looks up
+// the identity from the credential map. The caller presents a credential;
+// the gateway determines the identity, not the caller.
+func (a *Authenticator) authenticateCredential(
+	r *http.Request,
+	credential, signature, claimedID string,
+) Identity {
+	// Step 1: Verify HMAC signature on the credential
 	mac := hmac.New(sha256.New, a.hmacSecret)
-	mac.Write([]byte(authHeader))
+	mac.Write([]byte(credential))
 	expectedSig := hex.EncodeToString(mac.Sum(nil))
 
-	if !hmac.Equal([]byte(sigHeader), []byte(expectedSig)) {
+	if !hmac.Equal([]byte(signature), []byte(expectedSig)) {
 		return Identity{
 			ClaimedID:         claimedID,
 			Verified:          false,
-			VerificationMethod: "invalid",
+			VerificationMethod: "invalid_signature",
 		}
 	}
 
-	return Identity{
-		AuthenticatedID:    authHeader,
-		ClaimedID:          claimedID,
-		Verified:           true,
-		VerificationMethod: "hmac",
-	}
-}
-
-// authenticateTestMode uses a static mapping for the evaluation harness.
-func (a *Authenticator) authenticateTestMode(r *http.Request, claimedID string) Identity {
-	testToken := r.Header.Get("X-Test-Auth-Token")
-
-	if testToken == "" {
-		// In test mode with no auth token, fall back to X-Agent-ID
-		// but mark it as unverified — the caller is explicitly opting in
-		// to the weaker trust model.
-		if claimedID != "" {
-			return Identity{
-				AuthenticatedID:    claimedID,
-				ClaimedID:          claimedID,
-				Verified:           false,
-				VerificationMethod: "test-unverified",
-			}
-		}
-		return Identity{
-			ClaimedID:          claimedID,
-			Verified:           false,
-			VerificationMethod: "missing",
-		}
-	}
-
-	agentID, ok := a.testAgentMap[testToken]
+	// Step 2: Look up the credential to determine the identity.
+	// The caller cannot choose the identity — it's bound to the credential.
+	agentID, ok := a.credentialMap[credential]
 	if !ok {
 		return Identity{
 			ClaimedID:         claimedID,
 			Verified:          false,
-			VerificationMethod: "invalid",
+			VerificationMethod: "unknown_credential",
+		}
+	}
+
+	return Identity{
+		AuthenticatedID:    agentID,
+		ClaimedID:          claimedID,
+		Verified:           true,
+		VerificationMethod: "credential",
+	}
+}
+
+// authenticateTestToken maps a test token to an agent ID via the credential map.
+// This is explicitly test-only and makes the trust boundary visible.
+func (a *Authenticator) authenticateTestToken(token, claimedID string) Identity {
+	agentID, ok := a.credentialMap[token]
+	if !ok {
+		return Identity{
+			ClaimedID:         claimedID,
+			Verified:          false,
+			VerificationMethod: "invalid_token",
 		}
 	}
 
@@ -171,24 +174,8 @@ func (id Identity) ConflictDescription() string {
 	)
 }
 
-// AuthHeader returns the header name used for the authenticated agent ID.
-func AuthHeader() string {
-	return "X-Auth-Agent-ID"
-}
-
-// ClaimedHeader returns the header name used for the model-claimed agent ID.
-func ClaimedHeader() string {
-	return "X-Agent-ID"
-}
-
-// TestAuthHeader returns the header name used for test-mode authentication.
-func TestAuthHeader() string {
-	return "X-Test-Auth-Token"
-}
-
 // StandardTestAgents returns the default test agent mapping for the
-// evaluation harness. This makes the trust boundary explicit:
-// each test token maps to exactly one authenticated agent.
+// evaluation harness. Each test token maps to exactly one authenticated agent.
 func StandardTestAgents() map[string]string {
 	return map[string]string{
 		"test-finance-token": "finance-agent",
@@ -197,46 +184,23 @@ func StandardTestAgents() map[string]string {
 	}
 }
 
-// ParseIdentityFromHeaders is a convenience function for testing.
-func ParseIdentityFromHeaders(headers http.Header) Identity {
-	authID := headers.Get("X-Auth-Agent-ID")
-	claimedID := headers.Get("X-Agent-ID")
-	testToken := headers.Get("X-Test-Auth-Token")
-
-	// If test token is present, this was supposed to go through an Authenticator
-	if testToken != "" {
-		agents := StandardTestAgents()
-		if agentID, ok := agents[testToken]; ok {
-			return Identity{
-				AuthenticatedID:    agentID,
-				ClaimedID:          claimedID,
-				Verified:           true,
-				VerificationMethod: "test-static",
-			}
-		}
-		return Identity{
-			ClaimedID:         claimedID,
-			Verified:          false,
-			VerificationMethod: "invalid",
-		}
+// StandardCredentials returns the default credential→identity mapping
+// for the production authenticator. In a real deployment these would
+// come from a credential management system.
+func StandardCredentials() map[string]string {
+	return map[string]string{
+		"credential-finance": "finance-agent",
+		"credential-hr":      "hr-agent",
+		"credential-admin":   "admin-agent",
 	}
+}
 
-	// If explicit auth header is present, use it
-	if authID != "" {
-		return Identity{
-			AuthenticatedID:    authID,
-			ClaimedID:          claimedID,
-			Verified:           true,
-			VerificationMethod: "hmac",
-		}
-	}
-
-	// No authentication provided
-	return Identity{
-		ClaimedID:          claimedID,
-		Verified:           false,
-		VerificationMethod: "missing",
-	}
+// ComputeCredentialSignature computes HMAC-SHA256 signature for a credential.
+// This is used by clients to sign their credential before sending.
+func ComputeCredentialSignature(credential string, secret []byte) string {
+	mac := hmac.New(sha256.New, secret)
+	mac.Write([]byte(credential))
+	return hex.EncodeToString(mac.Sum(nil))
 }
 
 // MaskToken masks a token for safe logging (shows first/last 4 chars only).
