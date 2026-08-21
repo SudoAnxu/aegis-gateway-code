@@ -1,0 +1,62 @@
+{
+  "adjudication_version": "1.0",
+  "generated": "revision-phase",
+  "purpose": "Document the V2 → V3 transition in the Phase 9 independent validation",
+  "v2": {
+    "artifact": "research/experiments/phase9_independent_validation/independent_cases_v2.json",
+    "audit_artifact": "research/experiments/results/phase9_independent_validation/independent_cases_v2_oracle_audit.json",
+    "sample_size": 300,
+    "agreement_count": 298,
+    "agreement_rate": 0.9933333333333333,
+    "cohen_kappa": 0.973368841544607,
+    "disagreement_count": 2,
+    "label_counts": {
+      "independent": {"ALLOW": 45, "DENY": 255},
+      "oracle": {"ALLOW": 43, "DENY": 257}
+    },
+    "status": "preserved unchanged; not modified retroactively"
+  },
+  "v3": {
+    "artifact": "research/experiments/phase9_independent_validation/independent_cases_v3.json",
+    "audit_artifact": "research/experiments/results/phase9_independent_validation/independent_cases_v3_oracle_audit.json",
+    "sample_size": 300,
+    "agreement_count": 300,
+    "agreement_rate": 1.0,
+    "cohen_kappa": 1.0,
+    "disagreement_count": 0,
+    "label_counts": {
+      "independent": {"ALLOW": 43, "DENY": 257},
+      "oracle": {"ALLOW": 43, "DENY": 257}
+    },
+    "content_sha256": "d3f309ee04fc66d341560ebeab0d26e39f54c64cf0029ec02c5c994f59561d85",
+    "status": "corrected; regenerated from contract with fixed interpretations"
+  },
+  "disagreements": [
+    {
+      "case_id": "IR2-186",
+      "category": "path_constraints",
+      "v2_independent_label": "ALLOW",
+      "v2_independent_reason": "authorized HR file read within the documented prefix",
+      "oracle_label": "DENY",
+      "oracle_reason": "path_constraint",
+      "root_cause": "The V2 labeler treated the relative path 'hr-docs/a.txt' as an authorized HR path, whereas the declared policy surface uses the absolute '/hr-docs/' namespace.",
+      "resolution": "V3 generator uses only absolute paths matching the declared policy prefix. The relative path was a labeling error in the V2 case construction.",
+      "resolution_type": "labeling_error",
+      "v3_status": "case regenerated with corrected absolute path"
+    },
+    {
+      "case_id": "IR2-298",
+      "category": "stateful_sequence",
+      "v2_independent_label": "ALLOW",
+      "v2_independent_reason": "authorized operation within the documented policy constraints",
+      "oracle_label": "DENY",
+      "oracle_reason": "state_invalid_transition",
+      "root_cause": "The V2 labeler treated duplicate 'payment_created' events as sufficient evidence for refund authorization, whereas the state contract rejects duplicate creation as an invalid transition.",
+      "resolution": "V3 generator correctly applies the state contract: duplicate payment creation is an invalid transition, so a subsequent refund is denied.",
+      "resolution_type": "specification_misinterpretation",
+      "v3_status": "case regenerated with corrected state-transition semantics"
+    }
+  ],
+  "adjudication_method": "Both disagreements were traced to inconsistencies in the V2 labeling logic. The V2 corpus was not modified; V3 was regenerated with corrected contract interpretations.",
+  "key_finding": "The 2 V2 disagreements were labeling errors, not oracle errors. Both cases were corrected in V3, which achieved 300/300 agreement with the oracle."
+}

@@ -1,0 +1,123 @@
+{
+  "manifest_version": "1.0",
+  "generated": "revision-phase",
+  "purpose": "Machine-readable benchmark lineage manifest for the Aegis evaluation corpus",
+  "benchmarks": [
+    {
+      "id": "v0.1",
+      "file": "research/benchmarks/benchmark_v0.1.json",
+      "version": "0.1",
+      "scenario_count": 35,
+      "seed_count": 21,
+      "mutation_count": 14,
+      "content_sha256": "f6832fa346dd0626f94e284b52239938a9240ea9388a51931e7121b13fa99e13",
+      "generator": "seed_cases.json + generated_cases.json",
+      "role": "initial benchmark prototype"
+    },
+    {
+      "id": "v0.2",
+      "file": "research/benchmarks/benchmark_v0.2.json",
+      "version": "0.2",
+      "scenario_count": 33,
+      "seed_count": 21,
+      "mutation_count": 12,
+      "content_sha256": "c67f071e94efb5aaa3b33d2cf0256218ec7e5088e9267f30d58d3ef37b258e6e",
+      "generator": "seed_cases_v0.2.json + generated_cases_v0.2.json",
+      "role": "refined benchmark with corrected refund semantics"
+    },
+    {
+      "id": "development_static_v1",
+      "file": "research/aegisbench/splits/development_static_v1.json",
+      "version": "1.0-static",
+      "scenario_count": 876,
+      "content_sha256": "internal:3f9f3843f97551e8adb2aa257f68b13a7439f12f6aa6eff0d897171aa70c0d77",
+      "generator_version": "aegisbench-expand-v3",
+      "role": "Phase 8 development split (static, no stateful cases)"
+    },
+    {
+      "id": "heldout_static_v1",
+      "file": "research/aegisbench/splits/heldout_static_v1.json",
+      "version": "1.0-static",
+      "scenario_count": 522,
+      "content_sha256": "internal:17865ea0648f234efa0d777f71b6ceb802ee89bbdab66dd064f3d557b0c6173c",
+      "generator_version": "aegisbench-expand-v3",
+      "role": "Phase 8 held-out split (static, no stateful cases)",
+      "categories": {
+        "legitimate": 119,
+        "parameter_constraints": 136,
+        "identity_violation": 92,
+        "action_authorization": 75,
+        "path_constraints": 56,
+        "malformed": 41,
+        "unauthorized_tool": 3
+      }
+    },
+    {
+      "id": "development_expanded_v1",
+      "file": "research/aegisbench/splits/development_expanded_v1.json",
+      "version": "1.0-expanded",
+      "scenario_count": 951,
+      "content_sha256": "internal:5edc4213f043f2f36176712dcc156ae846d3954ce26ad38b1280a25a42b3c9b6",
+      "generator_version": "aegisbench-expand-v3",
+      "role": "Phase 9 development split (expanded with stateful cases)"
+    },
+    {
+      "id": "heldout_expanded_v1",
+      "file": "research/aegisbench/splits/heldout_expanded_v1.json",
+      "version": "1.0-expanded",
+      "scenario_count": 557,
+      "content_sha256": "internal:61b2871cd20be10fcfc3d9124b0bbc68f7f5ab1ae178b66a98fc7309beab0e86",
+      "generator_version": "aegisbench-expand-v3",
+      "role": "Phase 9 held-out split (expanded with stateful cases)",
+      "categories": {
+        "legitimate": 119,
+        "parameter_constraints": 136,
+        "identity_violation": 92,
+        "action_authorization": 75,
+        "path_constraints": 56,
+        "malformed": 41,
+        "unauthorized_tool": 3,
+        "stateful_sequence": 35
+      },
+      "expansion_notes": "35 stateful_sequence cases added; all 522 static IDs are a strict subset"
+    },
+    {
+      "id": "independent_v3",
+      "file": "research/experiments/phase9_independent_validation/independent_cases_v3.json",
+      "version": "v3",
+      "scenario_count": 300,
+      "content_sha256": "internal:d3f309ee04fc66d341560ebeab0d26e39f54c64cf0029ec02c5c994f59561d85",
+      "role": "Phase 9 independent validation set (contract-derived, NOT a subset of held-out)",
+      "categories": {
+        "legitimate": 40,
+        "parameter_constraints": 55,
+        "identity_violation": 45,
+        "action_authorization": 40,
+        "path_constraints": 40,
+        "malformed": 55,
+        "unauthorized_tool": 15,
+        "stateful_sequence": 10
+      }
+    }
+  ],
+  "lineage": {
+    "heldout_522_to_557": {
+      "explanation": "The 522-case static held-out is a strict subset of the 557-case expanded held-out. The 35 additional cases are all stateful_sequence category, added to address a documented coverage gap.",
+      "overlap": {
+        "static_in_expanded": 522,
+        "static_only": 0,
+        "expanded_only": 35
+      }
+    },
+    "independent_300": {
+      "explanation": "The 300-case independent validation set was authored independently from the held-out corpora. It is not a subset of either 522 or 557."
+    }
+  },
+  "full_corpus_crosscheck": {
+    "total_scenarios": 1508,
+    "development_count": 951,
+    "heldout_count": 557,
+    "oracle_agreement": "1508/1508 (100.000000%)",
+    "oracle_implementation": "independent_oracle_v2.py (no imports from Aegis or aegisbench)"
+  }
+}

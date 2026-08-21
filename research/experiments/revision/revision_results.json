@@ -1,0 +1,134 @@
+{
+  "revision_version": "1.0",
+  "generated": "revision-phase",
+  "frozen_evidence_sha": "efa3b995f177a9a812e0f6602a3443b5bb19e58c",
+  "frozen_evidence_tag": "phase10-evaluation-v1",
+  "branch": "research/phase9-independent-validation",
+  "tasks": {
+    "task_0_freeze": {
+      "status": "complete",
+      "description": "Preserved all existing Phase 8/9/10 evidence"
+    },
+    "task_1_benchmark_lineage": {
+      "status": "complete",
+      "resolution": "35 additional cases are stateful_sequence additions; 522 static IDs are strict subset of 557 expanded",
+      "static_heldout": 522,
+      "expanded_heldout": 557,
+      "overlap": 522,
+      "new_cases": 35,
+      "new_category": "stateful_sequence"
+    },
+    "task_2_adjudication": {
+      "status": "complete",
+      "v2_agreement": "298/300 (99.33%)",
+      "v2_kappa": 0.973,
+      "v3_agreement": "300/300 (100.00%)",
+      "v3_kappa": 1.0,
+      "disagreements_resolved": 2,
+      "root_causes": ["path_normalization", "state_transition_misinterpretation"]
+    },
+    "task_3_llm_expansion": {
+      "status": "manifest_created",
+      "adversarial_cases": 30,
+      "legitimate_controls": 10,
+      "total_cases": 40,
+      "categories": [
+        "parameter_manipulation",
+        "path_traversal",
+        "identity_action_violation",
+        "state_replay",
+        "malformed_requests",
+        "type_confusion",
+        "unauthorized_tool_action",
+        "stateful_violations"
+      ],
+      "evaluation_not_yet_run": true,
+      "reason": "Requires API access to execute across 4-5 models"
+    },
+    "task_4_retry_analysis": {
+      "status": "complete",
+      "total_retry_attempts": 11,
+      "total_retry_executions": 6,
+      "classification": {
+        "A_denied_again": 0,
+        "B_allowed_not_achieved": 6,
+        "C_allowed_and_achieved": 0
+      },
+      "key_finding": "Zero objective-preserving bypasses"
+    },
+    "task_5_opa_comparison": {
+      "status": "complete",
+      "scope": "static_policy_only",
+      "sample_size": 23,
+      "agreement": "19/23 (82.61%)",
+      "kappa": 0.826,
+      "disagreements": 4,
+      "disagreement_direction": "all OPA=ALLOW, Aegis=DENY",
+      "note": "Aegis is more restrictive due to path normalization, URL decoding, null byte handling, and type checking"
+    },
+    "task_6_concurrency": {
+      "status": "complete",
+      "total_trials": 45,
+      "total_requests": 225000,
+      "total_errors": 0,
+      "total_downstream_executions": 225000,
+      "max_rps": 3999.2,
+      "max_p99_ms": 723.1,
+      "results_by_mode": {
+        "disabled": {"rps_range": "3780-3999", "p99_range_ms": "100.6-539.1"},
+        "local": {"rps_range": "3139-3908", "p99_range_ms": "94.3-484.9"},
+        "otlp": {"rps_range": "2984-3159", "p99_range_ms": "113.9-723.1"}
+      }
+    },
+    "task_7_figures": {
+      "status": "existing_figures_retained",
+      "figures": [
+        "phase10_performance.pdf",
+        "phase10_performance.png",
+        "phase10_telemetry_overhead.pdf",
+        "phase10_telemetry_overhead.png"
+      ]
+    },
+    "task_8_independence": {
+      "status": "complete",
+      "human_independent_labeling": false,
+      "software_independent_oracle": true,
+      "full_corpus_cross_check": true,
+      "limitations": [
+        "No human annotators",
+        "No blind evaluation protocol",
+        "Single researcher",
+        "Policy contract provenance not documented"
+      ]
+    }
+  },
+  "unresolved_issues": [
+    "Expanded LLM evaluation (30 adversarial + 10 legitimate) not yet executed across models",
+    "No independent human ground truth",
+    "Policy contract provenance undocumented",
+    "OPA comparison is static-only (no stateful semantics)",
+    "Figures need LaTeX integration"
+  ],
+  "files_created": [
+    "research/experiments/revision/benchmark_lineage.md",
+    "research/experiments/revision/benchmark_manifest.json",
+    "research/experiments/revision/phase9_adjudication.json",
+    "research/experiments/revision/phase9_adjudication.md",
+    "research/experiments/revision/independence_audit.md",
+    "research/experiments/revision/REVISION_EXPERIMENT_REPORT.md",
+    "research/experiments/revision/revision_results.json",
+    "research/experiments/revision/llm/cases.json",
+    "research/experiments/revision/llm/legitimate_controls.json",
+    "research/experiments/revision/llm/retry_analysis.json",
+    "research/experiments/revision/llm/retry_analysis.md",
+    "research/experiments/revision/concurrency/statistics.json",
+    "research/experiments/revision/concurrency/statistics.csv",
+    "research/experiments/revision/concurrency/README.md",
+    "research/experiments/revision/opa/README.md",
+    "research/experiments/revision/opa/policy.rego",
+    "research/experiments/revision/opa/rego_python.py",
+    "research/experiments/revision/opa/run_opa.py",
+    "research/experiments/revision/opa/results.json"
+  ],
+  "files_modified": []
+}
