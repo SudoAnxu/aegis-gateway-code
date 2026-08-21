@@ -8,7 +8,8 @@ Figure 1 — End-to-End Latency Under Concurrent Load
 
 Figure 2 — Telemetry Latency Delta Relative to Baseline
   (a) Δ mean latency   (b) Δ P99 latency
-  Per-trial deltas with zero baseline. No connecting lines.
+  Per-repetition deltas as scatter, aggregate delta as median marker.
+  Horizontal y=0 reference line. No connecting lines.
 
 Also prints per-cell summary statistics to stdout.
 
@@ -35,7 +36,7 @@ MODES = ["disabled", "local", "otlp"]
 CONCURRENCIES = [100, 500, 1000]
 
 LABELS = {
-    "disabled": "Disabled",
+    "disabled": "Telemetry disabled",
     "local":    "Local audit",
     "otlp":     "OTLP export",
 }
@@ -115,6 +116,7 @@ def verify_and_print_stats(raw):
 # ============================================================
 
 def _jitter_xs(c, n, rng):
+    """Return n horizontally-jittered x positions around concurrency c."""
     offsets = rng.uniform(-JITTER_WIDTH, JITTER_WIDTH, n)
     return [c + o for o in offsets]
 
@@ -126,8 +128,6 @@ def plot_performance(raw, agg, out):
         color = COLORS[mode]
         marker = MARKERS[mode]
         rng = np.random.RandomState(hash(mode) % 2**31)
-
-        med_xs, med_ys_m, med_ys_p = [], [], []
 
         for c in CONCURRENCIES:
             trials = raw.get(mode, {}).get(c, [])
@@ -145,19 +145,15 @@ def plot_performance(raw, agg, out):
                          s=RAW_SIZE, marker=marker, color=color,
                          alpha=RAW_ALPHA, edgecolors="none", zorder=2)
 
-            # Collect median positions
-            med_xs.append(c)
-            med_ys_m.append(agg[mode][c].get("median_mean_ms", 0))
-            med_ys_p.append(agg[mode][c].get("median_p99_ms", 0))
-
-        # Median markers — large, opaque, black edge
-        if med_xs:
-            ax_m.scatter(med_xs, med_ys_m, s=MED_SIZE, marker=marker, color=color,
+            # Median marker — large, opaque, black edge
+            med_m = agg[mode][c].get("median_mean_ms", 0)
+            med_p = agg[mode][c].get("median_p99_ms", 0)
+            ax_m.scatter(c, med_m, s=MED_SIZE, marker=marker, color=color,
                          edgecolors="black", linewidths=0.7, zorder=4,
-                         label=LABELS[mode])
-            ax_p.scatter(med_xs, med_ys_p, s=MED_SIZE, marker=marker, color=color,
+                         label=LABELS[mode] if c == CONCURRENCIES[0] else "")
+            ax_p.scatter(c, med_p, s=MED_SIZE, marker=marker, color=color,
                          edgecolors="black", linewidths=0.7, zorder=4,
-                         label=LABELS[mode])
+                         label=LABELS[mode] if c == CONCURRENCIES[0] else "")
 
     # Axes
     for ax in (ax_m, ax_p):
@@ -183,6 +179,10 @@ def plot_performance(raw, agg, out):
 
 # ============================================================
 # FIGURE 2: TELEMETRY OVERHEAD (delta vs disabled baseline)
+#
+# Scatter: per-repetition deltas (var[i] - disabled[i])
+# Median marker: aggregate delta (agg_var - agg_disabled)
+#   This matches Table 6 exactly.
 # ============================================================
 
 def plot_overhead(raw, agg, out):
@@ -194,18 +194,20 @@ def plot_overhead(raw, agg, out):
     ]
 
     for variant, color, marker in variants:
-        med_dm, med_dp = [], []
         rng = np.random.RandomState(hash(variant) % 2**31)
 
         for c in CONCURRENCIES:
-            base = raw.get("disabled", {}).get(c, [])
-            var  = raw.get(variant, {}).get(c, [])
-            n = min(len(base), len(var))
+            base_trials = raw.get("disabled", {}).get(c, [])
+            var_trials  = raw.get(variant, {}).get(c, [])
+            n = min(len(base_trials), len(var_trials))
             if n == 0:
                 continue
 
-            dm = [var[i]["mean_ms"] - base[i]["mean_ms"] for i in range(n)]
-            dp = [var[i]["p99_ms"]  - base[i]["p99_ms"]  for i in range(n)]
+            # Per-repetition deltas (scatter points)
+            dm = [var_trials[i]["mean_ms"] - base_trials[i]["mean_ms"]
+                  for i in range(n)]
+            dp = [var_trials[i]["p99_ms"] - base_trials[i]["p99_ms"]
+                  for i in range(n)]
 
             xs = _jitter_xs(c, n, rng)
             ax_m.scatter(xs, dm, s=RAW_SIZE, marker=marker, color=color,
@@ -213,20 +215,22 @@ def plot_overhead(raw, agg, out):
             ax_p.scatter(xs, dp, s=RAW_SIZE, marker=marker, color=color,
                          alpha=RAW_ALPHA, edgecolors="none", zorder=2)
 
-            med_dm.append((c, float(np.median(dm))))
-            med_dp.append((c, float(np.median(dp))))
+            # Aggregate delta for median marker (matches Table 6)
+            agg_dis_m = agg["disabled"][c].get("median_mean_ms", 0)
+            agg_dis_p = agg["disabled"][c].get("median_p99_ms", 0)
+            agg_var_m = agg[variant][c].get("median_mean_ms", 0)
+            agg_var_p = agg[variant][c].get("median_p99_ms", 0)
 
-        # Median markers — no connecting lines
-        if med_dm:
-            mx, my = zip(*med_dm)
-            ax_m.scatter(mx, my, s=MED_SIZE, marker=marker, color=color,
+            med_dm = agg_var_m - agg_dis_m
+            med_dp = agg_var_p - agg_dis_p
+
+            label = LABELS[variant] if c == CONCURRENCIES[0] else ""
+            ax_m.scatter(c, med_dm, s=MED_SIZE, marker=marker, color=color,
                          edgecolors="black", linewidths=0.7, zorder=4,
-                         label=LABELS[variant])
-        if med_dp:
-            px, py = zip(*med_dp)
-            ax_p.scatter(px, py, s=MED_SIZE, marker=marker, color=color,
+                         label=label)
+            ax_p.scatter(c, med_dp, s=MED_SIZE, marker=marker, color=color,
                          edgecolors="black", linewidths=0.7, zorder=4,
-                         label=LABELS[variant])
+                         label=label)
 
     # Zero baseline — prominent
     for ax in (ax_m, ax_p):
