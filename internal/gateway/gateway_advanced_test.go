@@ -21,7 +21,6 @@ import (
 func TestPolicyReloadFailure(t *testing.T) {
 	dir := t.TempDir()
 
-	// Step 1: Write valid finance policy
 	financePolicy := []byte(`version: 1
 agents:
   - id: finance-agent
@@ -38,7 +37,6 @@ agents:
 		t.Fatal(err)
 	}
 
-	// Step 2: Start gateway with valid policy
 	logDir := t.TempDir()
 	auth := identity.NewTestAuthenticator(identity.StandardTestAgents())
 	pe, err := policy.NewPolicyEngine(dir)
@@ -52,7 +50,6 @@ agents:
 
 	g := NewGatewayWithAuth(pe, tc, auth)
 
-	// Step 3: Verify valid request works
 	req := makeRequest("POST", "/tools/payments/create", `{"amount":100,"currency":"USD"}`, "test-finance-token", "finance-agent")
 	w := httptest.NewRecorder()
 	g.HandleRequest(w, req)
@@ -60,7 +57,6 @@ agents:
 		t.Fatalf("initial request: expected 200, got %d", w.Code)
 	}
 
-	// Step 4: Replace policy with malformed YAML
 	malformedPolicy := []byte(`version: 1
 agents:
   - id: finance-agent
@@ -72,10 +68,8 @@ agents:
 		t.Fatal(err)
 	}
 
-	// Step 5: Wait for hot-reload to process
 	time.Sleep(200 * time.Millisecond)
 
-	// Step 6: Verify previous policy is still active
 	req2 := makeRequest("POST", "/tools/payments/create", `{"amount":100,"currency":"USD"}`, "test-finance-token", "finance-agent")
 	w2 := httptest.NewRecorder()
 	g.HandleRequest(w2, req2)
@@ -83,7 +77,6 @@ agents:
 		t.Errorf("after malformed reload: expected 200 (previous policy active), got %d", w2.Code)
 	}
 
-	// Step 7: Verify denied request is still denied
 	req3 := makeRequest("POST", "/tools/payments/create", `{"amount":99999,"currency":"USD"}`, "test-finance-token", "finance-agent")
 	w3 := httptest.NewRecorder()
 	g.HandleRequest(w3, req3)
@@ -128,7 +121,6 @@ agents:
 	var allowed int64
 	var denied int64
 
-	// Start concurrent evaluations
 	var done = make(chan struct{})
 	go func() {
 		for {
@@ -148,10 +140,8 @@ agents:
 		}
 	}()
 
-	// Trigger multiple reloads while evaluations are running
 	for i := 0; i < 5; i++ {
 		time.Sleep(50 * time.Millisecond)
-		// Write valid policy
 		os.WriteFile(policyFile, []byte(`version: 1
 agents:
   - id: finance-agent
@@ -173,7 +163,6 @@ agents:
 	if total == 0 {
 		t.Error("no requests processed")
 	}
-	// All requests should have been either allowed or denied, never crashed
 	t.Logf("concurrent policy reads: %d allowed, %d denied, %d total", allowed, denied, total)
 }
 
@@ -206,7 +195,6 @@ agents:
 
 	g := NewGatewayWithAuth(pe, tc, auth)
 
-	// Track downstream executions
 	var execCount int64
 	mockDownstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		atomic.AddInt64(&execCount, 1)
@@ -215,7 +203,6 @@ agents:
 	}))
 	t.Cleanup(func() { mockDownstream.Close() })
 
-	// Override tool URL to point to mock
 	g.toolURLs["payments"] = mockDownstream.URL
 
 	return g, &execCount
@@ -265,26 +252,62 @@ func TestDownstreamDenyParameter(t *testing.T) {
 		t.Errorf("expected 403, got %d", w.Code)
 	}
 	if atomic.LoadInt64(execCount) != 0 {
-		t.Errorf("SECURITY VIOLATION: downstream executed after parameter DENY")
+		t.Errorf("SECURITY VIOLATION: downstream executed %d times after DENY", atomic.LoadInt64(execCount))
 	}
 }
 
-// TestDownstreamDenySpoofing verifies zero downstream execution on identity spoofing.
-func TestDownstreamDenySpoofing(t *testing.T) {
+// TestAuthenticatedIdentityIgnoresClaim verifies that the authenticated
+// credential identity, rather than the model-claimed identity, controls
+// authorization. A finance credential remains authorized for payments even
+// when the request claims to be from hr-agent.
+func TestAuthenticatedIdentityIgnoresClaim(t *testing.T) {
 	g, execCount := testGatewayWithDownstream(t)
 
 	req := makeRequest("POST", "/tools/payments/create", `{"amount":100,"currency":"USD"}`, "test-finance-token", "hr-agent")
 	w := httptest.NewRecorder()
 	g.HandleRequest(w, req)
 
-	// Finance agent CAN create payments — this should be ALLOW
-	if w.Code == http.StatusOK {
-		t.Logf("identity spoofing: request allowed (finance-agent is authorized for payments)")
+	if w.Code != http.StatusOK {
+		t.Fatalf("expected 200: authenticated finance identity should authorize payment; got %d", w.Code)
 	}
+	if atomic.LoadInt64(execCount) != 1 {
+		t.Errorf("expected exactly 1 downstream execution, got %d", atomic.LoadInt64(execCount))
+	}
+}
 
-	// The key property: if denied, downstream must not execute
-	if w.Code == http.StatusForbidden && atomic.LoadInt64(execCount) != 0 {
-		t.Errorf("SECURITY VIOLATION: downstream executed after DENY")
+// TestSpoofedIdentityCannotGainPrivileges verifies the security-critical case:
+// a finance credential cannot gain HR file access merely by claiming hr-agent.
+func TestSpoofedIdentityCannotGainPrivileges(t *testing.T) {
+	g, execCount := testGatewayWithDownstream(t)
+
+	// Finance credential + HR claim must still authorize as finance-agent.
+	req := makeRequest("POST", "/tools/files/read", `{"path":"/hr-docs/report.pdf"}`, "test-finance-token", "hr-agent")
+	w := httptest.NewRecorder()
+	g.HandleRequest(w, req)
+
+	if w.Code != http.StatusForbidden {
+		t.Errorf("expected 403: spoofed HR claim must not grant file access, got %d", w.Code)
+	}
+	if atomic.LoadInt64(execCount) != 0 {
+		t.Errorf("SECURITY VIOLATION: downstream executed %d times after spoofed-identity DENY", atomic.LoadInt64(execCount))
+	}
+}
+
+// TestReverseIdentityClaimCannotRemovePrivileges verifies that a legitimate
+// HR credential retains HR authorization even when the request claims to be
+// finance-agent.
+func TestReverseIdentityClaimCannotRemovePrivileges(t *testing.T) {
+	g, _ := testGatewayWithDownstream(t)
+
+	// The downstream helper only installs a payments endpoint; authorization is
+	// the property under test here. HR credential + finance claim must resolve
+	// to hr-agent and therefore be authorized for HR file reads.
+	req := makeRequest("POST", "/tools/files/read", `{"path":"/hr-docs/report.pdf"}`, "test-hr-token", "finance-agent")
+	w := httptest.NewRecorder()
+	g.HandleRequest(w, req)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("expected 200: authenticated HR identity should authorize file read; got %d", w.Code)
 	}
 }
 
@@ -309,11 +332,9 @@ func TestDownstreamAllowExecutesExactlyOnce(t *testing.T) {
 func TestDownstreamDenyDuplicateRequest(t *testing.T) {
 	g, execCount := testGatewayWithDownstream(t)
 
-	// Seed the state with an existing transaction
 	g.state.ReserveCreate("tx-dup-test")
 	g.state.CommitCreate("tx-dup-test")
 
-	// Try to create same transaction — should be denied
 	body := `{"transaction_id":"tx-dup-test","amount":100,"currency":"USD"}`
 	req := makeRequest("POST", "/tools/payments/create", body, "test-finance-token", "finance-agent")
 	w := httptest.NewRecorder()
@@ -348,7 +369,6 @@ func TestDownstreamConcurrentDuplicates(t *testing.T) {
 
 	wg.Wait()
 
-	// Exactly one downstream execution should have occurred
 	count := atomic.LoadInt64(execCount)
 	if count != 1 {
 		t.Errorf("SECURITY VIOLATION: %d downstream executions for %d concurrent duplicate requests (expected 1)", count, N)
