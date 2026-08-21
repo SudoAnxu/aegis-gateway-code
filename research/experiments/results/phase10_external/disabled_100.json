@@ -1,0 +1,23 @@
+{
+  "action": "create",
+  "agent": "finance-agent",
+  "levels": [
+    {
+      "concurrency": 100,
+      "downstream_executed": 1000,
+      "max_ms": 236.101,
+      "mean_ms": 58.82279000000009,
+      "p50_ms": 37.704,
+      "p95_ms": 222.73,
+      "p99_ms": 228.66206,
+      "request_errors": 0,
+      "requests": 1000,
+      "throughput_rps": 1621.7469782799426,
+      "wall_time_ms": 616.619
+    }
+  ],
+  "protocol": "phase10-concurrency-load-go",
+  "requests_per_level": 1000,
+  "tool": "payments",
+  "url": "http://127.0.0.1:8080"
+}

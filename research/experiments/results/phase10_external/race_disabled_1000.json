@@ -1,0 +1,13 @@
+{
+  "allow_count": 0,
+  "concurrency": 1000,
+  "deny_count": 812,
+  "downstream_executed": 0,
+  "error_count": 188,
+  "p95_ms": 478.985,
+  "p99_ms": 540.907,
+  "security_pass": true,
+  "test": "duplicate-race",
+  "transaction_id": "race-1787293957118701300",
+  "wall_time_ms": 619.87
+}

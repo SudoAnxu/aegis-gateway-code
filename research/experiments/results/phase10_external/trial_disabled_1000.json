@@ -1,0 +1,89 @@
+{
+  "aggregated": {
+    "concurrency": 1000,
+    "requests": 5000,
+    "repetitions": 5,
+    "median_rps": 3999.1905638298813,
+    "rps_range": 2678.2936623120713,
+    "median_mean_ms": 214.95923279999886,
+    "median_p50_ms": 199.1645,
+    "median_p95_ms": 370.166,
+    "median_p99_ms": 539.0619900000007,
+    "median_max_ms": 561.104,
+    "median_errors": 0,
+    "median_downstream": 5000,
+    "median_error_rate_pct": 0
+  },
+  "trials": [
+    {
+      "concurrency": 1000,
+      "requests": 5000,
+      "wall_time_ms": 2435.012,
+      "throughput_rps": 2053.377971032586,
+      "mean_ms": 440.3858716000005,
+      "p50_ms": 360.22749999999996,
+      "p95_ms": 937.0448500000001,
+      "p99_ms": 1151.8766200000005,
+      "max_ms": 1488.955,
+      "downstream_executed": 4608,
+      "request_errors": 392,
+      "deny_count": 0
+    },
+    {
+      "concurrency": 1000,
+      "requests": 5000,
+      "wall_time_ms": 1278.715,
+      "throughput_rps": 3910.175449572423,
+      "mean_ms": 226.4604557999988,
+      "p50_ms": 209.437,
+      "p95_ms": 395.096,
+      "p99_ms": 569.3822300000002,
+      "max_ms": 776.894,
+      "downstream_executed": 5000,
+      "request_errors": 0,
+      "deny_count": 0
+    },
+    {
+      "concurrency": 1000,
+      "requests": 5000,
+      "wall_time_ms": 1250.253,
+      "throughput_rps": 3999.1905638298813,
+      "mean_ms": 214.95923279999886,
+      "p50_ms": 199.1645,
+      "p95_ms": 345.653,
+      "p99_ms": 539.0619900000007,
+      "max_ms": 547.033,
+      "downstream_executed": 5000,
+      "request_errors": 0,
+      "deny_count": 0
+    },
+    {
+      "concurrency": 1000,
+      "requests": 5000,
+      "wall_time_ms": 1140.792,
+      "throughput_rps": 4382.91993632494,
+      "mean_ms": 200.93257939999955,
+      "p50_ms": 187.293,
+      "p95_ms": 370.166,
+      "p99_ms": 400.682,
+      "max_ms": 561.104,
+      "downstream_executed": 5000,
+      "request_errors": 0,
+      "deny_count": 0
+    },
+    {
+      "concurrency": 1000,
+      "requests": 5000,
+      "wall_time_ms": 1056.709,
+      "throughput_rps": 4731.6716333446575,
+      "mean_ms": 166.7375245999992,
+      "p50_ms": 139.259,
+      "p95_ms": 340.97345,
+      "p99_ms": 464.40773,
+      "max_ms": 492.369,
+      "downstream_executed": 5000,
+      "request_errors": 0,
+      "deny_count": 0
+    }
+  ]
+}

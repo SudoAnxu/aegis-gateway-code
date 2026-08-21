@@ -1,0 +1,89 @@
+{
+  "aggregated": {
+    "concurrency": 1000,
+    "requests": 5000,
+    "repetitions": 5,
+    "median_rps": 3159.166384447803,
+    "rps_range": 2139.0280536199944,
+    "median_mean_ms": 290.7531593999991,
+    "median_p50_ms": 241.37,
+    "median_p95_ms": 621.737,
+    "median_p99_ms": 723.135,
+    "median_max_ms": 895.831,
+    "median_errors": 0,
+    "median_downstream": 5000,
+    "median_error_rate_pct": 0
+  },
+  "trials": [
+    {
+      "concurrency": 1000,
+      "requests": 5000,
+      "wall_time_ms": 3782.056,
+      "throughput_rps": 1322.0322491258723,
+      "mean_ms": 693.6535966000002,
+      "p50_ms": 591.0705,
+      "p95_ms": 1312.563,
+      "p99_ms": 1596.33056,
+      "max_ms": 1648.192,
+      "downstream_executed": 4724,
+      "request_errors": 276,
+      "deny_count": 0
+    },
+    {
+      "concurrency": 1000,
+      "requests": 5000,
+      "wall_time_ms": 1471.446,
+      "throughput_rps": 3398.0180040585933,
+      "mean_ms": 275.80482120000227,
+      "p50_ms": 209.854,
+      "p95_ms": 621.737,
+      "p99_ms": 689.9825300000066,
+      "max_ms": 845.353,
+      "downstream_executed": 5000,
+      "request_errors": 0,
+      "deny_count": 0
+    },
+    {
+      "concurrency": 1000,
+      "requests": 5000,
+      "wall_time_ms": 1444.644,
+      "throughput_rps": 3461.060302745867,
+      "mean_ms": 270.1306760000028,
+      "p50_ms": 241.37,
+      "p95_ms": 470.45,
+      "p99_ms": 596.265,
+      "max_ms": 714.777,
+      "downstream_executed": 5000,
+      "request_errors": 0,
+      "deny_count": 0
+    },
+    {
+      "concurrency": 1000,
+      "requests": 5000,
+      "wall_time_ms": 1759.482,
+      "throughput_rps": 2841.7454682685016,
+      "mean_ms": 303.3658274000023,
+      "p50_ms": 234.458,
+      "p95_ms": 693.9675500000005,
+      "p99_ms": 825.1660000000002,
+      "max_ms": 1057.605,
+      "downstream_executed": 5000,
+      "request_errors": 0,
+      "deny_count": 0
+    },
+    {
+      "concurrency": 1000,
+      "requests": 5000,
+      "wall_time_ms": 1582.696,
+      "throughput_rps": 3159.166384447803,
+      "mean_ms": 290.7531593999991,
+      "p50_ms": 248.415,
+      "p95_ms": 569.79715,
+      "p99_ms": 723.135,
+      "max_ms": 895.831,
+      "downstream_executed": 5000,
+      "request_errors": 0,
+      "deny_count": 0
+    }
+  ]
+}
